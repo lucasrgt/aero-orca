@@ -25,6 +25,7 @@ import {
 } from './local-sandbox-docker'
 import { resolveLocalSandboxAssets } from './local-sandbox-orcad-bundle'
 import {
+  findLocalSandboxByEnvironmentId,
   readLocalSandboxRecords,
   removeLocalSandboxRecord,
   upsertLocalSandboxRecord
@@ -197,6 +198,33 @@ export async function stopLocalSandbox(
   } catch (error) {
     return { ok: false, message: error instanceof Error ? error.message : String(error) }
   }
+}
+
+export async function ensureLocalSandboxStartedForEnvironment(
+  userDataPath: string,
+  environmentId: string
+): Promise<void> {
+  const record = await findLocalSandboxByEnvironmentId(userDataPath, environmentId)
+  if (!record) {
+    return
+  }
+  const status = await inspectSandboxContainerStatus(record.containerName)
+  if (status === 'stopped') {
+    await startExistingSandboxContainer(record.containerName)
+    await waitForSandboxOrcadPairingUrl(record.containerName)
+  }
+}
+
+export async function cleanupLocalSandboxForEnvironment(
+  userDataPath: string,
+  environmentId: string
+): Promise<void> {
+  const record = await findLocalSandboxByEnvironmentId(userDataPath, environmentId)
+  if (!record) {
+    return
+  }
+  await removeLocalSandboxRecord(userDataPath, record.id)
+  await removeSandboxContainer(record.containerName, record.volumeName, true).catch(() => {})
 }
 
 export async function removeLocalSandbox(

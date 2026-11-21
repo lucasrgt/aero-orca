@@ -29901,6 +29901,9 @@
       "creating": "Creating…",
       "create": "Create sandbox",
       "desktopOnly": "Local sandboxes are only available in the Orca desktop app."
+    },
+    "botHeader": {
+      "openScreen": "Open sandbox screen"
     }
   }
 }

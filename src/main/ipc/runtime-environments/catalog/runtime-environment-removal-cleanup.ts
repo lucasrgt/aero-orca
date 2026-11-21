@@ -14,6 +14,7 @@ import {
   type RemoteLayoutSnapshotStore
 } from '../../../remote-layout-snapshot/remote-layout-snapshot-recorder'
 import type { HostRepoCatalogSnapshotStore } from '../../../host-repo-catalog-snapshot/host-repo-catalog-snapshot-recorder'
+import { cleanupLocalSandboxForEnvironment } from '../../../local-sandbox/local-sandbox-service'
 
 export type RemovedServerStore = RemoteLayoutSnapshotStore &
   Pick<HostRepoCatalogSnapshotStore, 'setHostRepoCatalogSnapshot'> & {
@@ -29,6 +30,7 @@ export function retireRemovedRuntimeEnvironment(
 ): Promise<void> {
   if (userDataPath) {
     void desktopChatCreationHistory(userDataPath).removeEnvironment(environmentId)
+    void cleanupLocalSandboxForEnvironment(userDataPath, environmentId).catch(() => {})
   }
   clearRuntimeEnvironmentCapabilityEvidence(environmentId)
   revokeRemoteFilePreviewGrants(environmentId)

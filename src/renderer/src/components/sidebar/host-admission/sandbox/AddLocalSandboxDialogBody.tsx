@@ -122,33 +122,38 @@ export function AddLocalSandboxDialogBody({
     setActiveRequestId(requestId)
     setProgressDetail(t('localSandbox.add.starting', 'Preparing local sandbox…'))
     onCreatingChange(true)
-    try {
-      const result = await api.create({
+    await api
+      .create({
         requestId,
         name: name.trim(),
         geometry,
         shareHostAgents
       })
-      if (!result.ok) {
-        setError(result.message)
-        return
-      }
-      const environments = await window.api.runtimeEnvironments.list()
-      setRuntimeEnvironments(environments)
-      await readRuntimeHostStatusSnapshots()
-      toast.success(
-        t('localSandbox.add.created', 'Local sandbox "{{name}}" is ready.', {
-          name: result.sandbox.name
-        })
+      .then(
+        async (result) => {
+          if (!result.ok) {
+            setError(result.message)
+            return
+          }
+          const environments = await window.api.runtimeEnvironments.list()
+          setRuntimeEnvironments(environments)
+          await readRuntimeHostStatusSnapshots()
+          toast.success(
+            t('localSandbox.add.created', 'Local sandbox "{{name}}" is ready.', {
+              name: result.sandbox.name
+            })
+          )
+          onCreated(result.sandbox.environmentId)
+        },
+        (cause: unknown) => {
+          setError(cause instanceof Error ? cause.message : String(cause))
+        }
       )
-      onCreated(result.sandbox.environmentId)
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : String(cause))
-    } finally {
-      onCreatingChange(false)
-      setActiveRequestId(null)
-      setProgressDetail(null)
-    }
+      .finally(() => {
+        onCreatingChange(false)
+        setActiveRequestId(null)
+        setProgressDetail(null)
+      })
   }
 
   return (

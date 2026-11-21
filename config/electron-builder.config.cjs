@@ -155,6 +155,13 @@ const localSandboxResources = {
   from: 'resources/local-sandbox',
   to: 'local-sandbox'
 }
+// Single-platform local builds ship out/orcad directly so Local Sandbox works without cross-compiled multi-OS templates.
+const localSandboxOrcadResources = existsSync(join(__dirname, '..', 'out', 'orcad', 'orcad.js'))
+  ? [
+      { from: 'out/orcad', to: 'local-sandbox-orcad' },
+      { from: 'out/orcad/node_modules', to: 'local-sandbox-orcad/node_modules' }
+    ]
+  : []
 // SSH deploy resolves process.resourcesPath/relay; extraResources keeps bundles on real disk.
 const relayExtraResource = {
   from: 'out/relay',
@@ -195,6 +202,7 @@ const commonExtraResources = [
   ...agentBrowserSkillResources,
   nativeChatVisualsResource,
   localSandboxResources,
+  ...localSandboxOrcadResources,
   emojiShortcodeDatasetResource
 ]
 // electron-builder replaces these defaults when `depends` is configured; retain

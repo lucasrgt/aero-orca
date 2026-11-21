@@ -1,13 +1,12 @@
 import { access, readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { app } from 'electron'
+import { APPIMAGE_NODE_RUNTIME_SEGMENTS } from '../../shared/desktop-distribution/appimage/appimage-node-runtime'
 import {
-  ORCAD_NODE_RUNTIME_MARKER_FILENAME,
-  ORCAD_LAUNCHER_FILENAME
+  ORCAD_LAUNCHER_FILENAME,
+  ORCAD_NODE_RUNTIME_MARKER_FILENAME
 } from '../../shared/remote-runtime/orcad-distribution/orcad-artifacts'
 import type { NodeRuntimeTarget } from '../../shared/node-runtime/node-runtime-pin'
-import { materializeOrcadArtifact } from '../orcad/artifact-slots/orcad-artifact-materializer'
-import { findAppImageNodeRuntime } from '../node-runtime/appimage-bundled-node-runtime'
 import { materializeCachedNodeRuntime } from '../node-runtime/pinned-runtime-materializer'
 
 export type LocalSandboxAssets = {
@@ -72,6 +71,35 @@ async function resolveDevOrcadBundle(): Promise<{
   return null
 }
 
+async function resolvePackagedSandboxOrcadBundle(
+  target: NodeRuntimeTarget,
+  userDataPath: string
+): Promise<{
+  orcadDir: string
+  nodeBinaryPath: string
+  nodeRuntimeSha: string
+} | null> {
+  if (!process.resourcesPath) {
+    return null
+  }
+  const orcadDir = join(process.resourcesPath, 'local-sandbox-orcad')
+  const entry = join(orcadDir, ORCAD_LAUNCHER_FILENAME)
+  const markerFile = join(orcadDir, ORCAD_NODE_RUNTIME_MARKER_FILENAME)
+  if (!(await pathExists(entry)) || !(await pathExists(markerFile))) {
+    return null
+  }
+  const nodeRuntimeSha = (await readFile(markerFile, 'utf8')).trim()
+  if (!nodeRuntimeSha) {
+    return null
+  }
+  const bundledNodePath = join(process.resourcesPath, ...APPIMAGE_NODE_RUNTIME_SEGMENTS)
+  const nodeBinaryPath =
+    process.platform === 'linux' && (await pathExists(bundledNodePath))
+      ? bundledNodePath
+      : await materializeCachedNodeRuntime(target, join(userDataPath, 'orcad-artifacts'), {})
+  return { orcadDir, nodeBinaryPath, nodeRuntimeSha }
+}
+
 /** Resolves the sandbox Docker build context plus the Linux orcad and Node 24 bundle to mount in the container. */
 export async function resolveLocalSandboxAssets(userDataPath: string): Promise<LocalSandboxAssets> {
   const resourcesDir = await resolveSandboxResourcesDir()
@@ -80,26 +108,11 @@ export async function resolveLocalSandboxAssets(userDataPath: string): Promise<L
     return { resourcesDir, ...devBundle }
   }
   const target = linuxContainerTarget()
-  try {
-    const orcadDir = await materializeOrcadArtifact(target)
-    const nodeRuntimeSha = (
-      await readFile(join(orcadDir, ORCAD_NODE_RUNTIME_MARKER_FILENAME), 'utf8')
-    ).trim()
-    const bundledNode = findAppImageNodeRuntime(process.resourcesPath)
-    const nodeBinaryPath =
-      bundledNode && bundledNode.target === target
-        ? bundledNode.path
-        : await materializeCachedNodeRuntime(target, join(userDataPath, 'orcad-artifacts'), {})
-    return {
-      resourcesDir,
-      orcadDir,
-      nodeBinaryPath,
-      nodeRuntimeSha
-    }
-  } catch (error) {
-    const reason = error instanceof Error ? error.message : String(error)
-    throw new Error(
-      `Could not locate the Linux Orca server bundle (orcad) for the sandbox: ${reason}. In a dev checkout, run "pnpm run build:orcad" first.`
-    )
+  const packagedBundle = await resolvePackagedSandboxOrcadBundle(target, userDataPath)
+  if (packagedBundle) {
+    return { resourcesDir, ...packagedBundle }
   }
+  throw new Error(
+    'Could not locate the Linux Orca server bundle (orcad) for the sandbox. In a dev checkout, run "pnpm run build:orcad" first.'
+  )
 }

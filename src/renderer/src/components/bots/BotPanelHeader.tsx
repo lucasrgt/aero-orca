@@ -28,6 +28,7 @@ import { botErrorMessage } from './bot-presentation'
 import { setBotSettingsPlace } from './settings-view/bot-settings-place'
 import { BotPictureButton } from './BotPictureButton'
 import { BotPanelHostLine } from './BotPanelHostLine'
+import { BotSandboxScreenButton } from './BotSandboxScreenButton'
 import { BotRowLineText, useBotRowLine } from './BotRowActivityLine'
 import { BotShareFlow } from './sharing/BotShareFlow'
 import { formatWaitTime } from './bot-wait-copy'
@@ -225,6 +226,7 @@ export function BotPanelHeader({
         )}
       </div>
       {filter}
+      <BotSandboxScreenButton hostId={bot.hostId} disabled={offline} />
       <Tooltip>
         <TooltipTrigger asChild>
           <Button

@@ -61,18 +61,17 @@ export function LocalSandboxesSection({
     successMessage: string
   ): Promise<void> => {
     setBusyId(id)
-    try {
-      const result = await action()
-      if (!result.ok) {
-        toast.error(result.message ?? t('localSandbox.actionFailed', 'Sandbox action failed.'))
-        return
-      }
-      toast.success(successMessage)
-      await refresh()
-      onChanged?.()
-    } finally {
-      setBusyId(null)
-    }
+    await action()
+      .then(async (result) => {
+        if (!result.ok) {
+          toast.error(result.message ?? t('localSandbox.actionFailed', 'Sandbox action failed.'))
+          return
+        }
+        toast.success(successMessage)
+        await refresh()
+        onChanged?.()
+      })
+      .finally(() => setBusyId(null))
   }
 
   return (
