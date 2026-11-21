@@ -67,12 +67,22 @@ export function NativeChatNewRowsMarker({
       aria-label={label}
       // Nothing to click; pulled up over your bubble's copy button, it must not take its clicks or hover.
       className={cn(
-        'pointer-events-none flex items-center gap-3 text-2xs font-semibold uppercase tracking-[0.05em] text-chat-unread transition-opacity duration-300 ease-out starting:opacity-0 motion-reduce:transition-none',
+        'pointer-events-none flex items-center gap-2.5 transition-opacity duration-300 ease-out starting:opacity-0 motion-reduce:transition-none',
         className
       )}
     >
-      <span>{label}</span>
-      <span aria-hidden className="h-px flex-1 bg-chat-unread/50" />
+      <span
+        aria-hidden
+        className="h-px flex-1 bg-linear-to-r from-transparent to-chat-composer-border"
+      />
+      <span className="inline-flex items-center gap-1.5 rounded-full border border-chat-composer-border bg-chat-pane px-2.5 py-0.5 text-2xs font-medium tracking-[0.01em] text-chat-foreground-faint shadow-2xs">
+        <span aria-hidden className="size-[5px] shrink-0 rounded-full bg-chat-foreground/65" />
+        <span>{label}</span>
+      </span>
+      <span
+        aria-hidden
+        className="h-px flex-1 bg-linear-to-l from-transparent to-chat-composer-border"
+      />
     </div>
   )
 }
