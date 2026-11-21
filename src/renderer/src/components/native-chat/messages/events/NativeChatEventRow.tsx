@@ -34,7 +34,7 @@ function NativeChatEventIcon({
       {badge ? (
         <span className="absolute -right-1 -bottom-1 flex size-2.5 items-center justify-center rounded-full bg-chat-pane">
           {badge === 'running' ? (
-            <AgentWorkingSpinner className="size-[7px] border-[1.5px]" />
+            <AgentWorkingSpinner className="size-2" />
           ) : (
             <span className="flex size-2 items-center justify-center rounded-full bg-destructive text-chat-pane">
               <X className="size-1.5" strokeWidth={4} aria-hidden />

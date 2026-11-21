@@ -13,7 +13,7 @@ import {
   NativeChatReasoningChevron
 } from './NativeChatReasoningDisclosure'
 import { useNativeChatDisclosure } from '../disclosure/native-chat-disclosure-store'
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
+import { PixelSpinner } from '@/components/ui/PixelSpinner'
 
 // Literal keys with literal fallbacks: a dynamic key registers no catalog reference.
 function statusLabel(
@@ -58,7 +58,7 @@ export function NativeChatTurnActivityLine({
         aria-live="polite"
         aria-atomic="true"
       >
-        <LoadingSpinner className="size-4 shrink-0" />
+        <PixelSpinner className="size-3.5 shrink-0" />
         <span id={labelId} className="min-w-0 truncate text-chat-foreground">
           {label}
         </span>

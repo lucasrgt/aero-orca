@@ -24,7 +24,7 @@ import { openSlotTarget, type SlotTarget } from './worktree-card-slot-targets'
 export function SlotKindGlyph({
   kind,
   monitoring = false,
-  spinnerClassName = 'size-2'
+  spinnerClassName = 'size-2.5'
 }: {
   kind: SlotLineKind
   /** Working, but watching rather than taking turns. */
@@ -40,7 +40,7 @@ export function SlotKindGlyph({
       return monitoring ? (
         <Activity className="size-2.5 shrink-0 text-agent-working" aria-hidden />
       ) : (
-        <AgentWorkingSpinner className={cn(spinnerClassName, 'border-[1.5px]')} />
+        <AgentWorkingSpinner className={cn(spinnerClassName, 'shrink-0')} />
       )
     case 'unread':
       return <span className="size-1.5 shrink-0 rounded-full bg-unread" />

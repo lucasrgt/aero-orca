@@ -2239,6 +2239,80 @@ html.native-shell .app-layout {
   animation: agent-spinner-rotate 86400s steps(1036800, end) infinite;
 }
 
+/* 3x3 perimeter pixel-ring spinner: opacity-only trail stays on the compositor thread. */
+@keyframes pixel-spinner-trail {
+  0% {
+    opacity: 1;
+  }
+  12.5% {
+    opacity: 0.62;
+  }
+  25% {
+    opacity: 0.38;
+  }
+  37.5%,
+  100% {
+    opacity: 0.16;
+  }
+}
+
+.pixel-spinner-cell {
+  position: absolute;
+  width: 27%;
+  height: 27%;
+  border-radius: 18%;
+  background: currentColor;
+  animation: pixel-spinner-trail 880ms step-end infinite;
+}
+
+.pixel-spinner-cell:nth-child(1) {
+  left: 0%;
+  top: 0%;
+  animation-delay: -880ms;
+}
+
+.pixel-spinner-cell:nth-child(2) {
+  left: 36.5%;
+  top: 0%;
+  animation-delay: -770ms;
+}
+
+.pixel-spinner-cell:nth-child(3) {
+  left: 73%;
+  top: 0%;
+  animation-delay: -660ms;
+}
+
+.pixel-spinner-cell:nth-child(4) {
+  left: 73%;
+  top: 36.5%;
+  animation-delay: -550ms;
+}
+
+.pixel-spinner-cell:nth-child(5) {
+  left: 73%;
+  top: 73%;
+  animation-delay: -440ms;
+}
+
+.pixel-spinner-cell:nth-child(6) {
+  left: 36.5%;
+  top: 73%;
+  animation-delay: -330ms;
+}
+
+.pixel-spinner-cell:nth-child(7) {
+  left: 0%;
+  top: 73%;
+  animation-delay: -220ms;
+}
+
+.pixel-spinner-cell:nth-child(8) {
+  left: 0%;
+  top: 36.5%;
+  animation-delay: -110ms;
+}
+
 /* The rings' cadence and clock: a smooth spin made the GPU present every refresh; these steps land on the rings' frames. */
 .loading-spinner {
   animation: agent-spinner-rotate 86400s steps(1036800, end) infinite;
@@ -2251,7 +2325,8 @@ html.native-shell .app-layout {
 }
 
 .agent-working-spinner[data-animation-offscreen],
-.loading-spinner[data-animation-offscreen] {
+.loading-spinner[data-animation-offscreen],
+.pixel-spinner[data-animation-offscreen] .pixel-spinner-cell {
   animation: none;
 }
 
@@ -2259,9 +2334,26 @@ html.native-shell .app-layout {
 @media (prefers-reduced-motion: reduce) {
   .agent-working-spinner,
   .loading-spinner,
+  .pixel-spinner-cell,
   .animate-spin,
   .animate-pulse {
     animation: none;
+  }
+
+  .pixel-spinner-cell {
+    opacity: 0.16;
+  }
+
+  .pixel-spinner-cell:nth-child(1) {
+    opacity: 1;
+  }
+
+  .pixel-spinner-cell:nth-child(8) {
+    opacity: 0.62;
+  }
+
+  .pixel-spinner-cell:nth-child(7) {
+    opacity: 0.38;
   }
 }
 
