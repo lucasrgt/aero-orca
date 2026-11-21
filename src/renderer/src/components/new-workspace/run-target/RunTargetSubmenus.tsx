@@ -1,5 +1,5 @@
 import React from 'react'
-import { ChevronDown, Cloud, Plus, Server } from 'lucide-react'
+import { ChevronDown, Cloud, Monitor, Plus, Server } from 'lucide-react'
 import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
 import { cn } from '@/lib/class-names'
 import { useTranslate } from '@/i18n/use-translate'
@@ -97,7 +97,8 @@ export function AddHostSubmenuRow({
   optionId,
   onArm,
   onAddSshHost,
-  onAddRemoteServer
+  onAddRemoteServer,
+  onAddLocalSandbox
 }: {
   open: boolean
   focusOnOpen: boolean
@@ -108,6 +109,7 @@ export function AddHostSubmenuRow({
   onArm: () => void
   onAddSshHost?: () => void
   onAddRemoteServer?: () => void
+  onAddLocalSandbox?: () => void
 }): React.JSX.Element {
   const t = useTranslate()
   const [hoveredKey, setHoveredKey] = React.useState<string | null>(null)
@@ -223,6 +225,20 @@ export function AddHostSubmenuRow({
               optionId={undefined}
               onArm={() => setHoveredKey('remote')}
               onCommit={onAddRemoteServer}
+            />
+          ) : null}
+          {onAddLocalSandbox ? (
+            <RunTargetRow
+              icon={<Monitor className="size-3.5 shrink-0 text-muted-foreground" />}
+              label={t('localSandbox.addHost.label', 'Add Local Sandbox')}
+              detail={t('localSandbox.addHost.detail', 'Run an isolated Linux desktop in Docker')}
+              armed={hoveredKey === 'sandbox'}
+              current={false}
+              keyboardFocusable
+              stacked
+              optionId={undefined}
+              onArm={() => setHoveredKey('sandbox')}
+              onCommit={onAddLocalSandbox}
             />
           ) : null}
         </div>

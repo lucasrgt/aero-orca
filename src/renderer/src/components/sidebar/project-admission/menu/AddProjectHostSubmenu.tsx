@@ -262,6 +262,21 @@ export function AddProjectHostSubmenu({
                     </span>
                   </span>
                 </DropdownMenuItem>
+                {window.api?.runtimeEnvironments?.localSandboxes ? (
+                  <DropdownMenuItem onSelect={() => handleOpenAddHost('sandbox')}>
+                    <span className="flex flex-col items-start gap-0.5 py-0.5">
+                      <span className="text-xs font-medium text-foreground">
+                        {t('localSandbox.addHost.label', 'Add Local Sandbox')}
+                      </span>
+                      <span className="text-2xs text-muted-foreground">
+                        {t(
+                          'localSandbox.addHost.detail',
+                          'Run an isolated Linux desktop in Docker'
+                        )}
+                      </span>
+                    </span>
+                  </DropdownMenuItem>
+                ) : null}
                 {!wslHostsAcceptNewWork && wslHostsPausedNote ? (
                   <p className="px-2.5 py-1.5 text-2xs text-muted-foreground">
                     {wslHostsPausedNote}

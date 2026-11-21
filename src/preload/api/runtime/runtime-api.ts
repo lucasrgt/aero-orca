@@ -9,6 +9,7 @@ import type {
 } from '../../../shared/remote-runtime/host-catalog/runtime-environment-subscription-setup'
 import type { ManagedOrcadPreloadApi } from './managed-orcad-api'
 import type { WslHostsPreloadApi } from '../wsl/wsl-hosts-api'
+import type { LocalSandboxesPreloadApi } from '../local-sandbox/local-sandboxes-api'
 import type { RuntimeHostStatusSnapshot } from '../../../shared/remote-runtime/host-status/runtime-host-status'
 import type {
   RuntimeRendererSyncWindowGraph,
@@ -188,6 +189,8 @@ export type RuntimeApi = {
     managedOrcad?: ManagedOrcadPreloadApi
     // Only Windows desktops (or e2e fakes) host WSL distros.
     wslHosts?: WslHostsPreloadApi
+    // Local Docker-backed Linux sandboxes (desktop only).
+    localSandboxes?: LocalSandboxesPreloadApi
   }
   wsl: {
     isAvailable: () => Promise<boolean>

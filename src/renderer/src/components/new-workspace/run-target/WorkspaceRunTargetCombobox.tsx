@@ -29,6 +29,7 @@ export default function WorkspaceRunTargetCombobox({
   onRecipeChange?: (recipeId: string | null) => void
   onAddRemoteServer?: () => void
   onAddSshHost?: () => void
+  onAddLocalSandbox?: () => void
 }): React.JSX.Element {
   const [connectingHosts, setConnectingHosts] = useState<ReadonlySet<ExecutionHostId>>(
     () => new Set()

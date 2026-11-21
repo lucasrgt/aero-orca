@@ -29860,5 +29860,47 @@
       "workerOwed": "An orchestration still waits on this chat",
       "home": "A managed agent's Home Chat can't be deleted"
     }
+  },
+  "localSandbox": {
+    "addHost": {
+      "label": "Add Local Sandbox",
+      "detail": "Run an isolated Linux desktop in Docker"
+    },
+    "status": {
+      "running": "Running",
+      "stopped": "Stopped",
+      "missing": "Missing"
+    },
+    "actionFailed": "Sandbox action failed.",
+    "section": {
+      "title": "Local sandboxes",
+      "description": "Isolated Docker Linux desktops with built-in Orca servers and noVNC screens.",
+      "add": "Add local sandbox"
+    },
+    "actions": {
+      "openScreen": "Open screen",
+      "stopped": "Sandbox stopped.",
+      "started": "Sandbox started.",
+      "stop": "Stop",
+      "start": "Start",
+      "remove": "Remove sandbox",
+      "removed": "Sandbox removed."
+    },
+    "add": {
+      "starting": "Preparing local sandbox…",
+      "created": "Local sandbox \"{{name}}\" is ready.",
+      "title": "Add local sandbox",
+      "description": "Start an isolated Linux desktop in Docker with its own Orca server, Chromium, AT-SPI computer use, and noVNC screen.",
+      "dockerUnavailable": "Docker is required to run local sandboxes.",
+      "nameLabel": "Name",
+      "namePlaceholder": "Local Sandbox",
+      "resolutionLabel": "Virtual screen resolution",
+      "shareAgentsLabel": "Share host agent CLIs & logins",
+      "shareAgentsHelp": "Mount installed Claude, Codex, and Agy binaries read-only and seed credentials so bots work right away while keeping files isolated.",
+      "dockerVersion": "Docker {{version}}",
+      "creating": "Creating…",
+      "create": "Create sandbox",
+      "desktopOnly": "Local sandboxes are only available in the Orca desktop app."
+    }
   }
 }

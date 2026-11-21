@@ -31,5 +31,11 @@ export const RUNTIME_ENVIRONMENT_HANDLER_CHANNELS = [
   'runtimeEnvironments:previewOrcadDeltaMove',
   'runtimeEnvironments:moveOrcadDelta',
   'runtimeEnvironments:keepOrcadServerVersion',
-  'runtimeEnvironments:allowOrcadMoveLeavingBehind'
+  'runtimeEnvironments:allowOrcadMoveLeavingBehind',
+  'localSandboxes:checkDocker',
+  'localSandboxes:list',
+  'localSandboxes:create',
+  'localSandboxes:start',
+  'localSandboxes:stop',
+  'localSandboxes:remove'
 ] as const

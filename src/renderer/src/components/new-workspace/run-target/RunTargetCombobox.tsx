@@ -25,6 +25,7 @@ type RunTargetComboboxProps = {
   onRecipeChange?: (recipeId: string | null) => void
   onAddRemoteServer?: () => void
   onAddSshHost?: () => void
+  onAddLocalSandbox?: () => void
   onOpenChange?: (open: boolean) => void
   fieldName?: string
   emptyMessage?: string
@@ -44,6 +45,7 @@ export default function RunTargetCombobox({
   onRecipeChange,
   onAddRemoteServer,
   onAddSshHost,
+  onAddLocalSandbox,
   onOpenChange,
   fieldName,
   emptyMessage,
@@ -53,7 +55,7 @@ export default function RunTargetCombobox({
   const [submenu, setSubmenu] = useState<'recipes' | 'add-host' | 'add-host-keyboard' | null>(null)
   const addHostOpen = submenu === 'add-host' || submenu === 'add-host-keyboard'
 
-  const hasAddHost = Boolean(onAddSshHost || onAddRemoteServer)
+  const hasAddHost = Boolean(onAddSshHost || onAddRemoteServer || onAddLocalSandbox)
   const deriveRowKeys = useCallback(
     (query: string): string[] =>
       buildRunTargetRows({ hostOptions, recipes, query, hasAddHost }).rows.map((row) => row.key),
@@ -285,6 +287,14 @@ export default function RunTargetCombobox({
                     onAddRemoteServer: () => {
                       close()
                       onAddRemoteServer()
+                    }
+                  }
+                : {})}
+              {...(onAddLocalSandbox
+                ? {
+                    onAddLocalSandbox: () => {
+                      close()
+                      onAddLocalSandbox()
                     }
                   }
                 : {})}

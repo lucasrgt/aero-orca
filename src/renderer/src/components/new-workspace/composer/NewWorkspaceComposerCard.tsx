@@ -328,6 +328,7 @@ export default function NewWorkspaceComposerCard(
           handleProjectHostSetupChange={(setupId) => onProjectHostSetupChange?.(setupId)}
           handleAddSshHost={() => handleRemoteHostModeChange('ssh')}
           handleAddRemoteServer={() => handleRemoteHostModeChange('server')}
+          handleAddLocalSandbox={() => handleRemoteHostModeChange('sandbox')}
           handleConnectRunTargetHost={handleConnectRunTargetHost}
           handleSetLocation={handleSetLocation}
           sshStatusLabel={sshStatusLabel}

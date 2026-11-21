@@ -27,7 +27,7 @@ export function BotComputerPicker({
   onAddHost
 }: {
   hostChoice: BotCreateHostChoice
-  onAddHost?: (mode: 'ssh' | 'server') => void
+  onAddHost?: (mode: 'ssh' | 'server' | 'sandbox') => void
 }): React.JSX.Element {
   const t = useTranslate()
   const { host, hosts } = hostChoice
@@ -123,6 +123,11 @@ export function BotComputerPicker({
       hostOptions={options}
       onAddSshHost={onAddHost ? () => onAddHost('ssh') : undefined}
       onAddRemoteServer={onAddHost ? () => onAddHost('server') : undefined}
+      onAddLocalSandbox={
+        onAddHost && window.api?.runtimeEnvironments?.localSandboxes
+          ? () => onAddHost('sandbox')
+          : undefined
+      }
       truncateMiddle
     />
   )

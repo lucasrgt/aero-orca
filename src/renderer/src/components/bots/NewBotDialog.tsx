@@ -33,6 +33,7 @@ import { useBotAgentMenu } from './use-bot-agent-choices'
 import { useBotCreateHost } from './bot-create-hosts'
 import {
   LOCAL_EXECUTION_HOST_ID,
+  toRuntimeExecutionHostId,
   type ExecutionHostId
 } from '../../../../shared/execution-host/execution-host'
 import { useBotAgentSetup } from './use-bot-agent-setup'
@@ -415,7 +416,13 @@ export function NewBotDialog({
         </form>
       </DialogContent>
       {addHostMode ? (
-        <AddRemoteHostDialog mode={addHostMode} onOpenChange={setAddHostMode} />
+        <AddRemoteHostDialog
+          mode={addHostMode}
+          onOpenChange={setAddHostMode}
+          onSandboxCreated={(environmentId) =>
+            hostChoice.setHostId(toRuntimeExecutionHostId(environmentId))
+          }
+        />
       ) : null}
     </Dialog>
   )

@@ -14,6 +14,7 @@ import { AddRemoteHostSshConfigPicker } from './AddRemoteHostSshConfigPicker'
 import { AddRemoteHostSshFormPanel } from './AddRemoteHostSshFormPanel'
 import { AddRemoteHostServerFormPanel } from './AddRemoteHostServerFormPanel'
 import { AddWslHostDialogBody } from '../wsl/AddWslHostDialogBody'
+import { AddLocalSandboxDialogBody } from '../sandbox/AddLocalSandboxDialogBody'
 import { remoteServerPairingFailureMessage } from '@/lib/remote-pairing/remote-server-pairing-error-copy'
 import {
   addAllSshConfigHostsToOrca,
@@ -22,18 +23,20 @@ import {
   saveNewSshHostFromForm
 } from './add-remote-host-ssh-actions'
 
-export type AddRemoteHostMode = 'ssh' | 'server' | 'wsl'
+export type AddRemoteHostMode = 'ssh' | 'server' | 'wsl' | 'sandbox'
 
 type AddRemoteHostDialogProps = {
   mode: AddRemoteHostMode | null
   onOpenChange: (mode: AddRemoteHostMode | null) => void
+  onSandboxCreated?: (environmentId: string) => void
 }
 
 type SshDialogView = 'form' | 'config-picker'
 
 export function AddRemoteHostDialog({
   mode,
-  onOpenChange
+  onOpenChange,
+  onSandboxCreated
 }: AddRemoteHostDialogProps): React.JSX.Element {
   const t = useTranslate()
   const open = mode !== null
@@ -345,6 +348,17 @@ export function AddRemoteHostDialog({
               onAddAllToOrca={() => void addAllConfigHostsToOrca()}
             />
           </div>
+        ) : renderMode === 'sandbox' ? (
+          <AddLocalSandboxDialogBody
+            creating={isSaving}
+            onCreatingChange={setIsSaving}
+            onCreated={(environmentId) => {
+              onSandboxCreated?.(environmentId)
+              reset()
+              onOpenChange(null)
+            }}
+            onCancel={close}
+          />
         ) : renderMode === 'wsl' ? (
           <AddWslHostDialogBody
             adding={isSaving}

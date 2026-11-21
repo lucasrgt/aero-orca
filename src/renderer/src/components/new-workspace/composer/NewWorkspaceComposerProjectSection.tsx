@@ -49,6 +49,7 @@ type NewWorkspaceComposerProjectSectionProps = Pick<
   handleProjectHostSetupChange: (setupId: string) => void
   handleAddSshHost: () => void
   handleAddRemoteServer: () => void
+  handleAddLocalSandbox?: () => void
   handleConnectRunTargetHost: (option: NeedsSetupProjectHostOption) => Promise<void>
   handleSetLocation: (option: NeedsSetupProjectHostOption) => void
   sshStatusLabel: string
@@ -81,6 +82,7 @@ export function NewWorkspaceComposerProjectSection({
   onEphemeralVmRecipeChange,
   handleAddSshHost,
   handleAddRemoteServer,
+  handleAddLocalSandbox,
   handleConnectRunTargetHost,
   handleSetLocation,
   ephemeralVmRecipeError,
@@ -223,6 +225,11 @@ export function NewWorkspaceComposerProjectSection({
               onRecipeChange={onEphemeralVmRecipeChange}
               onAddSshHost={handleAddSshHost}
               onAddRemoteServer={handleAddRemoteServer}
+              onAddLocalSandbox={
+                handleAddLocalSandbox && window.api?.runtimeEnvironments?.localSandboxes
+                  ? handleAddLocalSandbox
+                  : undefined
+              }
               onConnectHost={handleConnectRunTargetHost}
               onSetLocation={handleSetLocation}
             />

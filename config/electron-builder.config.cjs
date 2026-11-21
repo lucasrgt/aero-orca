@@ -151,6 +151,10 @@ const nativeChatVisualsResource = {
   from: 'resources/native-chat-visuals',
   to: 'native-chat-visuals'
 }
+const localSandboxResources = {
+  from: 'resources/local-sandbox',
+  to: 'local-sandbox'
+}
 // SSH deploy resolves process.resourcesPath/relay; extraResources keeps bundles on real disk.
 const relayExtraResource = {
   from: 'out/relay',
@@ -190,6 +194,7 @@ const commonExtraResources = [
   skillFreshnessResources,
   ...agentBrowserSkillResources,
   nativeChatVisualsResource,
+  localSandboxResources,
   emojiShortcodeDatasetResource
 ]
 // electron-builder replaces these defaults when `depends` is configured; retain

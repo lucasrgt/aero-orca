@@ -26,6 +26,7 @@ import {
 import type { PreloadApi } from '../../api-types'
 import { managedOrcadApi } from './managed-orcad-api'
 import { getWslHostsApi } from '../wsl/wsl-hosts-api'
+import { localSandboxesApi } from '../local-sandbox/local-sandboxes-api'
 
 export const runtimeEnvironmentsApi = {
   desktopCreatedChatIds: (): Promise<string[]> =>
@@ -146,5 +147,6 @@ export const runtimeEnvironmentsApi = {
   ): Promise<RuntimeEnvironmentSubscriptionHandle> =>
     subscribeRuntimeEnvironmentFromPreload(ipcRenderer, args, callbacks),
   managedOrcad: managedOrcadApi,
-  wslHosts: getWslHostsApi()
+  wslHosts: getWslHostsApi(),
+  localSandboxes: localSandboxesApi
 } satisfies PreloadApi['runtimeEnvironments']

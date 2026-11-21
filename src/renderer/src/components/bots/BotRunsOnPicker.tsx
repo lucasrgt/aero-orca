@@ -69,7 +69,7 @@ export function BotRunsOnPicker({
   onSetupChange: (setup: BotAgentSetup, permissionPicked?: boolean) => void
   /** A bot from a link: the owner's permission, kept apart from the agent (`useBotAgentSetup`). */
   keptPermission?: BotPermissionIntent
-  onAddHost?: (mode: 'ssh' | 'server') => void
+  onAddHost?: (mode: 'ssh' | 'server' | 'sandbox') => void
   /** The bot's name, for its folder. */
   name?: string
   /** `row` is a boxed summary that opens to the fields; `fields` shows Computer and Agent side by side. */
