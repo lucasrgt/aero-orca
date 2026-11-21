@@ -35,6 +35,7 @@ export default function TabGroupSplitLayout({
               isWorktreeActive={isWorktreeActive}
               isTabDragActive={isTabDragActive}
               hoveredTabInsertion={hoveredTabInsertion}
+              rootTouchesBottomEdge={true}
             />
           </div>
           {isWorktreeActive ? <BotHomeChat workspaceId={worktreeId} /> : null}

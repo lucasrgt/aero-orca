@@ -346,8 +346,8 @@
   --annotation-highlight: #f59e0b;
   --markdown-search-match: #facc15;
   --markdown-search-match-active: #fb923c;
-  /* Split dividers must clear 3:1 against --card even before hover; --border is too faint. */
-  --split-divider: #868690;
+  /* Match standard chrome borders at rest; darken on hover/drag for resize feedback. */
+  --split-divider: var(--border);
   --split-divider-hover: #71717a;
   /* `--tab-bar` is set only by themes; keep in sync with PLUGIN_APP_THEME_CSS_FALLBACKS. */
   /* White --card can't be lifted, so light mode recesses inactive tabs to keep the active one lighter. */
@@ -470,8 +470,8 @@
   --annotation-highlight: #fbbf24;
   --markdown-search-match: #facc15;
   --markdown-search-match-active: #fb923c;
-  /* Brighter than terminal defaults so the always-visible line clears 3:1 on `--card`. */
-  --split-divider: #71717a;
+  /* Match standard chrome borders at rest; brighten on hover/drag for resize feedback. */
+  --split-divider: var(--border);
   --split-divider-hover: #a1a1aa;
   --tab-active: color-mix(in srgb, var(--foreground) 6%, var(--tab-bar, var(--card)));
   --tab-inactive: var(--tab-bar, var(--card));
