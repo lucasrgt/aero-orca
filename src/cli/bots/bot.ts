@@ -1,4 +1,5 @@
 import type { Bot } from '../../shared/bot-types'
+import { botRoleDisplayLabel } from '../../shared/bots/bot-fleet-role'
 import {
   BOT_ROSTER_COMMANDS,
   type BotRosterEntry,
@@ -16,7 +17,8 @@ import { orcaCloudNeedsSignIn } from '../../shared/bots/host-orca-sign-in'
 
 export function formatBot(bot: Bot): string {
   const projectNote = bot.project ? ` [${bot.project}]` : ''
-  return `${bot.name}${projectNote} (${bot.agent}${bot.paused ? ', paused' : ''})  id: ${bot.id}`
+  const roleNote = bot.role ? ` (${botRoleDisplayLabel(bot.role)})` : ''
+  return `${bot.name}${projectNote}${roleNote} (${bot.agent}${bot.paused ? ', paused' : ''})  id: ${bot.id}`
 }
 
 export function callBots<TResult>(

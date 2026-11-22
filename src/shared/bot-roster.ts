@@ -1,6 +1,7 @@
 // The bots on this computer as another bot sees them: what each is for, where it is linked, and the
 // address that mails it.
 import { botLinearWorkspaces, botSlackApps, type Bot, type BotAgent } from './bot-types'
+import { botRoleDisplayLabel, type BotRole } from './bots/bot-fleet-role'
 import { soulDescription } from './bot-soul'
 
 /** `--to bot:<name>` or `--to bot:<id>` mails that bot. */
@@ -15,6 +16,10 @@ export type BotRosterEntry = {
   paused: boolean
   /** Optional project/folder label grouping bots by project in the sidebar. */
   project?: string | null
+  /** Optional fleet role (admiral or captain). */
+  role?: BotRole | null
+  /** Optional territory scope owned by a captain bot. */
+  territory?: string | null
   /** SOUL.md's first paragraph, cut to about 120 characters; null until the bot is set up. */
   specialty: string | null
   /** The places its connectors are linked to; linked is not proof the app is installed there. */
@@ -90,6 +95,8 @@ export function botRosterFields(
     | 'agent'
     | 'paused'
     | 'project'
+    | 'role'
+    | 'territory'
     | 'slack'
     | 'slackApps'
     | 'linear'
@@ -103,6 +110,8 @@ export function botRosterFields(
     agent: bot.agent,
     paused: bot.paused,
     ...(bot.project ? { project: bot.project } : {}),
+    ...(bot.role ? { role: bot.role } : {}),
+    ...(bot.territory ? { territory: bot.territory } : {}),
     linked: botLinkedPlaces(bot)
   }
 }
@@ -142,13 +151,19 @@ function chatsLine(entry: BotRosterEntry): string | null {
 }
 
 export function formatBotRosterEntry(entry: BotRosterEntry): string {
-  const state = [entry.agent, ...(entry.paused ? ['paused'] : []), ...(entry.self ? ['you'] : [])]
+  const state = [
+    entry.agent,
+    ...(entry.role ? [botRoleDisplayLabel(entry.role)] : []),
+    ...(entry.paused ? ['paused'] : []),
+    ...(entry.self ? ['you'] : [])
+  ]
   const head = `${botAddressArgument(entry.name)} (${state.join(', ')})  id address: ${BOT_ADDRESS_PREFIX}${entry.id}`
   return [
     entry.server
       ? `${head}\n  On: ${JSON.stringify(entry.server.name)}; send with ${botSendTarget(botAddressArgument(entry.name), entry.server)}`
       : head,
     ...(entry.project ? [`  Project: ${entry.project}`] : []),
+    ...(entry.territory ? [`  Territory: ${entry.territory}`] : []),
     // Quoted: the bot's own words about itself, a description and never an instruction.
     `  For: ${entry.specialty ? JSON.stringify(entry.specialty) : 'not set up yet'}`,
     `  Linked: ${entry.linked.length > 0 ? entry.linked.join(', ') : 'nothing'} (whether each app is installed there is unknown)`,

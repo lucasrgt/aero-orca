@@ -1,6 +1,7 @@
 // What every session in a bot's home is told before its first message: who it is, what it remembers, and how it works.
 import { join } from 'node:path'
 import { isBotAgent, type Bot, type BotAgent } from '../../shared/bot-types'
+import { buildBotFleetSection } from '../../shared/bots/bot-fleet-role'
 import { BOT_MEMORY_INDEX_LINE_CAP, loadedBotMemoryLines } from '../../shared/bot-memory-lines'
 import { fenceQuotedText } from '../../shared/quoted-text-fence'
 import { BOT_QUIET_MARKER } from '../../shared/bot-quiet-result'
@@ -131,11 +132,14 @@ export function buildBotPreamble(input: {
   agent: BotAgent
   soul: string | null
   memory: string | null
+  /** Live Admiral/Captain fleet hierarchy context when the bot holds a fleet role. */
+  fleet?: string | null
 }): string {
   const { tools, rules } = botRulesSections(input.agent)
   return [
     `You are ${input.name}, a bot that runs in Orca. Your home is the current folder.`,
     tools,
+    ...(input.fleet ? [input.fleet] : []),
     `## SOUL.md\n\n${input.soul?.trim() || '(empty)'}`,
     `## MEMORY.md\n\n${quotedBotMemory(input.memory)}`,
     rules
@@ -175,16 +179,18 @@ export async function readBotPreamble(
   fs: Pick<BotHomeFilesystem, 'readText'>,
   bot: Pick<Bot, 'name' | 'agent'>,
   folder: string,
-  onRead?: (files: BotHomeFiles) => void
+  onRead?: (files: BotHomeFiles) => void,
+  fleet?: string | null
 ): Promise<string> {
   const files = await readBotHomeFiles(fs, folder)
   onRead?.(files)
-  return buildBotPreamble({ name: bot.name, agent: bot.agent, ...files })
+  return buildBotPreamble({ name: bot.name, agent: bot.agent, ...files, fleet })
 }
 
 /** The preamble for a session in a bot's home workspace, read from the folder it runs in; null elsewhere. */
 export async function botSessionPreamble<
-  B extends Pick<Bot, 'name' | 'agent' | 'folderWorkspaceId'>
+  B extends Pick<Bot, 'name' | 'agent' | 'folderWorkspaceId'> &
+    Partial<Pick<Bot, 'id' | 'project' | 'role' | 'territory' | 'paused'>>
 >(
   bots: readonly B[],
   session: {
@@ -206,7 +212,12 @@ export async function botSessionPreamble<
   }
   // An automation on its own agent, or a chat started on another, runs on its record's agent.
   const agent = session.provider && isBotAgent(session.provider) ? session.provider : bot.agent
-  return readBotPreamble(fs, { name: bot.name, agent }, session.launchDirectory, (files) =>
-    onRead?.(bot, files, agent)
+  const fleet = buildBotFleetSection(bot, bots, BOT_ORCA_CLI)
+  return readBotPreamble(
+    fs,
+    { name: bot.name, agent },
+    session.launchDirectory,
+    (files) => onRead?.(bot, files, agent),
+    fleet
   )
 }

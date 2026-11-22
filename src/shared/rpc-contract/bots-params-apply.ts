@@ -44,6 +44,8 @@ export function applyBotUpdates(bot: Bot, updates: BotHostUpdates): Bot {
     offerAnswer,
     cancelledWait,
     project,
+    role,
+    territory,
     soul: _soul,
     ...rest
   } = updates
@@ -52,6 +54,16 @@ export function applyBotUpdates(bot: Bot, updates: BotHostUpdates): Bot {
     delete next.project
   } else if (project !== undefined) {
     next.project = project
+  }
+  if (role === null) {
+    delete next.role
+  } else if (role !== undefined) {
+    next.role = role
+  }
+  if (territory === null || territory === '') {
+    delete next.territory
+  } else if (territory !== undefined) {
+    next.territory = territory
   }
   if (offerAnswer) {
     next.offerAnswers = withBotOfferAnswer(bot.offerAnswers, offerAnswer)

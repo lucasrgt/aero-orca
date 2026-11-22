@@ -2,9 +2,11 @@
 import { useContext, useState } from 'react'
 import {
   Activity,
+  Anchor,
   BookOpen,
   Bot as BotIcon,
   Brain,
+  Compass,
   Eye,
   Folder,
   Laptop,
@@ -31,6 +33,7 @@ import {
   savedChatPermissionMode
 } from '../../../../../shared/agent-launch/permissions/agent-chat-permission-support'
 import { botMembersFrom, type Bot } from '../../../../../shared/bot-types'
+import { botRoleDisplayLabel } from '../../../../../shared/bots/bot-fleet-role'
 import { botLookAround, lookAroundSupported } from '../../../../../shared/bots/bot-look-around'
 import { botTidyUp } from '../../../../../shared/bots/bot-tidy-up'
 import type { BotUpdateParams } from '../../../../../shared/rpc-contract/bots-params'
@@ -337,6 +340,13 @@ export function BotSettingsRoot({
           value={bot.project || t('bots.project.none', 'None')}
           page="project"
           onOpen={() => open('project')}
+        />
+        <SettingsInsetRow
+          icon={bot.role === 'admiral' ? <Anchor /> : <Compass />}
+          title={t('bots.fleet.label', 'Fleet role')}
+          value={botRoleDisplayLabel(bot.role)}
+          page="role"
+          onOpen={() => open('role')}
         />
         <SettingsInsetRow
           icon={<Shield />}

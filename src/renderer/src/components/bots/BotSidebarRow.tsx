@@ -26,6 +26,8 @@ export type BotSidebarRowProps = {
   /** The row's picture: a bot's avatar, or a group's member faces. */
   avatar: React.ReactNode
   name: string
+  /** Optional subtle badge placed right next to the bot's name (e.g. Admiral/Captain glyph). */
+  nameBadge?: React.ReactNode
   /** Its home's key: the status and unread mark are the home's. */
   workspaceId: string
   hostId: ExecutionHostId
@@ -60,6 +62,7 @@ export type BotSidebarRowProps = {
 export function BotSidebarRow({
   avatar,
   name,
+  nameBadge = null,
   workspaceId,
   hostId,
   status,
@@ -149,6 +152,7 @@ export function BotSidebarRow({
                       beginEditing={renameRequested}
                       onBeginEditingConsumed={() => setRenameRequested(false)}
                     />
+                    {nameBadge}
                     {age ? (
                       <span className="ml-auto shrink-0 text-xs leading-4 text-muted-foreground tabular-nums">
                         {age}

@@ -28,6 +28,8 @@ export function newBotRecord(
     avatar: input.avatar === undefined ? randomMascotAvatar(null) : input.avatar,
     ...(input.avatarColor ? { avatarColor: input.avatarColor } : {}),
     ...(input.project?.trim() ? { project: input.project.trim() } : {}),
+    ...(input.role ? { role: input.role } : {}),
+    ...(input.territory?.trim() ? { territory: input.territory.trim() } : {}),
     paused: false,
     notifications: { needsPermission: true, taskComplete: true, couldNotFinish: true },
     members: [],

@@ -12,6 +12,7 @@ import { BotOfferAnswerSchema } from './bots/bot-offer-answers'
 import { BotCancelledWaitSchema } from './bots/bot-cancelled-waits'
 import { BotAvatarColorSchema } from './bots/bot-avatar-color'
 import { BotProjectSchema } from './bots/bot-project-groups'
+import { BotRoleSchema, BotTerritorySchema } from './bots/bot-fleet-role'
 
 /** Native-chat agents a bot cannot run on yet; each waits on a live check of its preamble delivery. */
 export const BOT_HELD_BACK_AGENTS = [] as const
@@ -197,6 +198,10 @@ export const BotSchema = z.object({
   skillProjects: z.array(z.string().min(1)).max(BOT_MAX_SKILL_PROJECTS).optional(),
   /** Optional project/folder label used to group bots by project in the sidebar. */
   project: BotProjectSchema.min(1).nullable().optional().catch(undefined),
+  /** Optional nautical fleet role: project/fleet orchestrator (admiral) or territory owner (captain). */
+  role: BotRoleSchema.nullable().optional().catch(undefined),
+  /** Optional territory scope/paths owned by a captain bot. */
+  territory: BotTerritorySchema.min(1).nullable().optional().catch(undefined),
   /** Its place in the sidebar's Bots list, set by a drag; a bot without one follows the placed bots. */
   sidebarOrder: z.number().int().nonnegative().optional(),
   /** The bot's Chat, its one ongoing conversation; null until first opened. */

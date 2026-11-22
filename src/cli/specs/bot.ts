@@ -7,8 +7,11 @@ const BOT_NOTES = ['A bot lives on the computer that runs the command, in ~/.orc
 const BOT_CONFIG_FLAGS = [
   'name',
   'project',
+  'role',
+  'territory',
   'agent',
   'model',
+  'effort',
   'permission-mode',
   'avatar',
   'avatar-color',
@@ -21,7 +24,7 @@ export const BOT_COMMAND_SPECS: CommandSpec[] = [
     path: ['bot', 'create'],
     summary: 'Create a new bot on this computer (or --environment), or propose one with --offer',
     usage:
-      'orca bot create [--name <name>] [--project <name>] [--agent <agent>] [--model <model>] [--permission-mode <mode>] [--purpose <one sentence>] [--soul <markdown> | --soul-file <path>] [--template <id>] [--watches <text>] [--does <text>] [--reports <text>] [--avatar <emoji|mascot>] [--avatar-color <color>] [--worktree <selector>]... [--no-kickoff] [--offer] [--json]',
+      'orca bot create [--name <name>] [--project <name>] [--role admiral|captain] [--territory <scope>] [--agent <agent>] [--model <model>] [--effort <level>] [--permission-mode <mode>] [--purpose <one sentence>] [--soul <markdown> | --soul-file <path>] [--template <id>] [--watches <text>] [--does <text>] [--reports <text>] [--avatar <emoji|mascot>] [--avatar-color <color>] [--worktree <selector>]... [--no-kickoff] [--offer] [--json]',
     allowedFlags: [
       ...GLOBAL_FLAGS,
       ...BOT_CONFIG_FLAGS,
@@ -53,14 +56,17 @@ export const BOT_COMMAND_SPECS: CommandSpec[] = [
   },
   {
     path: ['bot', 'update'],
-    summary: 'Update a bot’s name, project, agent, model, permissions, avatar, pause or SOUL.md',
+    summary:
+      'Update a bot’s name, project, role, territory, agent, model, permissions, avatar, pause or SOUL.md',
     usage:
-      'orca bot update <bot> [--name <name>] [--project <name> | --clear-project] [--agent <agent>] [--model <model> | --clear-model] [--permission-mode <mode>] [--avatar <emoji|mascot>] [--avatar-color <color>] [--pause | --resume] [--soul <markdown> | --soul-file <path>] [--tidy-up on|off] [--json]',
+      'orca bot update <bot> [--name <name>] [--project <name> | --clear-project] [--role admiral|captain | --clear-role] [--territory <scope> | --clear-territory] [--agent <agent>] [--model <model> | --clear-model] [--effort <level>] [--permission-mode <mode>] [--avatar <emoji|mascot>] [--avatar-color <color>] [--pause | --resume] [--soul <markdown> | --soul-file <path>] [--tidy-up on|off] [--json]',
     allowedFlags: [
       ...GLOBAL_FLAGS,
       'bot',
       ...BOT_CONFIG_FLAGS,
       'clear-project',
+      'clear-role',
+      'clear-territory',
       'clear-model',
       'pause',
       'resume',

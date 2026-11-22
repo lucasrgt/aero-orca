@@ -13,6 +13,7 @@ import { BotTidyUpSection } from '../../settings/bots/BotTidyUpSection'
 import { BotToolsSection } from '../../settings/bots/BotToolsSection'
 import { botFolderDisplay } from '../bot-presentation'
 import { BotProjectPicker } from '../BotProjectPicker'
+import { BotFleetRolePicker } from '../BotFleetRolePicker'
 import { BotComputerPage } from './BotComputerPage'
 import { BotMemoryTopicFiles } from './BotMemoryTopicFiles'
 import type { BotSettingsPlace } from './bot-settings-place'
@@ -67,6 +68,26 @@ export function BotSettingsSubpage({
             value={bot.project ?? ''}
             mode="page"
             onChange={(next) => void update({ project: next || null })}
+          />
+        </div>
+      )
+    case 'role':
+      return (
+        <div className="space-y-2 px-1">
+          <p className="text-xs text-muted-foreground">
+            {t(
+              'bots.fleet.description',
+              'Admirals orchestrate across territories; Captains own one territory and spawn workers in worktrees.'
+            )}
+          </p>
+          <BotFleetRolePicker
+            role={bot.role ?? null}
+            territory={bot.territory ?? ''}
+            mode="page"
+            onRoleChange={(next) =>
+              void update(next === 'captain' ? { role: next } : { role: next, territory: null })
+            }
+            onTerritoryChange={(next) => void update({ territory: next || null })}
           />
         </div>
       )

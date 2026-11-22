@@ -12,8 +12,12 @@ const AGENT_ID_FLAG_HELP =
 const COMMAND_SCOPED_FLAG_HELP: Record<string, Record<string, string>> = {
   'bot create': {
     project: '--project <name>       Group this bot under a project name in the sidebar',
+    role: '--role <role>          Fleet role: admiral (project/fleet orchestrator) or captain (territory owner)',
+    territory: '--territory <scope>    Territory scope/paths owned by a captain bot',
     agent: '--agent <id>           Agent backend (run `orca bot agents` to list available ones)',
     model: '--model <id>           Default model id for the bot’s chats',
+    effort:
+      '--effort <level>       Reasoning effort option for the bot’s chats (e.g. low, medium, high)',
     'permission-mode':
       '--permission-mode <m>  Permission mode (default, acceptEdits, bypassPermissions, plan, full-access)',
     soul: '--soul <markdown>      Full SOUL.md contents for the bot',
@@ -29,8 +33,14 @@ const COMMAND_SCOPED_FLAG_HELP: Record<string, Record<string, string>> = {
     bot: '--bot <name|id>        Bot name or id (also accepted positionally)',
     project: '--project <name>       Assign this bot to a project group in the sidebar',
     'clear-project': '--clear-project        Remove this bot from its project group',
+    role: '--role <role>          Set fleet role (admiral or captain)',
+    'clear-role': '--clear-role           Clear fleet role (revert to standard bot)',
+    territory: '--territory <scope>    Set territory scope/paths for a captain bot',
+    'clear-territory': '--clear-territory      Clear territory scope',
     agent: '--agent <id>           Switch the bot’s agent backend',
     model: '--model <id>           Set the default model id for the bot’s chats',
+    effort:
+      '--effort <level>       Set reasoning effort option for the bot’s chats (e.g. low, medium, high)',
     'clear-model': '--clear-model          Reset launch model/options back to native chat defaults',
     'permission-mode': '--permission-mode <m>  Set permission mode',
     pause: '--pause                Pause the bot',

@@ -20,6 +20,7 @@ import {
 import { isSettableBotAvatar, MAX_BOT_AVATAR_BYTES } from '../bot-avatar'
 import { BotAvatarColorSchema } from '../bots/bot-avatar-color'
 import { BotProjectSchema } from '../bots/bot-project-groups'
+import { BotRoleSchema, BotTerritorySchema } from '../bots/bot-fleet-role'
 import { HANDED_WORKSPACES_MAX, HandedWorkspaceSchema } from '../bots/bot-made-for-workspaces'
 import { BotProposalSchema, BotProposalSeedSchema } from '../bots/bot-proposal'
 import { BotTakeOverSchema } from '../bots/bot-take-over'
@@ -60,6 +61,10 @@ export const BotCreate = z.object({
   avatarColor: BotAvatarColorSchema.optional(),
   /** Optional project name used to group bots by project in the sidebar. */
   project: BotProjectSchema.nullable().optional(),
+  /** Optional fleet role (admiral or captain). */
+  role: BotRoleSchema.nullable().optional(),
+  /** Optional territory scope owned by a captain bot. */
+  territory: BotTerritorySchema.nullable().optional(),
   /** Workspaces the owner made it for: its first turn offers to take them over. */
   handOff: HandedWorkspaces.optional(),
   /** Made in Hand to bot: its first turn is the hand-over (`bots.takeOver`), sent once the workspace moved. */
@@ -160,6 +165,10 @@ export const BotUpdate = z.object({
       slackMirror: z.boolean().optional(),
       /** null or empty string clears the project assignment. */
       project: BotProjectSchema.nullable().optional(),
+      /** null clears the fleet role. */
+      role: BotRoleSchema.nullable().optional(),
+      /** null or empty string clears the territory scope. */
+      territory: BotTerritorySchema.nullable().optional(),
       /** Full SOUL.md markdown replacement written to the bot's home folder. */
       soul: z.string().max(64_000).optional()
     })

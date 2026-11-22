@@ -1,8 +1,10 @@
 import React, { useEffect } from 'react'
 import { openBotSettings } from './bot-settings-open'
 import {
+  Anchor,
   Check,
   ChevronDown,
+  Compass,
   Copy,
   Folder,
   Pause,
@@ -45,6 +47,7 @@ import { useDeleteBot } from './use-delete-bot'
 import { setBotPurpose } from './bot-purpose-cache'
 import { botSidebarEntryKey } from './bot-sidebar-entry-keys'
 import { useBotProjectSuggestions } from './BotProjectPicker'
+import { BotFleetRoleBadge } from './BotFleetRolePicker'
 import { normalizeBotProjectKey } from '../../../../shared/bots/bot-project-groups'
 import { RepoIconGlyph } from '@/components/repo/repo-icon'
 
@@ -104,6 +107,7 @@ export function BotRow({
     <BotSidebarRow
       avatar={<BotAvatar bot={bot} className="size-8 rounded-md text-sm" />}
       name={bot.name}
+      nameBadge={bot.role ? <BotFleetRoleBadge role={bot.role} territory={bot.territory} /> : null}
       workspaceId={workspaceId}
       hostId={bot.hostId}
       status={offline ? null : status}
@@ -207,6 +211,37 @@ export function BotRow({
               </ContextMenuSubContent>
             </ContextMenuSub>
           ) : null}
+          <ContextMenuSub>
+            <ContextMenuSubTrigger disabled={offline}>
+              {bot.role === 'admiral' ? (
+                <Anchor className="size-3.5" />
+              ) : (
+                <Compass className="size-3.5" />
+              )}
+              {t('bots.fleet.label', 'Fleet role')}
+            </ContextMenuSubTrigger>
+            <ContextMenuSubContent className="w-44">
+              <ContextMenuItem onSelect={() => run(updateBot(bot, { role: 'admiral' }))}>
+                <Anchor className="size-3.5 shrink-0 text-muted-foreground" />
+                <span className="flex-1">{t('bots.fleet.admiral', 'Admiral')}</span>
+                {bot.role === 'admiral' ? <Check className="size-3.5 shrink-0" /> : null}
+              </ContextMenuItem>
+              <ContextMenuItem onSelect={() => run(updateBot(bot, { role: 'captain' }))}>
+                <Compass className="size-3.5 shrink-0 text-muted-foreground" />
+                <span className="flex-1">{t('bots.fleet.captain', 'Captain')}</span>
+                {bot.role === 'captain' ? <Check className="size-3.5 shrink-0" /> : null}
+              </ContextMenuItem>
+              <ContextMenuSeparator />
+              <ContextMenuItem
+                onSelect={() => run(updateBot(bot, { role: null, territory: null }))}
+              >
+                <span className="flex-1 text-muted-foreground">
+                  {t('bots.fleet.standard', 'Standard')}
+                </span>
+                {!bot.role ? <Check className="size-3.5 shrink-0" /> : null}
+              </ContextMenuItem>
+            </ContextMenuSubContent>
+          </ContextMenuSub>
           <ContextMenuItem
             disabled={offline}
             onSelect={() => run(updateBot(bot, { paused: !bot.paused }))}

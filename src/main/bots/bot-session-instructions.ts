@@ -50,7 +50,7 @@ type BotSessionLaunch = Pick<
 export async function botSessionInstructions(
   context: Pick<BotTurnContext, 'launched' | 'linkedSkillsLaunched'>,
   bots: readonly (Pick<Bot, 'id' | 'name' | 'agent' | 'folderWorkspaceId'> &
-    Partial<Pick<Bot, 'skillProjects'>>)[],
+    Partial<Pick<Bot, 'skillProjects' | 'project' | 'role' | 'territory' | 'paused'>>)[],
   record: BotSessionLaunch,
   launchDirectory: string,
   /** How to use its linked projects' skills; a resumed agent gets it on its next turn. */

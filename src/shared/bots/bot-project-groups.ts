@@ -1,5 +1,6 @@
 import * as z from 'zod'
 import type { BotSidebarGroupBy } from './bot-sidebar-view'
+import { botRoleSortRank, type BotRole } from './bot-fleet-role'
 
 export const BOT_PROJECT_MAX_LENGTH = 80
 export const BotProjectSchema = z
@@ -21,8 +22,18 @@ export function normalizeBotProjectKey(project: string | null | undefined): stri
 }
 
 type GroupableBotEntry =
-  | { id: string; kind: 'bot'; bot: { project?: string | null } }
+  | { id: string; kind: 'bot'; bot: { project?: string | null; role?: BotRole | null } }
   | { id: string; kind: 'group' }
+
+function sortGroupItemsByFleetRole<E extends GroupableBotEntry>(
+  items: readonly { entry: E; originalIndex: number }[]
+): { entry: E; originalIndex: number }[] {
+  return [...items].sort((a, b) => {
+    const rankA = a.entry.kind === 'bot' ? botRoleSortRank(a.entry.bot.role) : 3
+    const rankB = b.entry.kind === 'bot' ? botRoleSortRank(b.entry.bot.role) : 3
+    return rankA - rankB
+  })
+}
 
 export type BotSidebarVirtualRow<E extends GroupableBotEntry> =
   | {
@@ -108,7 +119,7 @@ export function buildBotSidebarRows<E extends GroupableBotEntry>(
       isGeneral: false
     })
     if (!collapsed) {
-      for (const item of bucket.items) {
+      for (const item of sortGroupItemsByFleetRole(bucket.items)) {
         rows.push({
           kind: 'entry',
           id: item.entry.id,
@@ -132,7 +143,7 @@ export function buildBotSidebarRows<E extends GroupableBotEntry>(
       isGeneral: true
     })
     if (!collapsed) {
-      for (const item of general) {
+      for (const item of sortGroupItemsByFleetRole(general)) {
         rows.push({
           kind: 'entry',
           id: item.entry.id,

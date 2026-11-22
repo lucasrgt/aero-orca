@@ -7,6 +7,7 @@ import {
   type AgentChatPermissionMode
 } from '../../shared/agent-launch/permissions/agent-chat-permission-mode'
 import { BOT_AGENTS, isBotAgent, type Bot, type BotAgent } from '../../shared/bot-types'
+import { BOT_ROLES, isBotRole, type BotRole } from '../../shared/bots/bot-fleet-role'
 import { BOT_TEMPLATES, botTemplate } from '../../shared/bots/bot-templates'
 import type { HandedWorkspace } from '../../shared/bots/bot-made-for-workspaces'
 import type {
@@ -77,6 +78,20 @@ export function parseBotAgentFlag(value: string | undefined): BotAgent | undefin
     )
   }
   return value
+}
+
+export function parseBotRoleFlag(value: string | undefined): BotRole | undefined {
+  if (value === undefined) {
+    return undefined
+  }
+  const normalized = value.trim().toLowerCase()
+  if (!isBotRole(normalized)) {
+    throw new RuntimeClientError(
+      'invalid_argument',
+      `--role must be one of: ${BOT_ROLES.join(', ')}`
+    )
+  }
+  return normalized
 }
 
 export function parseBotPermissionModeFlag(
@@ -167,10 +182,13 @@ async function createDirect({
   const name = getOptionalStringFlag(flags, 'name') ?? template?.name ?? ''
   const agent = parseBotAgentFlag(getOptionalStringFlag(flags, 'agent'))
   const model = getOptionalStringFlag(flags, 'model')
+  const effort = getOptionalStringFlag(flags, 'effort')
   const permissionMode = parseBotPermissionModeFlag(getOptionalStringFlag(flags, 'permission-mode'))
   const avatar = getOptionalStringFlag(flags, 'avatar')
   const avatarColor = getOptionalStringFlag(flags, 'avatar-color')
   const project = getOptionalStringFlag(flags, 'project')
+  const role = parseBotRoleFlag(getOptionalStringFlag(flags, 'role'))
+  const territory = getOptionalStringFlag(flags, 'territory')
   const soul = await readSoulFlags(flags, cwd)
   const purpose = getOptionalStringFlag(flags, 'purpose') ?? template?.line
   const watches = getOptionalStringFlag(flags, 'watches') ?? template?.watches
@@ -187,14 +205,23 @@ async function createDirect({
           ...(template ? { templateId: template.id } : {})
         }
       : undefined
+  const launch =
+    model || effort
+      ? {
+          ...(model ? { model } : {}),
+          ...(effort ? { options: { effort } } : {})
+        }
+      : undefined
   const params: Record<string, unknown> = {
     name,
     ...(agent ? { agent } : {}),
-    ...(model ? { launch: { model } } : {}),
+    ...(launch ? { launch } : {}),
     ...(permissionMode ? { permissionMode } : {}),
     ...(avatar ? { avatar } : {}),
     ...(avatarColor ? { avatarColor } : {}),
     ...(project ? { project } : {}),
+    ...(role ? { role } : {}),
+    ...(territory ? { territory } : {}),
     ...(seed ? { seed } : {}),
     ...(soul !== undefined ? { soul } : {}),
     ...(worktrees.length ? { handOff: worktrees } : {}),

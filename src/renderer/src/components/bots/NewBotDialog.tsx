@@ -21,10 +21,12 @@ import { cn } from '@/lib/class-names'
 import { useTranslate } from '@/i18n/use-translate'
 import { createBot, useHostBots } from '@/lib/bot-catalog'
 import { isScreenSubmitShortcut } from '@/lib/keyboard/screen-submit-shortcut'
-import { BOT_NAME_MAX_LENGTH, type Bot, type BotAgent } from '../../../../shared/bot-types'
+import { BOT_NAME_MAX_LENGTH, type Bot } from '../../../../shared/bot-types'
+import type { NewBotDialogProps } from './new-bot-dialog-props'
 import { botErrorMessage } from './bot-presentation'
 import { BotRunsOnPicker } from './BotRunsOnPicker'
-import { BotProjectPicker } from './BotProjectPicker'
+import { NewBotPlacementFields } from './BotFleetRolePicker'
+import type { BotRole } from '../../../../shared/bots/bot-fleet-role'
 import { BotImportNudge } from './BotImportNudge'
 import { openCreatedBot } from './bot-create-open'
 import { NewBotPictureButton } from './NewBotPictureButton'
@@ -34,11 +36,10 @@ import { useBotAgentMenu } from './use-bot-agent-choices'
 import { useBotCreateHost } from './bot-create-hosts'
 import {
   LOCAL_EXECUTION_HOST_ID,
-  toRuntimeExecutionHostId,
-  type ExecutionHostId
+  toRuntimeExecutionHostId
 } from '../../../../shared/execution-host/execution-host'
 import { useBotAgentSetup } from './use-bot-agent-setup'
-import { proposalCreateParams, type BotProposal } from '../../../../shared/bots/bot-proposal'
+import { proposalCreateParams } from '../../../../shared/bots/bot-proposal'
 import {
   BOTS_AVATAR_COLOR_RUNTIME_CAPABILITY,
   BOTS_TEMPLATES_RUNTIME_CAPABILITY
@@ -48,7 +49,6 @@ import { Button } from '@/components/ui/button'
 import { DEFAULT_BOT_AVATAR_COLOR } from '../../../../shared/bots/bot-avatar-color'
 import { botTemplate, type BotTemplateSkill } from '../../../../shared/bots/bot-templates'
 import { NewBotTemplateParts } from './NewBotTemplateParts'
-import type { BotCreateParams } from '../../../../shared/rpc-contract/bots-params'
 import { NewBotProposalFields, NewBotTakesOver } from './NewBotProposalFields'
 import { NewBotPurposeField, PURPOSE_MAX_LENGTH } from './NewBotPurposeField'
 import { BotCreateButton } from './BotCreateButton'
@@ -61,8 +61,7 @@ import {
   createNewBotFromShare,
   freeBotName,
   sharedMascot,
-  sharedPicturePng,
-  type NewBotShareSource
+  sharedPicturePng
 } from './sharing/new-bot-from-share'
 import { NewBotShareBack, useShareOrigin } from './sharing/NewBotFromShareParts'
 
@@ -83,43 +82,7 @@ export function NewBotDialog({
   hosts,
   offerHostId,
   fromShare
-}: {
-  open: boolean
-  /** Closed with `made` once that bot is created, else dismissed. */
-  onOpenChange: (open: boolean, made?: Bot) => void
-  onCreated?: (bot: Bot) => void
-  /** A suggested name; mount the dialog when it opens so the suggestion is fresh. */
-  initialName?: string
-  /** A suggested purpose, seeded into SOUL.md like a typed one. */
-  initialPurpose?: string
-  /** Pre-selected project group in the sidebar. */
-  initialProject?: string
-  /** The agent picked at first, when this computer has it. */
-  initialAgent?: BotAgent
-  /** Made in Hand to bot: `onCreated` sends its first turn, once the workspace moved, even when its
-   *  page could not open. */
-  takingOver?: true
-  /** A proposed bot (a template, a suggestion, a bot's card): prefills the dialog, and its purpose seeds
-   *  the new bot's SOUL.md. Mount the dialog when it opens. */
-  proposal?: BotProposal
-  /** The bot-create card the proposal came from: the new bot is recorded against it. */
-  fromOffer?: BotCreateParams['fromOffer']
-  /** Where the proposal came from ("From Support triage, for your work"), in place of the description. */
-  origin?: string
-  /** Opened programmatically, it has no trigger to give focus back to on Cancel; this takes its place. */
-  returnFocusTo?: React.RefObject<HTMLElement | null>
-  /** Offers bringing a bot over from another app instead, when this is the owner's first bot. */
-  onImport?: () => void
-  /** The computers it may go on; every one by default. */
-  hosts?: readonly ExecutionHostId[]
-  /** The computer of the bot that proposed it (`fromOffer`): picked first. Made on another computer,
-   *  it is a plain new bot, since that bot and the workspaces it named aren't there. */
-  offerHostId?: ExecutionHostId
-  /** Made from a reviewed link, said in place of the description: its picture first, Ask picked first,
-   *  and Back returns to the review.
-   *  Create writes the reviewed bot, so there is no purpose to type. */
-  fromShare?: NewBotShareSource
-}): React.JSX.Element {
+}: NewBotDialogProps): React.JSX.Element {
   const t = useTranslate()
   const nameRef = useRef<HTMLInputElement>(null)
   const formRef = useRef<HTMLFormElement>(null)
@@ -130,6 +93,8 @@ export function NewBotDialog({
   const [addHostMode, setAddHostMode] = useState<AddRemoteHostMode | null>(null)
   const [draft, setDraft] = useState(() => draftOf(proposal, initialPurpose))
   const [project, setProject] = useState(initialProject ?? '')
+  const [role, setRole] = useState<BotRole | null>(null)
+  const [territory, setTerritory] = useState('')
   const [seenInitialProject, setSeenInitialProject] = useState(initialProject)
   if (seenInitialProject !== initialProject) {
     setSeenInitialProject(initialProject)
@@ -181,6 +146,8 @@ export function NewBotDialog({
     setAddHostMode(null)
     setDraft(draftOf(proposal, initialPurpose))
     setProject(initialProject ?? '')
+    setRole(null)
+    setTerritory('')
     agentSetup.reset()
     picture.reset()
     intake.dismiss()
@@ -238,6 +205,8 @@ export function NewBotDialog({
           avatar: picture.avatar,
           avatarColor: picture.avatarColor,
           ...(project.trim() ? { project: project.trim() } : {}),
+          ...(role ? { role } : {}),
+          ...(role === 'captain' && territory.trim() ? { territory: territory.trim() } : {}),
           ...(takingOver ? { takingOver } : {})
         })
         bot = await picture.saveUpload(bot)
@@ -366,7 +335,16 @@ export function NewBotDialog({
                   onChange={(purpose) => setDraft({ ...draft, purpose })}
                 />
               )}
-              {fromShare ? null : <BotProjectPicker value={project} onChange={setProject} />}
+              {fromShare ? null : (
+                <NewBotPlacementFields
+                  project={project}
+                  role={role}
+                  territory={territory}
+                  onProjectChange={setProject}
+                  onRoleChange={setRole}
+                  onTerritoryChange={setTerritory}
+                />
+              )}
             </div>
             <BotRunsOnPicker
               variant="fields"

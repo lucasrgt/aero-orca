@@ -8,7 +8,13 @@ import { getOptionalStringFlag } from '../arguments/flags'
 import { printResult } from '../output/command-result-output'
 import { RuntimeClientError } from '../runtime/connection/types'
 import { callBots, findBot, formatBot } from './bot'
-import { parseBotAgentFlag, parseBotPermissionModeFlag, readSoulFlags } from './bot-create'
+import {
+  parseBotAgentFlag,
+  parseBotPermissionModeFlag,
+  parseBotRoleFlag,
+  readSoulFlags
+} from './bot-create'
+import { botRoleDisplayLabel } from '../../shared/bots/bot-fleet-role'
 import { formatBotTools } from './bot-tools'
 
 type BotShowPayload = {
@@ -40,7 +46,10 @@ function formatBotShow(payload: BotShowPayload, toolsResult: BotToolsListPayload
     formatBot(bot),
     `Home: ${homeFolder}`,
     ...(bot.project ? [`Project: ${bot.project}`] : []),
+    ...(bot.role ? [`Role: ${botRoleDisplayLabel(bot.role)}`] : []),
+    ...(bot.territory ? [`Territory: ${bot.territory}`] : []),
     ...(bot.launch?.model ? [`Model: ${bot.launch.model}`] : []),
+    ...(bot.launch?.options?.effort ? [`Effort: ${bot.launch.options.effort}`] : []),
     ...(bot.permissionMode ? [`Permission: ${bot.permissionMode}`] : []),
     ...(bot.avatar
       ? [`Avatar: ${bot.avatar}${bot.avatarColor ? ` (${bot.avatarColor})` : ''}`]
@@ -114,11 +123,12 @@ async function handleBotUpdate({ flags, client, cwd, json }: HandlerContext): Pr
     throw new RuntimeClientError('invalid_argument', 'Pass either --pause or --resume, not both.')
   }
   const model = getOptionalStringFlag(flags, 'model')
+  const effort = getOptionalStringFlag(flags, 'effort')
   const clearModel = flags.has('clear-model')
-  if (model !== undefined && clearModel) {
+  if ((model !== undefined || effort !== undefined) && clearModel) {
     throw new RuntimeClientError(
       'invalid_argument',
-      'Pass either --model or --clear-model, not both.'
+      'Pass either --model/--effort or --clear-model, not both.'
     )
   }
   const name = getOptionalStringFlag(flags, 'name')
@@ -134,15 +144,47 @@ async function handleBotUpdate({ flags, client, cwd, json }: HandlerContext): Pr
       'Pass either --project or --clear-project, not both.'
     )
   }
+  const role = parseBotRoleFlag(getOptionalStringFlag(flags, 'role'))
+  const clearRole = flags.has('clear-role')
+  if (role !== undefined && clearRole) {
+    throw new RuntimeClientError(
+      'invalid_argument',
+      'Pass either --role or --clear-role, not both.'
+    )
+  }
+  const territory = getOptionalStringFlag(flags, 'territory')
+  const clearTerritory = flags.has('clear-territory')
+  if (territory !== undefined && clearTerritory) {
+    throw new RuntimeClientError(
+      'invalid_argument',
+      'Pass either --territory or --clear-territory, not both.'
+    )
+  }
   const soul = await readSoulFlags(flags, cwd)
   const tidyUpFlag = getOptionalStringFlag(flags, 'tidy-up')
   if (tidyUpFlag !== undefined && tidyUpFlag !== 'on' && tidyUpFlag !== 'off') {
     throw new RuntimeClientError('invalid_argument', '--tidy-up must be "on" or "off".')
   }
+  const nextLaunch = clearModel
+    ? null
+    : model !== undefined || effort !== undefined
+      ? {
+          ...(model !== undefined
+            ? { model }
+            : target.launch?.model
+              ? { model: target.launch.model }
+              : {}),
+          ...(effort !== undefined
+            ? { options: { ...target.launch?.options, effort } }
+            : target.launch?.options
+              ? { options: target.launch.options }
+              : {})
+        }
+      : undefined
   const updates: Record<string, unknown> = {
     ...(name !== undefined ? { name } : {}),
     ...(agent !== undefined ? { agent } : {}),
-    ...(model !== undefined ? { launch: { model } } : clearModel ? { launch: null } : {}),
+    ...(nextLaunch !== undefined ? { launch: nextLaunch } : {}),
     ...(permissionMode !== undefined ? { permissionMode } : {}),
     ...(avatar !== undefined ? { avatar } : {}),
     ...(avatarColor !== undefined ? { avatarColor } : {}),
@@ -151,6 +193,12 @@ async function handleBotUpdate({ flags, client, cwd, json }: HandlerContext): Pr
       : clearProject
         ? { project: null }
         : {}),
+    ...(role !== undefined ? { role } : clearRole ? { role: null } : {}),
+    ...(territory !== undefined
+      ? { territory: territory.trim() || null }
+      : clearTerritory
+        ? { territory: null }
+        : {}),
     ...(pause ? { paused: true } : resume ? { paused: false } : {}),
     ...(soul !== undefined ? { soul } : {}),
     ...(tidyUpFlag !== undefined ? { tidyUp: { on: tidyUpFlag === 'on' } } : {})
@@ -158,7 +206,7 @@ async function handleBotUpdate({ flags, client, cwd, json }: HandlerContext): Pr
   if (Object.keys(updates).length === 0) {
     throw new RuntimeClientError(
       'invalid_argument',
-      'Specify at least one update flag (--name, --agent, --model, --permission-mode, --project, --clear-project, --soul, --soul-file, --pause, --resume, --avatar, --tidy-up).'
+      'Specify at least one update flag (--name, --agent, --model, --permission-mode, --project, --clear-project, --role, --clear-role, --territory, --clear-territory, --soul, --soul-file, --pause, --resume, --avatar, --tidy-up).'
     )
   }
   const result = await callBots<{ bot: Bot }>(client, 'bots.update', { botId: target.id, updates })
