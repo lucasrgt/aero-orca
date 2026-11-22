@@ -1,5 +1,5 @@
 import { memo, useMemo } from 'react'
-import { Pressable, StyleSheet, Text } from 'react-native'
+import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { ChevronDown, ChevronRight, Folder } from 'lucide-react-native'
 import {
   botProjectCollapseKey,
@@ -125,6 +125,7 @@ export const MobileHomeBotProjectRows = memo(function MobileHomeBotProjectRows(p
           style={({ pressed }) => [
             projectHeaderStyles.header,
             index > 0 && projectHeaderStyles.headerGap,
+            item.afterGlobalAdmiral && projectHeaderStyles.afterGlobalAdmiral,
             pressed && projectHeaderStyles.pressed
           ]}
         >
@@ -135,6 +136,18 @@ export const MobileHomeBotProjectRows = memo(function MobileHomeBotProjectRows(p
           <Chevron size={13} color={colors.textMuted} />
           <Text style={projectHeaderStyles.count}>{item.count}</Text>
         </Pressable>
+      )
+    }
+    if (item.kind === 'fleet-divider') {
+      return (
+        <View key={item.id} style={projectHeaderStyles.fleetDivider}>
+          <View style={projectHeaderStyles.fleetDividerTick} />
+          <Text style={projectHeaderStyles.fleetDividerLabel}>
+            {t('bots.fleet.captainsDivider', 'Captains')}
+          </Text>
+          <View style={projectHeaderStyles.fleetDividerRule} />
+          <Text style={projectHeaderStyles.fleetDividerCount}>{item.count}</Text>
+        </View>
       )
     }
     const prev = virtualRows[index - 1]
@@ -163,6 +176,12 @@ const projectHeaderStyles = themedStyleSheet(() => ({
   headerGap: {
     marginTop: spacing.sm
   },
+  afterGlobalAdmiral: {
+    marginTop: spacing.xs,
+    paddingTop: spacing.sm,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.borderSubtle
+  },
   title: {
     flexShrink: 1,
     fontSize: 12,
@@ -173,6 +192,37 @@ const projectHeaderStyles = themedStyleSheet(() => ({
     marginLeft: 'auto',
     fontSize: 11,
     color: colors.textMuted
+  },
+  fleetDivider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.xs,
+    paddingBottom: 2
+  },
+  fleetDividerTick: {
+    width: 10,
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: colors.borderSubtle
+  },
+  fleetDividerLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+    color: colors.textMuted,
+    opacity: 0.75
+  },
+  fleetDividerRule: {
+    flex: 1,
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: colors.borderSubtle
+  },
+  fleetDividerCount: {
+    fontSize: 10,
+    color: colors.textMuted,
+    opacity: 0.65
   },
   pressed: { opacity: feedback.pressedOpacity }
 }))

@@ -67,6 +67,7 @@ export function BotProjectHeaderRow({
   count,
   collapsed,
   isGeneral,
+  afterGlobalAdmiral = false,
   repos,
   onToggle,
   onNewBot
@@ -76,6 +77,7 @@ export function BotProjectHeaderRow({
   count: number
   collapsed: boolean
   isGeneral: boolean
+  afterGlobalAdmiral?: boolean
   repos: readonly Repo[]
   onToggle: () => void
   onNewBot: (project: string) => void
@@ -85,7 +87,12 @@ export function BotProjectHeaderRow({
   return (
     <div
       data-bot-project-header={projectKey}
-      className="group/bot-project mt-1 flex h-6.5 items-center gap-1 pr-1 pl-1.5 first:mt-0"
+      className={cn(
+        'group/bot-project flex items-center gap-1 pr-1 pl-1.5',
+        afterGlobalAdmiral
+          ? 'mt-1.5 border-t border-border/50 pt-1.5 pb-0.5'
+          : 'mt-1 h-6.5 first:mt-0'
+      )}
     >
       <button
         type="button"

@@ -44,6 +44,13 @@ export type BotSidebarVirtualRow<E extends GroupableBotEntry> =
       count: number
       collapsed: boolean
       isGeneral: boolean
+      afterGlobalAdmiral?: boolean
+    }
+  | {
+      kind: 'fleet-divider'
+      id: string
+      projectKey: string
+      count: number
     }
   | {
       kind: 'entry'
@@ -52,6 +59,39 @@ export type BotSidebarVirtualRow<E extends GroupableBotEntry> =
       originalIndex: number
       grouped: boolean
     }
+
+function pushFleetRows<E extends GroupableBotEntry>(
+  rows: BotSidebarVirtualRow<E>[],
+  projectKey: string,
+  sortedItems: readonly { entry: E; originalIndex: number }[]
+): void {
+  const captainCount = sortedItems.filter(
+    ({ entry }) => entry.kind === 'bot' && entry.bot.role === 'captain'
+  ).length
+  let sawAdmiral = false
+  let insertedDivider = false
+  for (const item of sortedItems) {
+    const role = item.entry.kind === 'bot' ? item.entry.bot.role : null
+    if (role === 'admiral') {
+      sawAdmiral = true
+    } else if (sawAdmiral && !insertedDivider && role === 'captain') {
+      rows.push({
+        kind: 'fleet-divider',
+        id: `bot-fleet-divider:${projectKey}`,
+        projectKey,
+        count: captainCount
+      })
+      insertedDivider = true
+    }
+    rows.push({
+      kind: 'entry',
+      id: item.entry.id,
+      entry: item.entry,
+      originalIndex: item.originalIndex,
+      grouped: true
+    })
+  }
+}
 
 /**
  * Projects a flat list of arranged bot sidebar entries into virtual rows, inserting
@@ -120,7 +160,8 @@ export function buildBotSidebarRows<E extends GroupableBotEntry>(
       grouped: false
     })
   }
-  for (const projectKey of sortedKeys) {
+  for (let projectIndex = 0; projectIndex < sortedKeys.length; projectIndex += 1) {
+    const projectKey = sortedKeys[projectIndex]!
     const bucket = buckets.get(projectKey)!
     const collapsed = collapsedGroups.has(botProjectCollapseKey(projectKey))
     rows.push({
@@ -130,18 +171,11 @@ export function buildBotSidebarRows<E extends GroupableBotEntry>(
       label: bucket.label,
       count: bucket.items.length,
       collapsed,
-      isGeneral: false
+      isGeneral: false,
+      ...(projectIndex === 0 && globalAdmirals.length > 0 ? { afterGlobalAdmiral: true } : {})
     })
     if (!collapsed) {
-      for (const item of sortGroupItemsByFleetRole(bucket.items)) {
-        rows.push({
-          kind: 'entry',
-          id: item.entry.id,
-          entry: item.entry,
-          originalIndex: item.originalIndex,
-          grouped: true
-        })
-      }
+      pushFleetRows(rows, projectKey, sortGroupItemsByFleetRole(bucket.items))
     }
   }
 

@@ -57,18 +57,25 @@ describe('buildBotFleetSection', () => {
 })
 
 describe('buildBotSidebarRows fleet ordering', () => {
-  it('places Admirals first and Captains before standard bots inside each project group', () => {
+  it('places Admirals first with a fleet divider before Captains inside each project group', () => {
     const entries = [
       { id: 'std', kind: 'bot' as const, bot: { project: 'Host Point' } },
       { id: 'cap', kind: 'bot' as const, bot: { project: 'Host Point', role: 'captain' as const } },
       { id: 'adm', kind: 'bot' as const, bot: { project: 'Host Point', role: 'admiral' as const } }
     ]
     const { rows } = buildBotSidebarRows(entries, 'project', new Set())
-    const ids = rows.filter((row) => row.kind === 'entry').map((row) => row.id)
-    expect(ids).toEqual(['adm', 'cap', 'std'])
+    expect(
+      rows.map((row) =>
+        row.kind === 'project-header'
+          ? `header:${row.projectKey}`
+          : row.kind === 'fleet-divider'
+            ? `divider:${row.projectKey}:${row.count}`
+            : row.id
+      )
+    ).toEqual(['header:host point', 'adm', 'divider:host point:1', 'cap', 'std'])
   })
 
-  it('pins global Admirals at the very top outside any General folder', () => {
+  it('pins global Admirals at the very top outside any General folder and separates the first project', () => {
     const entries = [
       { id: 'cap', kind: 'bot' as const, bot: { project: 'Host Point', role: 'captain' as const } },
       { id: 'global-adm', kind: 'bot' as const, bot: { role: 'admiral' as const } }
@@ -76,8 +83,12 @@ describe('buildBotSidebarRows fleet ordering', () => {
     const { rows } = buildBotSidebarRows(entries, 'project', new Set())
     expect(
       rows.map((row) =>
-        row.kind === 'project-header' ? `header:${row.projectKey}` : `${row.id}:${row.grouped}`
+        row.kind === 'project-header'
+          ? `header:${row.projectKey}:${Boolean(row.afterGlobalAdmiral)}`
+          : row.kind === 'fleet-divider'
+            ? `divider:${row.projectKey}`
+            : `${row.id}:${row.grouped}`
       )
-    ).toEqual(['global-adm:false', 'header:host point', 'cap:true'])
+    ).toEqual(['global-adm:false', 'header:host point:true', 'cap:true'])
   })
 })

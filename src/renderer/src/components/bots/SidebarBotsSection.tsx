@@ -43,6 +43,7 @@ import { BotsRevealProvider } from './bots-sidebar-reveal-context'
 import { SidebarBotsEmptyState } from './SidebarBotsEmptyState'
 import { SidebarBotsNewMenu } from './SidebarBotsNewMenu'
 import { BotSidebarVirtualRows } from './BotSidebarVirtualRows'
+import { BotFleetDividerRow } from './BotFleetRolePicker'
 import { BotProjectHeaderRow } from './BotProjectPicker'
 import {
   botProjectCollapseKey,
@@ -285,11 +286,15 @@ export function SidebarBotsSection({
                           count={row.count}
                           collapsed={row.collapsed}
                           isGeneral={row.isGeneral}
+                          afterGlobalAdmiral={row.afterGlobalAdmiral}
                           repos={repos}
                           onToggle={() => toggleCollapsedGroup(collapseKey)}
                           onNewBot={(project) => openNewBot(project)}
                         />
                       )
+                    }
+                    if (row.kind === 'fleet-divider') {
+                      return <BotFleetDividerRow projectKey={row.projectKey} count={row.count} />
                     }
                     const { entry, originalIndex } = row
                     const entryDrag: BotSidebarEntryDrag | undefined = draggable
