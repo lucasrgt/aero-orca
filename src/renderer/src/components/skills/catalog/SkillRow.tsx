@@ -221,13 +221,17 @@ export function SkillRow({
             </div>
             <span className="flex shrink-0 items-center gap-2 text-[11px] text-muted-foreground">
               <span>{sourceKindLabel(skill.sourceKind, t)}</span>
-              <span className="hidden sm:inline" aria-hidden>
-                ·
-              </span>
+              <span
+                aria-hidden="true"
+                className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+              />
               <span className="hidden sm:inline">
                 {skill.providers.map((provider) => providerLabels[provider]).join(', ')}
               </span>
-              <span aria-hidden>·</span>
+              <span
+                aria-hidden="true"
+                className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+              />
               <span className="tabular-nums">
                 {formatUpdatedAt(skill.updatedAt, t, intlLocale)}
               </span>

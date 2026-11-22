@@ -195,7 +195,10 @@ export function OrcaCloudSignInLine({
       {link ? (
         <p className="min-w-0 flex-1">
           {text}
-          <span aria-hidden> · </span>
+          <span
+            aria-hidden="true"
+            className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+          />
           <SignInButton variant="link" size="inlineText" busy={busy} onClick={start} />
         </p>
       ) : (

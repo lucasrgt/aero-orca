@@ -71,6 +71,7 @@ describe('normalizeBotSidebarView', () => {
   it('reads a missing or unknown saved value as Manual with nothing hidden', () => {
     expect(normalizeBotSidebarView({ sortBy: 'repo', hidePausedBots: 'yes' })).toEqual({
       sortBy: 'manual',
+      groupBy: 'project',
       hidePausedBots: false,
       hideSleepingWorkers: false
     })

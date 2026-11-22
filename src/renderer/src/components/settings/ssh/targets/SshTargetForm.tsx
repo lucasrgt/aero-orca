@@ -135,7 +135,10 @@ export function SshTargetForm({
                 {editingLabel !== '' &&
                 endpointSummary !== '' &&
                 endpointSummary !== editingLabel ? (
-                  <span aria-hidden="true">·</span>
+                  <span
+                    aria-hidden="true"
+                    className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+                  />
                 ) : null}
                 {endpointSummary !== '' && endpointSummary !== editingLabel ? (
                   <span className="truncate font-mono text-[11px] text-foreground">

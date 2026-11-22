@@ -59,7 +59,7 @@ export function SkillsFilterToolbar({
       <div className={cn(SKILLS_PAGE_COLUMN, 'flex flex-col gap-2 py-3')}>
         <div className="flex items-center gap-2">
           <div className="relative min-w-0 flex-1">
-            <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground/60" />
             <Input
               value={filters.query}
               onChange={(event) => onFiltersChange({ ...filters, query: event.target.value })}

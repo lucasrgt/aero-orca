@@ -158,7 +158,10 @@ export function DemoSessionRow({
             value0: row.messages
           })}
         </span>
-        <span className="shrink-0 text-muted-foreground/55">·</span>
+        <span
+          aria-hidden="true"
+          className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+        />
         <span className="shrink-0">{row.age}</span>
       </div>
       {children}

@@ -76,7 +76,7 @@ function textEffortDefaultChoice(
   return {
     value: TEXT_ACTION_DEFAULT_MODEL,
     label: effort
-      ? t('agentPicker.sameAsTextDefault', 'Same as default · {{value0}}', { value0: effort })
+      ? t('agentPicker.sameAsTextDefault', 'Same as default ({{value0}})', { value0: effort })
       : short,
     shortLabel: short
   }

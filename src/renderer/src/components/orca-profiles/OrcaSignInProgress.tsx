@@ -68,11 +68,17 @@ export function OrcaSignInWaitNotice({
       <span className="pr-2">
         {t('auto.components.OrcaSignInProgress.waiting', 'Waiting for sign-in in your browser')}
       </span>
-      <span aria-hidden>·</span>
+      <span
+        aria-hidden="true"
+        className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+      />
       <Button type="button" variant="link" size="xs" onClick={() => void copySignInLink(link)}>
         {t('auto.components.OrcaSignInProgress.copyLink', 'Copy sign-in link')}
       </Button>
-      <span aria-hidden>·</span>
+      <span
+        aria-hidden="true"
+        className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+      />
       <Button
         type="button"
         variant="link"

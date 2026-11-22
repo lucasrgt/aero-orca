@@ -236,7 +236,7 @@ export const AgentLaunchPicker = memo(
         return ''
       }
       const [, parsed]: [unknown, AgentPickerDraft] = JSON.parse(summaryKey)
-      return agentLaunchSetupSummary(entry, parsed, pickedModel).join(' · ')
+      return agentLaunchSetupSummary(entry, parsed, pickedModel).join(', ')
     }, [entry, summaryKey, pickedModel])
     const surface =
       entry && !setupDisabled && !selectAgentOnTab && !entry.textGeneration
@@ -315,9 +315,9 @@ export const AgentLaunchPicker = memo(
               <span className="min-w-0 flex-1 truncate text-left">
                 {triggerLabel ?? agentLabel}
                 {triggerLabel && triggerDetail ? (
-                  <span className="text-muted-foreground"> · {triggerDetail}</span>
+                  <span className="ml-1.5 text-muted-foreground">{triggerDetail}</span>
                 ) : !triggerLabel && agent && summary ? (
-                  <span className="text-muted-foreground"> · {summary}</span>
+                  <span className="ml-1.5 text-muted-foreground">{summary}</span>
                 ) : null}
               </span>
               <ChevronDown

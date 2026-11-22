@@ -170,6 +170,7 @@ async function createDirect({
   const permissionMode = parseBotPermissionModeFlag(getOptionalStringFlag(flags, 'permission-mode'))
   const avatar = getOptionalStringFlag(flags, 'avatar')
   const avatarColor = getOptionalStringFlag(flags, 'avatar-color')
+  const project = getOptionalStringFlag(flags, 'project')
   const soul = await readSoulFlags(flags, cwd)
   const purpose = getOptionalStringFlag(flags, 'purpose') ?? template?.line
   const watches = getOptionalStringFlag(flags, 'watches') ?? template?.watches
@@ -193,6 +194,7 @@ async function createDirect({
     ...(permissionMode ? { permissionMode } : {}),
     ...(avatar ? { avatar } : {}),
     ...(avatarColor ? { avatarColor } : {}),
+    ...(project ? { project } : {}),
     ...(seed ? { seed } : {}),
     ...(soul !== undefined ? { soul } : {}),
     ...(worktrees.length ? { handOff: worktrees } : {}),

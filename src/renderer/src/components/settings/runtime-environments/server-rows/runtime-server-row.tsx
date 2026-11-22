@@ -203,22 +203,31 @@ export function RuntimeServerRow({
       ) : (
         infoParts.map((part, index) => (
           <span key={part} className="flex min-w-0 shrink items-center gap-1">
-            {index > 0 ? <span aria-hidden>·</span> : null}
+            {index > 0 ? (
+              <span
+                aria-hidden="true"
+                className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+              />
+            ) : null}
             <span className="truncate">{part}</span>
           </span>
         ))
       )}
       {!problemLine && availableText ? (
         <span className="flex shrink-0 items-center gap-1 text-status-warning">
-          <span aria-hidden className="text-muted-foreground">
-            ·
-          </span>
+          <span
+            aria-hidden="true"
+            className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+          />
           {availableText}
         </span>
       ) : null}
       {problemLine ? (
         <>
-          <span aria-hidden>·</span>
+          <span
+            aria-hidden="true"
+            className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+          />
           <ServerRowDetailsToggle expanded={expanded} onToggle={() => setExpanded((v) => !v)} />
         </>
       ) : null}

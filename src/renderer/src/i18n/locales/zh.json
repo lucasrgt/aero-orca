@@ -25184,7 +25184,7 @@
     "promptPlaceholder": "添加提示词（可选）：/ 选择技能，@ 选择文件",
     "promptPlaceholderFilesOnly": "添加提示词（可选）：@ 选择文件",
     "workspaceStartupFailed": "无法启动 {{agent}}。请检查此设置中的参数并重试。",
-    "sameAsTextDefault": "与默认值相同 · {{value0}}",
+    "sameAsTextDefault": "与默认值相同 — {{value0}}",
     "effortDefault": "默认",
     "chatChoicesNote": "没有 CLI 标志的 {{agent}} 模型或推理力度选项适用于聊天。",
     "composedChoicesNote": "{{agent}} 的推理力度和速度选项包含在模型参数中。",
@@ -26356,7 +26356,7 @@
         "title": "设置"
       },
       "tomorrowAt": "明天 {{time}}",
-      "idleNext": "空闲 · 下次 {{when}} · {{name}}",
+      "idleNext": "空闲 — 下次 {{when}} — {{name}}",
       "runningNamed": "正在运行 {{name}}",
       "nextAt": "下次 {{when}}"
     },
@@ -26688,7 +26688,7 @@
       "retryFailed": "无法重试。请稍后再试。",
       "failed": "无法完成设置",
       "tryAgain": "重试",
-      "subtitle": "你的新 bot · 运行你的 {{agent}}",
+      "subtitle": "你的新 bot — 运行你的 {{agent}}",
       "reading": "正在了解你的配置…",
       "read": "正在了解你的配置"
     },

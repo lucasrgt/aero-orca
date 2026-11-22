@@ -123,8 +123,7 @@ function WorkspaceKanbanStatusLane({
       }
       className={cn(
         'group/lane',
-        'relative flex h-full min-h-0 min-w-0 flex-col overflow-hidden rounded-md border border-t-2 border-worktree-sidebar-border transition-colors',
-        meta.border,
+        'relative flex h-full min-h-0 min-w-0 flex-col overflow-hidden rounded-md border border-worktree-sidebar-border transition-colors',
         meta.laneTint,
         isDragTarget && 'border-worktree-sidebar-ring bg-worktree-sidebar-accent/70',
         'data-[workspace-board-external-drag-target=true]:border-worktree-sidebar-ring data-[workspace-board-external-drag-target=true]:bg-worktree-sidebar-accent/70'

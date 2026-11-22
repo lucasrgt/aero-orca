@@ -1,4 +1,4 @@
-import { botTidyUp, patchTidyUp, TIDY_UP_EVERY_CHOICES } from '../bots/bot-tidy-up'
+import { TIDY_UP_EVERY_CHOICES } from '../bots/bot-tidy-up'
 import * as z from 'zod'
 import { BOT_IMPORT_REPLY_MAX, BotImportFromSchema } from '../bots/bot-import'
 import { AGENT_CHAT_PERMISSION_MODES } from '../agent-launch/permissions/agent-chat-permission-mode'
@@ -15,27 +15,18 @@ import {
   BotGitHubSchema,
   BotLinearSchema,
   BotSlackAppSchema,
-  botMemberSource,
-  botSlackApps,
-  withoutBotMember,
-  withSlackMembersTagged,
-  type Bot,
-  type BotMember
+  type Bot
 } from '../bot-types'
 import { isSettableBotAvatar, MAX_BOT_AVATAR_BYTES } from '../bot-avatar'
 import { BotAvatarColorSchema } from '../bots/bot-avatar-color'
-import { botMembersFullError, planBotMemberAdds } from '../bots/bot-member-capacity'
+import { BotProjectSchema } from '../bots/bot-project-groups'
 import { HANDED_WORKSPACES_MAX, HandedWorkspaceSchema } from '../bots/bot-made-for-workspaces'
 import { BotProposalSchema, BotProposalSeedSchema } from '../bots/bot-proposal'
 import { BotTakeOverSchema } from '../bots/bot-take-over'
-import { BotLookAroundSchema, botLookAround, patchLookAround } from '../bots/bot-look-around'
+import { BotLookAroundSchema } from '../bots/bot-look-around'
 import { BotLaunchSchema } from '../bots/bot-launch'
-import {
-  BOT_OFFER_ALREADY_ANSWERED,
-  BotOfferAnswerUpdateSchema,
-  withBotOfferAnswer
-} from '../bots/bot-offer-answers'
-import { type BotCancelledWait, withBotCancelledWait } from '../bots/bot-cancelled-waits'
+import { BOT_OFFER_ALREADY_ANSWERED, BotOfferAnswerUpdateSchema } from '../bots/bot-offer-answers'
+import type { BotCancelledWait } from '../bots/bot-cancelled-waits'
 import { OptionalBoolean, OptionalString, requiredString } from './rpc-param-primitives'
 import { ACCESS_REQUEST_TOKEN_PATTERN } from '../connector-bot-access-contract'
 
@@ -67,6 +58,8 @@ export const BotCreate = z.object({
   avatar: SettableBotAvatar.optional(),
   /** Absent, the mascot's own sky blue. */
   avatarColor: BotAvatarColorSchema.optional(),
+  /** Optional project name used to group bots by project in the sidebar. */
+  project: BotProjectSchema.nullable().optional(),
   /** Workspaces the owner made it for: its first turn offers to take them over. */
   handOff: HandedWorkspaces.optional(),
   /** Made in Hand to bot: its first turn is the hand-over (`bots.takeOver`), sent once the workspace moved. */
@@ -165,6 +158,8 @@ export const BotUpdate = z.object({
       offerAnswer: BotOfferAnswerUpdateSchema.optional(),
       itemsStale: BotItemsStaleSchema.optional(),
       slackMirror: z.boolean().optional(),
+      /** null or empty string clears the project assignment. */
+      project: BotProjectSchema.nullable().optional(),
       /** Full SOUL.md markdown replacement written to the bot's home folder. */
       soul: z.string().max(64_000).optional()
     })
@@ -320,90 +315,4 @@ export const BotRunSendAgainParams = BotChat.extend({
 export type BotTakeOverParams = z.infer<typeof BotTakeOverParams>
 export type BotChatResetParams = z.infer<typeof BotChatReset>
 
-/** Who can ask after the people an update takes off and adds, applied to the list the host has now.
- *  Throws botMembersFullError, saving nothing, when an add would pass a limit. */
-export function applyBotMemberUpdates(
-  members: readonly BotMember[],
-  updates: Pick<BotUpdateParams['updates'], 'removeMember' | 'removeMembers' | 'addMembers'>
-): BotMember[] {
-  const { removeMember, removeMembers = [], addMembers = [] } = updates
-  let next = [...members]
-  for (const key of [...(removeMember ? [removeMember] : []), ...removeMembers]) {
-    next = withoutBotMember(next, key)
-  }
-  const plan = planBotMemberAdds(next, addMembers)
-  if (!plan.ok) {
-    throw botMembersFullError(plan.full)
-  }
-  return plan.members
-}
-
-/** A null permission mode clears the override, so the bot's chats follow the native chat default. */
-export function applyBotUpdates(bot: Bot, updates: BotHostUpdates): Bot {
-  const {
-    permissionMode,
-    launch,
-    removeMember,
-    removeMembers,
-    addMembers,
-    lookAround,
-    tidyUp,
-    offerAnswer,
-    cancelledWait,
-    soul: _soul,
-    ...rest
-  } = updates
-  const next: Bot = { ...bot, ...rest }
-  if (offerAnswer) {
-    next.offerAnswers = withBotOfferAnswer(bot.offerAnswers, offerAnswer)
-  }
-  if (cancelledWait) {
-    next.cancelledWaits = withBotCancelledWait(bot.cancelledWaits, cancelledWait)
-  }
-  if (lookAround) {
-    next.lookAround = patchLookAround(botLookAround(bot), lookAround, Date.now())
-  }
-  if (tidyUp) {
-    next.tidyUp = patchTidyUp(botTidyUp(bot), tidyUp, Date.now())
-  }
-  next.members = applyBotMemberUpdates(next.members, { removeMember, removeMembers, addMembers })
-  // `slack` and `linear` mirror the first of their lists, for readers that know one workspace.
-  if (rest.slackApps) {
-    next.slack = rest.slackApps[0] ?? null
-  } else if (rest.slack !== undefined) {
-    next.slackApps = rest.slack ? [rest.slack] : []
-  }
-  if (next.slackApps) {
-    // A workspace's people go with it, so a removed workspace never hands them to another.
-    // Untagged people are the first workspace's as it was before this update.
-    const first = botSlackApps(bot)[0] ?? botSlackApps(next)[0]
-    const teams = new Set(next.slackApps.map((app) => app.teamId))
-    const tagged = withSlackMembersTagged({
-      members: next.members,
-      slack: null,
-      slackApps: first ? [first] : []
-    }).members
-    next.members = tagged.filter(
-      (member) =>
-        botMemberSource(member) !== 'slack' ||
-        member.workspaceId === undefined ||
-        teams.has(member.workspaceId)
-    )
-  }
-  if (rest.linearWorkspaces) {
-    next.linear = rest.linearWorkspaces[0] ?? null
-  } else if (rest.linear !== undefined) {
-    next.linearWorkspaces = rest.linear ? [rest.linear] : []
-  }
-  if (permissionMode === null) {
-    delete next.permissionMode
-  } else if (permissionMode !== undefined) {
-    next.permissionMode = permissionMode
-  }
-  if (launch) {
-    next.launch = launch
-  } else if (launch === null || (rest.agent !== undefined && rest.agent !== bot.agent)) {
-    delete next.launch
-  }
-  return next
-}
+export { applyBotMemberUpdates, applyBotUpdates } from './bots-params-apply'

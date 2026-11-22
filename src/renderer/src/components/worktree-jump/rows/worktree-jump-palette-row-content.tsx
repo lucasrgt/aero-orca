@@ -163,7 +163,7 @@ export function PaletteOpenTabPrimaryLine({
       {leadingBadges}
       {secondary ? (
         <>
-          <span className="shrink-0 text-muted-foreground/45">·</span>
+          <span aria-hidden className="h-3 w-px shrink-0 bg-border/80" />
           <span className="min-w-0 truncate text-[12px] text-muted-foreground/92">{secondary}</span>
         </>
       ) : showSecondary ? (
@@ -234,7 +234,7 @@ export function PaletteLocationChip({
     : repoRanges
   const label = [showRepo ? repoName : '', showWorktree ? worktreeName : '']
     .filter(Boolean)
-    .join(' · ')
+    .join(' / ')
   const chip = (
     <span
       data-slot="palette-location-chip"
@@ -256,7 +256,7 @@ export function PaletteLocationChip({
       ) : null}
       {showRepo && showWorktree ? (
         <span aria-hidden className="shrink-0 text-muted-foreground/50">
-          ·
+          /
         </span>
       ) : null}
       {showWorktree ? (

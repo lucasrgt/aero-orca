@@ -45,7 +45,10 @@ export function BotTemplateDetail({
             <p className="flex flex-wrap items-center gap-x-1.5 text-xs text-muted-foreground">
               <span>{botTemplateCategoryLabel(template.category, t)}</span>
               <span className="inline-flex items-center gap-1">
-                <span aria-hidden="true">·</span>
+                <span
+                  aria-hidden="true"
+                  className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+                />
                 {t('bots.templates.publisher', 'by Orca')}
                 <BadgeCheck
                   className="size-3.5 shrink-0 text-callout-note"

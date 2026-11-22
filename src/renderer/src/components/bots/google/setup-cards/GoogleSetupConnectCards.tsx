@@ -200,7 +200,12 @@ export function GoogleSetupConnectedCard({
             {t('bots.googleSetup.connected.add', 'Add a service')}
           </Button>
         ) : null}
-        {account && run.kind === 'work' ? <span aria-hidden>·</span> : null}
+        {account && run.kind === 'work' ? (
+          <span
+            aria-hidden="true"
+            className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+          />
+        ) : null}
         {run.kind === 'work' ? (
           <Button
             variant="link"

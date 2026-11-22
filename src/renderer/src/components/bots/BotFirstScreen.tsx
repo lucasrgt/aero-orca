@@ -238,7 +238,7 @@ export function BotFirstScreen({
       />
       <span className="pt-4 text-xl font-semibold text-chat-foreground-strong">{bot.name}</span>
       <span className="pt-1 text-sm text-chat-foreground-faint">
-        {t('bots.firstScreen.subtitle', 'Your new bot · runs your {{agent}}', {
+        {t('bots.firstScreen.subtitle', 'Your new bot — runs your {{agent}}', {
           agent: botAgentLabel(bot.agent)
         })}
       </span>

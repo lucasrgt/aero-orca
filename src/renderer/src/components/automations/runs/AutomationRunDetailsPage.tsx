@@ -241,7 +241,10 @@ export function AutomationRunDetailsPage({
                     time: formatAutomationDateTime(run.scheduledFor, t, intlLocale)
                   })}
                 </span>
-                <span aria-hidden="true">·</span>
+                <span
+                  aria-hidden="true"
+                  className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+                />
                 <span>
                   {t('auto.components.automations.runIdentity.startedAt', 'Started {{time}}', {
                     time: formatAutomationDateTimeWithRelative(
@@ -260,13 +263,19 @@ export function AutomationRunDetailsPage({
             )}
             {automation ? (
               <>
-                <span aria-hidden="true">·</span>
+                <span
+                  aria-hidden="true"
+                  className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+                />
                 <span>{getAgentLabel(automation.agentId)}</span>
               </>
             ) : null}
             {run.outputSnapshot?.truncated ? (
               <>
-                <span aria-hidden="true">·</span>
+                <span
+                  aria-hidden="true"
+                  className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+                />
                 <span>
                   {t(
                     'auto.components.automations.AutomationsPage.latestSavedOutput',

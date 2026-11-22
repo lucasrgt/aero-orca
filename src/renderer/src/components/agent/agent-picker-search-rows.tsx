@@ -103,7 +103,7 @@ export function AgentPickerSearchResults({
           >
             <AgentVariantIcon agent={setup.entry.agent} size={14} />
             <span className="min-w-0 flex-1 truncate">
-              {[setup.model.label, effort?.label].filter(Boolean).join(' · ')}
+              {effort?.label ? `${setup.model.label} (${effort.label})` : setup.model.label}
             </span>
             {setup.entry.defaultSurface === 'chat' && entrySetupLabel(setup.entry) ? (
               <span className="text-xs text-muted-foreground">{entrySetupLabel(setup.entry)}</span>

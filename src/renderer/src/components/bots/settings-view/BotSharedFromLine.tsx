@@ -45,7 +45,10 @@ export function BotSharedFromLine({ bot }: { bot: Bot }): React.JSX.Element | nu
       </span>
       <span className="flex shrink-0 items-baseline gap-x-1">
         {date ? <span>· {date}</span> : null}
-        <span aria-hidden>·</span>
+        <span
+          aria-hidden="true"
+          className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+        />
         {original === 'gone' ? (
           <span role="status">{t('bots.share.copy.originalGone', 'No longer available')}</span>
         ) : (

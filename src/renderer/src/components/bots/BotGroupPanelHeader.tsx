@@ -114,7 +114,7 @@ export function BotGroupPanelHeader({
       <>
         {needsYou > 0 ? needs : null}
         {needsYou > 0 && working > 0 ? (
-          <span className="@max-[284px]:hidden">{` · ${workingText}`}</span>
+          <span className="@max-[284px]:hidden">{`, ${workingText}`}</span>
         ) : working > 0 ? (
           workingText
         ) : null}
@@ -129,7 +129,7 @@ export function BotGroupPanelHeader({
     )
   const fullLine =
     needsYou > 0 && working > 0
-      ? `${needs} · ${workingText}`
+      ? `${needs}, ${workingText}`
       : needsYou > 0
         ? needs
         : working > 0

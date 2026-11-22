@@ -38,7 +38,10 @@ export function AutomationListGroupSection({
       >
         {t(label.key, label.fallback)}
         <span className="ml-1.5 font-normal tabular-nums">
-          <span aria-hidden="true">· </span>
+          <span
+            aria-hidden="true"
+            className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+          />
           {group.items.length}
         </span>
       </div>

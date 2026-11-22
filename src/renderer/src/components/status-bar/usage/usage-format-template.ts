@@ -96,6 +96,6 @@ export function buildUsageFormatValues(
     .sort((a, b) => BUCKET_ORDER.indexOf(a.name) - BUCKET_ORDER.indexOf(b.name))
   values.buckets = buckets
     .map((bucket) => `${bucket.name} ${percent(bucket, options.display)}`)
-    .join(' · ')
+    .join(', ')
   return values
 }

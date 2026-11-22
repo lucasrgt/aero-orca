@@ -43,7 +43,10 @@ export function NativeChatConnectorAskerTag({
       {nameless ? null : (
         <>
           <span className="min-w-0 truncate font-medium text-chat-foreground">{name}</span>
-          <span aria-hidden>·</span>
+          <span
+            aria-hidden="true"
+            className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+          />
         </>
       )}
       {SourceIcon ? <SourceIcon className="size-3 shrink-0" /> : null}

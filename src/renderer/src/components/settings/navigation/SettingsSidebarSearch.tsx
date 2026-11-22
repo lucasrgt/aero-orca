@@ -41,7 +41,7 @@ export function SettingsSearchField({
   return (
     <div className="border-b border-worktree-sidebar-divider px-3 py-3">
       <div className="relative">
-        <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+        <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground/60" />
         <Input
           ref={searchInputRef}
           autoFocus={searchAutoFocus}

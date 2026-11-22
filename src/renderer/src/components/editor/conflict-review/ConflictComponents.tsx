@@ -341,7 +341,10 @@ export function ConflictReviewPanel({
                   { count: unresolvedCount, defaultValue_one: '{{count}} unresolved conflict' }
                 )}
               </span>
-              <span className="text-muted-foreground/50">·</span>
+              <span
+                aria-hidden="true"
+                className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+              />
               <span className="text-xs text-muted-foreground">
                 {t('editorConflicts.snapshotCapturedAt', 'Snapshot captured at {{time}}.', {
                   time: snapshotTime

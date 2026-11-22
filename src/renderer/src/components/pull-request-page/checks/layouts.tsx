@@ -81,7 +81,12 @@ export function ChecksTabLayouts({
                 <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
                   {countChips.map((chip, i) => (
                     <React.Fragment key={chip.tone}>
-                      {i > 0 && <span className="opacity-40">·</span>}
+                      {i > 0 && (
+                        <span
+                          aria-hidden="true"
+                          className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+                        />
+                      )}
                       <span className={CHECK_COLOR[chip.tone]}>{chip.label}</span>
                     </React.Fragment>
                   ))}

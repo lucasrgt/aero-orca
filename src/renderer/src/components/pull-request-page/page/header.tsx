@@ -81,7 +81,10 @@ export function PullRequestPageHeader({
             <ChevronLeft className="size-4" />
             {backLabel}
           </Button>
-          <span className="text-muted-foreground/40">·</span>
+          <span
+            aria-hidden="true"
+            className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+          />
           {ownerRepo ? (
             <>
               <span className="truncate">
@@ -89,7 +92,10 @@ export function PullRequestPageHeader({
                 <span className="mx-1 text-muted-foreground/40">/</span>
                 <span className="font-medium text-foreground">{ownerRepo.repo}</span>
               </span>
-              <span className="text-muted-foreground/40">·</span>
+              <span
+                aria-hidden="true"
+                className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+              />
             </>
           ) : null}
           <span className="font-mono text-muted-foreground">#{workItem.number}</span>
@@ -238,7 +244,10 @@ export function PullRequestPageHeader({
               </span>
             )}
           </span>
-          <span className="text-muted-foreground/40">·</span>
+          <span
+            aria-hidden="true"
+            className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+          />
           <span className="text-muted-foreground/80">
             {t('auto.components.PullRequestPage.dd5d9a4f17', 'updated {{value0}}', {
               value0: formatRelativeTime(workItem.updatedAt, intlLocale)
@@ -246,7 +255,10 @@ export function PullRequestPageHeader({
           </span>
           {attachedWorkspaceLabel ? (
             <>
-              <span className="text-muted-foreground/40">·</span>
+              <span
+                aria-hidden="true"
+                className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+              />
               <span className="inline-flex min-w-0 items-center gap-1.5">
                 <FolderKanban className="size-3.5 shrink-0" />
                 <span className="truncate">{attachedWorkspaceLabel}</span>

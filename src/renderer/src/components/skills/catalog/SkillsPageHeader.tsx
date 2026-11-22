@@ -72,13 +72,19 @@ export function SkillsPageHeader({
             <span className="shrink-0">{skillCountLabel(skillCount, t)}</span>
             {sourceEntries.length > 0 ? (
               <>
-                <span aria-hidden>·</span>
+                <span
+                  aria-hidden="true"
+                  className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+                />
                 <SkillsSourcesPopover entries={sourceEntries} scannedCount={scannedSourceCount} />
               </>
             ) : null}
             {hostLabel ? (
               <>
-                <span aria-hidden>·</span>
+                <span
+                  aria-hidden="true"
+                  className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+                />
                 <span className="truncate">{hostLabel}</span>
               </>
             ) : null}

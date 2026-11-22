@@ -224,7 +224,7 @@ function BotSidebarSearchPanel({
       {/* Insets match the list's and a row's, so the field's glyph sits over the bots' pictures.
           The gap below clears the focus ring off the first row. */}
       <div className="relative shrink-0 px-2 pt-1 pb-1.5">
-        <Search className="pointer-events-none absolute top-1/2 left-[22px] size-3.5 -translate-y-1/2 text-muted-foreground" />
+        <Search className="pointer-events-none absolute top-1/2 left-[18px] size-3.5 -translate-y-1/2 text-muted-foreground/60" />
         <Input
           ref={inputRef}
           autoFocus
@@ -297,12 +297,11 @@ function BotSidebarSearchPanel({
           {/* The message wraps rather than truncates, so a long translation at the narrowest sidebar
               still says why the list is empty; each "· action" pair wraps as one. */}
           {result.matches.length === 0 && result.hiddenPausedMatches === 0 ? (
-            <div className="flex flex-wrap items-center gap-x-1 px-3 py-1 text-xs text-muted-foreground">
+            <div className="flex flex-wrap items-center gap-x-2 px-3 py-1 text-xs text-muted-foreground">
               <span className="min-w-0 break-words">
                 {t('bots.search.noMatches', 'No matches')}
               </span>
               <span className="inline-flex items-center gap-1">
-                <span aria-hidden="true">·</span>
                 <Button type="button" variant="link" size="inlineText" onClick={clear}>
                   {t('bots.search.clear', 'Clear search')}
                 </Button>
@@ -310,7 +309,7 @@ function BotSidebarSearchPanel({
             </div>
           ) : null}
           {result.hiddenPausedMatches > 0 ? (
-            <div className="flex flex-wrap items-center gap-x-1 px-3 py-1 text-xs text-muted-foreground">
+            <div className="flex flex-wrap items-center gap-x-2 px-3 py-1 text-xs text-muted-foreground">
               <span className="min-w-0 break-words">
                 {t('bots.search.pausedMatches', '{{count}} paused matches', {
                   count: result.hiddenPausedMatches,
@@ -318,7 +317,6 @@ function BotSidebarSearchPanel({
                 })}
               </span>
               <span className="inline-flex items-center gap-1">
-                <span aria-hidden="true">·</span>
                 <Button
                   type="button"
                   variant="link"
@@ -331,7 +329,6 @@ function BotSidebarSearchPanel({
               </span>
               {result.matches.length === 0 ? (
                 <span className="inline-flex items-center gap-1">
-                  <span aria-hidden="true">·</span>
                   <Button type="button" variant="link" size="inlineText" onClick={clear}>
                     {t('bots.search.clear', 'Clear search')}
                   </Button>

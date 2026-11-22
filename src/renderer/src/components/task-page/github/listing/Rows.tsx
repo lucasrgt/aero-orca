@@ -180,7 +180,10 @@ export function TaskPageGitHubRows({
                   ) : null}
                   {item.type === 'pr' && item.state === 'draft' ? (
                     <>
-                      <span aria-hidden="true">·</span>
+                      <span
+                        aria-hidden="true"
+                        className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+                      />
                       <span>{t('auto.components.TaskPage.054bf695cc', 'Draft')}</span>
                     </>
                   ) : null}

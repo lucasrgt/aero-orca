@@ -15,7 +15,8 @@ import { formatBotChats, type BotChatsResult } from './bot-chats-format'
 import { orcaCloudNeedsSignIn } from '../../shared/bots/host-orca-sign-in'
 
 export function formatBot(bot: Bot): string {
-  return `${bot.name} (${bot.agent}${bot.paused ? ', paused' : ''})  id: ${bot.id}`
+  const projectNote = bot.project ? ` [${bot.project}]` : ''
+  return `${bot.name}${projectNote} (${bot.agent}${bot.paused ? ', paused' : ''})  id: ${bot.id}`
 }
 
 export function callBots<TResult>(

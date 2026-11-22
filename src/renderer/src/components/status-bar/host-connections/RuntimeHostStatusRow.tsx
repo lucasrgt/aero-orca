@@ -240,7 +240,10 @@ export function RuntimeHostStatusRow({
           <span>
             {t('auto.components.status.bar.SshStatusSegment.remote_server', 'Remote Server')}
           </span>
-          <span aria-hidden="true">·</span>
+          <span
+            aria-hidden="true"
+            className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+          />
           <span className={`inline-flex min-w-0 items-center gap-1 ${statusTone}`}>
             {showSpinner ? <Loader2 className="size-2.5 shrink-0 animate-spin" /> : null}
             <span className="truncate">{blocked?.label ?? runtimeStatusLabel(state, t)}</span>

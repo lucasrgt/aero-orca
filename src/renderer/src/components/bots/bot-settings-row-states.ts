@@ -55,7 +55,7 @@ export function lookAroundLine(
   }
   const every = LOOK_AROUND_EVERY_LABELS[setting.every]
   return lastLookedAt
-    ? `${every} · ${translate('bots.settingsPage.lastLooked', 'last looked {{when}}', {
+    ? `${every} — ${translate('bots.settingsPage.lastLooked', 'last looked {{when}}', {
         when: lookedWhen(lastLookedAt, now)
       })}`
     : every
@@ -81,7 +81,7 @@ export function tidyUpLine(
           'Once a week after 3 AM, or once this computer is awake'
         )
   return lastTidiedAt
-    ? `${every} · ${translate('bots.settingsPage.lastTidied', 'last tidied {{when}}', {
+    ? `${every} — ${translate('bots.settingsPage.lastTidied', 'last tidied {{when}}', {
         when: tidiedWhen(lastTidiedAt, now)
       })}`
     : every
@@ -161,7 +161,7 @@ export function whoCanAskValue(people: number, requests: number): string {
         })
       : translate('bots.settingsPage.onlyYou', 'Only you')
   return requests > 0
-    ? `${who} · ${translate('settings.bots.connectorRequests', '{{count}} requests', {
+    ? `${who}, ${translate('settings.bots.connectorRequests', '{{count}} requests', {
         count: requests,
         defaultValue_one: '{{count}} request'
       })}`

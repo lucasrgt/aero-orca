@@ -235,7 +235,11 @@ export function SshTargetCard({
             {keyName ? (
               <>
                 {' '}
-                <span className="px-0.5">·</span> <span className="font-mono">{keyName}</span>
+                <span
+                  aria-hidden="true"
+                  className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+                />{' '}
+                <span className="font-mono">{keyName}</span>
               </>
             ) : null}
           </span>

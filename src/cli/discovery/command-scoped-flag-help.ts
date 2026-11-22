@@ -11,6 +11,7 @@ const AGENT_ID_FLAG_HELP =
 
 const COMMAND_SCOPED_FLAG_HELP: Record<string, Record<string, string>> = {
   'bot create': {
+    project: '--project <name>       Group this bot under a project name in the sidebar',
     agent: '--agent <id>           Agent backend (run `orca bot agents` to list available ones)',
     model: '--model <id>           Default model id for the bot’s chats',
     'permission-mode':
@@ -26,6 +27,8 @@ const COMMAND_SCOPED_FLAG_HELP: Record<string, Record<string, string>> = {
   },
   'bot update': {
     bot: '--bot <name|id>        Bot name or id (also accepted positionally)',
+    project: '--project <name>       Assign this bot to a project group in the sidebar',
+    'clear-project': '--clear-project        Remove this bot from its project group',
     agent: '--agent <id>           Switch the bot’s agent backend',
     model: '--model <id>           Set the default model id for the bot’s chats',
     'clear-model': '--clear-model          Reset launch model/options back to native chat defaults',

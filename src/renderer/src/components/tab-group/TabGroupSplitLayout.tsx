@@ -18,15 +18,11 @@ export default function TabGroupSplitLayout({
   return (
     <WorkspaceTabDragLayer worktreeId={worktreeId} enabled={isWorktreeActive}>
       {({ isTabDragActive, hoveredTabInsertion, setDragRootNode }) => (
-        /* Keep the 4px drag strip outside resize panes to align the 36px header; the wrapper owns the single sidebar seam. */
+        /* The 36px tab strip aligns directly with the 36px app header; the wrapper owns the single sidebar seam. */
         <div
           ref={setDragRootNode}
           className="workspace-sidebar-seam flex flex-col flex-1 min-w-0 min-h-0 overflow-hidden border-l border-border"
         >
-          <div
-            className="workspace-tab-drag-strip h-[4px] shrink-0 bg-tab-bar"
-            data-terminal-focus-release-surface="true"
-          />
           <div className="flex flex-1 min-w-0 min-h-0 overflow-hidden">
             <TabGroupSplitNodeTree
               layout={layout}

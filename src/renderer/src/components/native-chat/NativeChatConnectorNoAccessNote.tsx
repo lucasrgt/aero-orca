@@ -54,10 +54,16 @@ export function NativeChatConnectorNoAccessNote({
                   {line.initials}
                 </span>
                 <span className="min-w-0 truncate font-medium">{line.name}</span>
-                <span aria-hidden>·</span>
+                <span
+                  aria-hidden="true"
+                  className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+                />
                 {SourceIcon ? <SourceIcon className="size-3 shrink-0" /> : null}
                 <span>{view.sourceName}</span>
-                <span aria-hidden>·</span>
+                <span
+                  aria-hidden="true"
+                  className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+                />
                 <span>{view.noAccessLabel}</span>
               </Badge>
               <div className="max-w-full border-r-2 border-border pr-2.5 text-sm break-words whitespace-pre-wrap text-chat-foreground-faint">

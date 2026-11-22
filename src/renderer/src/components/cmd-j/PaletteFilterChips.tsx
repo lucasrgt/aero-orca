@@ -56,9 +56,10 @@ export default function PaletteFilterChips({
         {chips.map((chip, index) => (
           <React.Fragment key={`${chip.field}:${chip.id}`}>
             {index > 0 ? (
-              <span className="shrink-0 opacity-50" aria-hidden="true">
-                ·
-              </span>
+              <span
+                aria-hidden="true"
+                className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+              />
             ) : null}
             <button
               type="button"

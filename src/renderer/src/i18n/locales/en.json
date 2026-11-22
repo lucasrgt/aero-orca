@@ -26541,7 +26541,7 @@
     "argumentsHint": "Applies only to CLI launches.",
     "launchChat": "Launch chat",
     "launchTerminal": "Launch terminal",
-    "sameAsTextDefault": "Same as default · {{value0}}",
+    "sameAsTextDefault": "Same as default ({{value0}})",
     "effortDefault": "Default",
     "setByArguments": "Set by your Arguments",
     "searchModels": "Search models",
@@ -28053,7 +28053,7 @@
       "retryFailed": "Could not try again. Try in a moment.",
       "failed": "Couldn’t finish setting up",
       "tryAgain": "Try again",
-      "subtitle": "Your new bot · runs your {{agent}}",
+      "subtitle": "Your new bot — runs your {{agent}}",
       "reading": "Getting to know your setup…",
       "read": "Getting to know your setup"
     },
@@ -28675,7 +28675,10 @@
       "hidePaused": "Hide paused bots",
       "hideSleepingWorkers": "Hide sleeping workers",
       "hideSleepingWorkersAria": "Hide a bot's worker workspaces that have nothing running",
-      "allHidden": "All bots are paused and hidden."
+      "allHidden": "All bots are paused and hidden.",
+      "groupProject": "Project",
+      "groupNone": "None",
+      "groupBy": "Group by"
     },
     "share": {
       "shareBot": "Share bot…",
@@ -28935,7 +28938,7 @@
         "title": "Settings"
       },
       "tomorrowAt": "tomorrow {{time}}",
-      "idleNext": "Idle · next {{when}} · {{name}}",
+      "idleNext": "Idle — next {{when}} ({{name}})",
       "runningNamed": "Running {{name}}",
       "nextAt": "Next {{when}}",
       "runsOn": "Runs on {{host}}",
@@ -29497,6 +29500,16 @@
       "itemsNeedYou_other": "{{count}} items it flagged for you",
       "review": "Review",
       "openHome": "Open {{name}}’s Home"
+    },
+    "project": {
+      "placeholder": "Project (optional)",
+      "label": "Project",
+      "clear": "Clear project",
+      "remove": "Remove from project",
+      "general": "General",
+      "newBotIn": "New bot in {{project}}",
+      "none": "None",
+      "description": "Group this bot under a project in the sidebar. Pick a project or type any name."
     }
   },
   "plugins": {

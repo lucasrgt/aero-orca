@@ -181,7 +181,10 @@ export function LinearIssueMarkdownDescriptionEditor({
             {t('auto.components.LinearIssueMarkdownDescriptionEditor.a7301a11f3', 'save')}
           </span>
         </span>
-        <span className="text-muted-foreground/35">·</span>
+        <span
+          aria-hidden="true"
+          className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+        />
         <span>
           {t('auto.components.LinearIssueMarkdownDescriptionEditor.d9c47069ef', 'Markdown')}
         </span>

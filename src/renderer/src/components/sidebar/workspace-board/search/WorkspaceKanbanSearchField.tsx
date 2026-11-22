@@ -97,7 +97,7 @@ export default function WorkspaceKanbanSearchField({
 
   return (
     <div className="relative flex min-w-0 max-w-xs flex-1 items-center">
-      <Search className="pointer-events-none absolute left-2 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+      <Search className="pointer-events-none absolute left-2 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground/60" />
       <Input
         ref={inputRef}
         value={query}

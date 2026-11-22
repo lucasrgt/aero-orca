@@ -96,7 +96,10 @@ export function SessionMetadata({
         </span>
         {session.subagentTranscriptCount > 0 ? (
           <>
-            <span className="shrink-0 text-muted-foreground/55">·</span>
+            <span
+              aria-hidden="true"
+              className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+            />
             <span className="shrink-0 tabular-nums">
               {session.subagentTranscriptCount === 1
                 ? t(
@@ -113,17 +116,26 @@ export function SessionMetadata({
         ) : null}
         {isAiVaultSessionRecoverableEmpty(session) ? (
           <>
-            <span className="shrink-0 text-muted-foreground/55">·</span>
+            <span
+              aria-hidden="true"
+              className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+            />
             <span className="shrink-0 rounded-sm border border-dashed border-border/70 px-1 py-0 text-[10px] font-medium leading-4 text-muted-foreground">
               {t('auto.components.right.sidebar.AiVaultSessionRow.recoverableBadge', 'Not saved')}
             </span>
           </>
         ) : null}
-        <span className="shrink-0 text-muted-foreground/55">·</span>
+        <span
+          aria-hidden="true"
+          className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+        />
         <SessionTime value={updatedAt} />
         {modelLabel ? (
           <>
-            <span className="shrink-0 text-muted-foreground/55">·</span>
+            <span
+              aria-hidden="true"
+              className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+            />
             <span className="min-w-0 truncate" title={modelLabel}>
               {modelLabel}
             </span>

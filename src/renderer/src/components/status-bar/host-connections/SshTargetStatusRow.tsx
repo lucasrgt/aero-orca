@@ -89,7 +89,10 @@ export function SshTargetStatusRow({
         <div className="truncate text-[12px] font-medium">{label}</div>
         <div className="flex min-w-0 items-center gap-1.5 text-[10px] text-muted-foreground">
           <span>{t('auto.components.status.bar.SshTargetStatusRow.sshHost', 'SSH Host')}</span>
-          <span aria-hidden="true">·</span>
+          <span
+            aria-hidden="true"
+            className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+          />
           <span>{STATUS_LABELS[status]}</span>
         </div>
       </div>

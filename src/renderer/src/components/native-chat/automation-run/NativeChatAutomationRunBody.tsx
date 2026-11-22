@@ -155,7 +155,10 @@ function RunEvent({
           <span>{facts}</span>
           {link ? (
             <>
-              <span aria-hidden>·</span>
+              <span
+                aria-hidden="true"
+                className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+              />
               <a
                 href={link.url}
                 className={RUN_LINK_BUTTON}

@@ -77,7 +77,7 @@ export function botQuietLine(
         ? translate('bots.panel.tomorrowAt', 'tomorrow {{time}}', { time })
         : formatWaitTime(next.at, now)
   return {
-    text: translate('bots.panel.idleNext', 'Idle · next {{when}} · {{name}}', {
+    text: translate('bots.panel.idleNext', 'Idle — next {{when}} ({{name}})', {
       name: next.name,
       when
     }),

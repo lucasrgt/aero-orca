@@ -8,10 +8,17 @@ import { translate } from '@/i18n/i18n'
 import { useTranslate } from '@/i18n/use-translate'
 import { useAppStore } from '@/store'
 import {
+  BOT_SIDEBAR_GROUP_CHOICES,
   BOT_SIDEBAR_SORT_CHOICES,
   countActiveBotSidebarFilters,
+  type BotSidebarGroupBy,
   type BotSidebarSortBy
 } from '../../../../shared/bots/bot-sidebar-view'
+
+const GROUP_LABELS: Record<BotSidebarGroupBy, () => string> = {
+  project: () => translate('bots.options.groupProject', 'Project'),
+  none: () => translate('bots.options.groupNone', 'None')
+}
 
 const SORT_LABELS: Record<BotSidebarSortBy, () => string> = {
   manual: () => translate('bots.options.sortManual', 'Manual'),
@@ -41,6 +48,11 @@ export function BotSidebarOptionsMenu(): React.JSX.Element {
     label: SORT_LABELS[id](),
     description: SORT_DESCRIPTIONS[id]?.() ?? null
   }))
+  const groupChoices = BOT_SIDEBAR_GROUP_CHOICES.map(({ id }) => ({
+    id,
+    label: GROUP_LABELS[id](),
+    description: null
+  }))
   return (
     <SidebarOptionsPopover
       ariaLabel={
@@ -55,6 +67,12 @@ export function BotSidebarOptionsMenu(): React.JSX.Element {
       activeFilterCount={activeFilterCount}
     >
       <DropdownMenuLabel>{title}</DropdownMenuLabel>
+      <OptionChoiceSubmenu
+        label={t('bots.options.groupBy', 'Group by')}
+        choices={groupChoices}
+        value={view.groupBy ?? 'project'}
+        onChange={(groupBy) => setView({ groupBy })}
+      />
       <OptionChoiceSubmenu
         label={t('bots.options.sortBy', 'Sort by')}
         choices={choices}

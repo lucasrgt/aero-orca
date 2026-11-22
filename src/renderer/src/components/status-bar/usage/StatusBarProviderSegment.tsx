@@ -3,6 +3,7 @@ import { resolveStatusBarUsageTemplate } from '../../../../../shared/status-bar/
 import { buildUsageFormatValues, renderUsageFormatTemplate } from './usage-format-template'
 import { AlertTriangle } from 'lucide-react'
 import React from 'react'
+import { PixelSpinner } from '@/components/ui/PixelSpinner'
 import { useSectionOnScreen } from '../../right-sidebar/source-control/panel/section-viewport-presence'
 import type {
   OwnerNotSetUpPlaceholder,
@@ -298,7 +299,7 @@ export function ProviderSegment({
     return (
       <span className="inline-flex items-center gap-1 text-muted-foreground">
         <ProviderIcon provider={provider} />
-        <span>···</span>
+        <PixelSpinner className="size-2.5" />
       </span>
     )
   }

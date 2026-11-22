@@ -55,7 +55,10 @@ export function GoogleSetupReceipt({
       <span>{text}</span>
       {onChange ? (
         <>
-          <span aria-hidden>·</span>
+          <span
+            aria-hidden="true"
+            className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+          />
           <Button variant="link" size="inlineText" onClick={onChange}>
             {t('bots.googleSetup.receipt.change', 'Change')}
           </Button>

@@ -14,9 +14,17 @@ export const BOT_SIDEBAR_SORT_CHOICES = [
 
 export type BotSidebarSortBy = (typeof BOT_SIDEBAR_SORT_CHOICES)[number]['id']
 
+export const BOT_SIDEBAR_GROUP_CHOICES = [
+  { id: 'project', label: 'Project' },
+  { id: 'none', label: 'None' }
+] as const satisfies readonly WorkspaceViewChoice<string>[]
+
+export type BotSidebarGroupBy = (typeof BOT_SIDEBAR_GROUP_CHOICES)[number]['id']
+
 /** The Bots section's "Bot options": how this computer's bots list, on desktop and on a paired phone. */
 export type BotSidebarView = {
   sortBy: BotSidebarSortBy
+  groupBy?: BotSidebarGroupBy
   hidePausedBots: boolean
   /** A bot's worker lines with nothing running drop off, as the projects' Hide sleeping. */
   hideSleepingWorkers: boolean
@@ -24,6 +32,7 @@ export type BotSidebarView = {
 
 export const DEFAULT_BOT_SIDEBAR_VIEW: BotSidebarView = {
   sortBy: 'manual',
+  groupBy: 'project',
   hidePausedBots: false,
   hideSleepingWorkers: false
 }
@@ -33,8 +42,10 @@ export function normalizeBotSidebarView(value: unknown): BotSidebarView {
   const saved: Partial<Record<keyof BotSidebarView, unknown>> =
     typeof value === 'object' && value !== null ? value : {}
   const sortBy = BOT_SIDEBAR_SORT_CHOICES.find((choice) => choice.id === saved.sortBy)?.id
+  const groupBy = BOT_SIDEBAR_GROUP_CHOICES.find((choice) => choice.id === saved.groupBy)?.id
   return {
     sortBy: sortBy ?? DEFAULT_BOT_SIDEBAR_VIEW.sortBy,
+    groupBy: groupBy ?? DEFAULT_BOT_SIDEBAR_VIEW.groupBy,
     hidePausedBots: saved.hidePausedBots === true,
     hideSleepingWorkers: saved.hideSleepingWorkers === true
   }

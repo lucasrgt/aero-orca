@@ -82,7 +82,7 @@ export function usageLimitCopyText(input: UsageLimitCopyInput): string {
     ...(input.frame
       ? {
           frame: {
-            id: `${provider!.text} · ${summary!.text}`,
+            id: `${provider!.text} — ${summary!.text}`,
             truncated: input.frame.truncatedNote !== undefined,
             ...(providerNote ? { note: providerNote.text } : {})
           }

@@ -12,6 +12,7 @@ import { BotMemoryBody, BotSoulBody } from '../../settings/bots/BotSoulAndMemory
 import { BotTidyUpSection } from '../../settings/bots/BotTidyUpSection'
 import { BotToolsSection } from '../../settings/bots/BotToolsSection'
 import { botFolderDisplay } from '../bot-presentation'
+import { BotProjectPicker } from '../BotProjectPicker'
 import { BotComputerPage } from './BotComputerPage'
 import { BotMemoryTopicFiles } from './BotMemoryTopicFiles'
 import type { BotSettingsPlace } from './bot-settings-place'
@@ -49,9 +50,26 @@ export function BotSettingsSubpage({
   place: BotSettingsPlace & { page: NonNullable<BotSettingsPlace['page']> }
   update: Update
 }): React.ReactNode {
+  const t = useTranslate()
   switch (place.page) {
     case 'agent':
       return <BotAgentSettings bot={bot} update={update} />
+    case 'project':
+      return (
+        <div className="space-y-2 px-1">
+          <p className="text-xs text-muted-foreground">
+            {t(
+              'bots.project.description',
+              'Group this bot under a project in the sidebar. Pick a project or type any name.'
+            )}
+          </p>
+          <BotProjectPicker
+            value={bot.project ?? ''}
+            mode="page"
+            onChange={(next) => void update({ project: next || null })}
+          />
+        </div>
+      )
     case 'permissions':
       return <BotPermissionSettings bot={bot} update={update} />
     case 'computer':

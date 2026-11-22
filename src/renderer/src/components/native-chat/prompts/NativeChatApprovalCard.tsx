@@ -192,7 +192,10 @@ export function NativeChatApprovalCard({
                           name: worker.name
                         })}
                       </span>
-                      <span aria-hidden>·</span>
+                      <span
+                        aria-hidden="true"
+                        className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+                      />
                       <button
                         type="button"
                         onClick={worker.onOpen}

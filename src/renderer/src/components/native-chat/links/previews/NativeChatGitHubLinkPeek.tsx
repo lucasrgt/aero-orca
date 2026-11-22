@@ -49,7 +49,10 @@ function PeekFooter({ item }: { item: GitHubWorkItem }): React.JSX.Element {
             className="size-4"
           />
           <span className="min-w-0 truncate">{item.author}</span>
-          <span aria-hidden>·</span>
+          <span
+            aria-hidden="true"
+            className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+          />
         </>
       ) : null}
       {item.updatedAt ? (
@@ -61,13 +64,19 @@ function PeekFooter({ item }: { item: GitHubWorkItem }): React.JSX.Element {
       ) : null}
       {item.type === 'pr' && (item.additions || item.deletions) ? (
         <>
-          <span aria-hidden>·</span>
+          <span
+            aria-hidden="true"
+            className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+          />
           <DiffLineCounts added={item.additions} removed={item.deletions} size="sm" />
         </>
       ) : null}
       {item.type === 'issue' && item.commentCount !== undefined ? (
         <>
-          <span aria-hidden>·</span>
+          <span
+            aria-hidden="true"
+            className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+          />
           <span className="shrink-0">
             {item.commentCount === 1
               ? t('components.native-chat.githubPeek.oneComment', '1 comment')

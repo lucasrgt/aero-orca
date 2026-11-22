@@ -48,9 +48,10 @@ export function BotPanelHostLine({
       </span>
       {status == null ? null : (
         <>
-          <span className="@max-[10rem]/host-line:hidden" aria-hidden>
-            ·
-          </span>
+          <span
+            aria-hidden
+            className="h-2.5 w-px shrink-0 bg-border/80 @max-[10rem]/host-line:hidden"
+          />
           <span className="min-w-0 flex-1 truncate" title={offline ? undefined : title}>
             {status}
           </span>

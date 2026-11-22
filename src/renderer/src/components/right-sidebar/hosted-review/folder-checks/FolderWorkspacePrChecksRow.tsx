@@ -93,8 +93,18 @@ export function FolderWorkspacePrChecksRow({
               <StatusIcon className={cn('size-3 shrink-0', CHECK_COLOR[row.checkTone])} />
             ) : null}
             <span className="truncate">{row.summary}</span>
-            {row.repo ? <span className="shrink-0">· {row.repo.displayName}</span> : null}
-            {row.branch ? <span className="truncate">· {row.branch}</span> : null}
+            {row.repo ? (
+              <>
+                <span aria-hidden="true" className="h-2.5 w-px shrink-0 bg-border/80" />
+                <span className="shrink-0">{row.repo.displayName}</span>
+              </>
+            ) : null}
+            {row.branch ? (
+              <>
+                <span aria-hidden="true" className="h-2.5 w-px shrink-0 bg-border/80" />
+                <span className="truncate">{row.branch}</span>
+              </>
+            ) : null}
           </div>
           {row.detailNames.length > 0 ? (
             <div className="mt-1 truncate text-[11px] text-muted-foreground">

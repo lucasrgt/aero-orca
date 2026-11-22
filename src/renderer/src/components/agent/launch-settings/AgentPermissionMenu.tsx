@@ -73,7 +73,12 @@ export function AgentPermissionMenu({
             className={cn('min-w-0 max-w-full', layout === 'stacked' && 'w-full justify-between')}
           >
             <span className="flex min-w-0 items-center gap-1.5 text-xs">
-              {permission.source === 'all' ? <span className="shrink-0">{followAll} ·</span> : null}
+              {permission.source === 'all' ? (
+                <>
+                  <span className="shrink-0">{followAll}</span>
+                  <span aria-hidden className="h-3 w-px shrink-0 bg-border" />
+                </>
+              ) : null}
               <AgentPermissionChoiceName
                 choice={rawValue ? 'own' : permission.choice}
                 ownLabel={rawValue ?? ownLabel}

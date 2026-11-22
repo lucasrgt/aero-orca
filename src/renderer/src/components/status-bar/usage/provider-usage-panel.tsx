@@ -209,7 +209,7 @@ function ProviderRateLimitWindowSection({
       <div className="flex items-baseline justify-between gap-2">
         <span className="min-w-0 truncate">
           <span className={`font-semibold ${textClass}`}>{label}</span>
-          {caption ? <span className={mutedClass}>{` · ${caption}`}</span> : null}
+          {caption ? <span className={`ml-1.5 font-normal ${mutedClass}`}>{caption}</span> : null}
         </span>
         <UsageValue
           usedPercent={window.usedPercent}

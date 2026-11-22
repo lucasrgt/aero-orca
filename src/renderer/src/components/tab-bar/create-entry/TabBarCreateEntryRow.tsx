@@ -162,9 +162,7 @@ export function EntryActionRow({
       </span>
       {presentation.showDetail ? (
         <>
-          <span className="shrink-0 text-muted-foreground/70" aria-hidden="true">
-            ·
-          </span>
+          <span aria-hidden="true" className="h-3 w-px shrink-0 bg-border/80" />
           {presentation.prioritizeFilename ? (
             <FilenameFirstPath path={presentation.detail} />
           ) : (
@@ -307,7 +305,7 @@ function getActionPresentation(
   if (option.kind === 'tab') {
     return {
       detail: option.option.matchedTexts?.length
-        ? option.option.matchedTexts.join(' · ')
+        ? option.option.matchedTexts.join(' — ')
         : (option.option.matchedText ?? option.option.title),
       icon: getOpenTabIcon(option.option),
       label: t('auto.components.tab.bar.TabBarCreateEntry.8f0a1c4d92', 'Switch to tab'),
@@ -319,7 +317,7 @@ function getActionPresentation(
     const url = formatBrowserHistoryUrl(entry.url)
     return {
       // Put variable titles in the truncating detail slot; labels with detail cannot shrink.
-      detail: entry.title ? `${entry.title} · ${url}` : url,
+      detail: entry.title ? `${entry.title} — ${url}` : url,
       icon: <BrowserFavicon faviconUrl={entry.faviconUrl} className="size-3.5" />,
       label: t('auto.components.tab.bar.TabBarCreateEntry.openPage', 'Open page'),
       showDetail: true
@@ -333,7 +331,7 @@ function getActionPresentation(
           (option.option.terminalWaiting ? terminalPendingLabel(t) : undefined)
       ]
         .filter(Boolean)
-        .join(' · '),
+        .join(' — '),
       icon: <AgentIcon agent={option.option.agent} size={14} />,
       label:
         labelOverride ?? t('auto.components.tab.bar.TabBarCreateEntry.b27864279e', 'Launch agent'),

@@ -72,8 +72,7 @@ export function renderTabBarSurface(
     terminalOnly = false,
     showAgentLaunchItems = true,
     onNewTerminalTab,
-    onOpenEntry,
-    tabStripChrome = 'default'
+    onOpenEntry
   } = props
   const {
     resolvedGroupId,
@@ -112,7 +111,7 @@ export function renderTabBarSurface(
     subscribeToStripResize
   } = tabStripNavigation
   const singleTab = orderedItems.length + clientHostedBrowserRows.length === 1
-  const includeTopTabBorder = tabStripChrome !== 'floating-panel'
+  const includeTopTabBorder = false
   const renderItems = (segments: readonly TabStripSegment[]): React.ReactNode[] =>
     renderTabBarItems({
       items: orderedItems,

@@ -111,7 +111,16 @@ export function ManagedRuntimeInstallRow(props: {
       className="flex min-h-4 flex-wrap items-center gap-x-1 text-xs text-muted-foreground tabular-nums"
     >
       {parts.flatMap((part, index) =>
-        index === 0 ? [part] : [<span key={`sep-${index}`}>·</span>, part]
+        index === 0
+          ? [part]
+          : [
+              <span
+                key={`sep-${index}`}
+                aria-hidden="true"
+                className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+              />,
+              part
+            ]
       )}
     </div>
   )

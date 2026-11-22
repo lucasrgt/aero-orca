@@ -24,6 +24,7 @@ import { isScreenSubmitShortcut } from '@/lib/keyboard/screen-submit-shortcut'
 import { BOT_NAME_MAX_LENGTH, type Bot, type BotAgent } from '../../../../shared/bot-types'
 import { botErrorMessage } from './bot-presentation'
 import { BotRunsOnPicker } from './BotRunsOnPicker'
+import { BotProjectPicker } from './BotProjectPicker'
 import { BotImportNudge } from './BotImportNudge'
 import { openCreatedBot } from './bot-create-open'
 import { NewBotPictureButton } from './NewBotPictureButton'
@@ -71,6 +72,7 @@ export function NewBotDialog({
   onCreated,
   initialName,
   initialPurpose,
+  initialProject,
   initialAgent,
   takingOver,
   proposal,
@@ -90,6 +92,8 @@ export function NewBotDialog({
   initialName?: string
   /** A suggested purpose, seeded into SOUL.md like a typed one. */
   initialPurpose?: string
+  /** Pre-selected project group in the sidebar. */
+  initialProject?: string
   /** The agent picked at first, when this computer has it. */
   initialAgent?: BotAgent
   /** Made in Hand to bot: `onCreated` sends its first turn, once the workspace moved, even when its
@@ -125,6 +129,12 @@ export function NewBotDialog({
   )
   const [addHostMode, setAddHostMode] = useState<AddRemoteHostMode | null>(null)
   const [draft, setDraft] = useState(() => draftOf(proposal, initialPurpose))
+  const [project, setProject] = useState(initialProject ?? '')
+  const [seenInitialProject, setSeenInitialProject] = useState(initialProject)
+  if (seenInitialProject !== initialProject) {
+    setSeenInitialProject(initialProject)
+    setProject(initialProject ?? '')
+  }
   const hostChoice = useBotCreateHost(open, hosts, offerHostId)
   const { hostId, blocked } = hostChoice.host
   const hostBots = useHostBots(hostId)
@@ -170,6 +180,7 @@ export function NewBotDialog({
     setName(fromShare ? null : (proposal?.name ?? ''))
     setAddHostMode(null)
     setDraft(draftOf(proposal, initialPurpose))
+    setProject(initialProject ?? '')
     agentSetup.reset()
     picture.reset()
     intake.dismiss()
@@ -226,6 +237,7 @@ export function NewBotDialog({
           ...agentSetup.setup,
           avatar: picture.avatar,
           avatarColor: picture.avatarColor,
+          ...(project.trim() ? { project: project.trim() } : {}),
           ...(takingOver ? { takingOver } : {})
         })
         bot = await picture.saveUpload(bot)
@@ -354,6 +366,7 @@ export function NewBotDialog({
                   onChange={(purpose) => setDraft({ ...draft, purpose })}
                 />
               )}
+              {fromShare ? null : <BotProjectPicker value={project} onChange={setProject} />}
             </div>
             <BotRunsOnPicker
               variant="fields"

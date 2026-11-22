@@ -351,7 +351,10 @@ function WorktreeMetadataLines({
             <span className="shrink-0 text-[10px] font-medium uppercase tracking-[0.04em] text-muted-foreground">
               {aiVaultWorktreeStatusLabel(worktreeInfo.status, worktreeInfo.worktreeId, t)}
             </span>
-            <span className="shrink-0 text-muted-foreground/45">·</span>
+            <span
+              aria-hidden="true"
+              className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+            />
           </>
         ) : null}
         <span className="min-w-0 text-[12px] font-medium leading-4 text-foreground">

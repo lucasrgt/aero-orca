@@ -32,7 +32,12 @@ export function NativeChatBotCreatedRow({
   return (
     <NativeChatDividerRow label={label}>
       {label}
-      {timestamp !== null ? <span aria-hidden>·</span> : null}
+      {timestamp !== null ? (
+        <span
+          aria-hidden="true"
+          className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+        />
+      ) : null}
       <NativeChatMessageTimestamp timestamp={timestamp} />
     </NativeChatDividerRow>
   )
@@ -58,7 +63,12 @@ export function NativeChatTookOverRow({
     <NativeChatDividerRow label={label}>
       <ArrowRightLeft className="size-3" aria-hidden />
       {label}
-      {timestamp !== null ? <span aria-hidden>·</span> : null}
+      {timestamp !== null ? (
+        <span
+          aria-hidden="true"
+          className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+        />
+      ) : null}
       <NativeChatMessageTimestamp timestamp={timestamp} />
     </NativeChatDividerRow>
   )

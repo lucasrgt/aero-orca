@@ -314,7 +314,12 @@ export function AutomationDetail({
         <p className="mt-1 flex min-w-0 flex-wrap items-center gap-x-2 text-sm text-muted-foreground">
           {metaParts.map((part, index) => (
             <React.Fragment key={part.key}>
-              {index > 0 ? <span aria-hidden="true">·</span> : null}
+              {index > 0 ? (
+                <span
+                  aria-hidden="true"
+                  className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+                />
+              ) : null}
               <span className="min-w-0 truncate">{part.value}</span>
             </React.Fragment>
           ))}

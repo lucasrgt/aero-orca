@@ -212,7 +212,7 @@
 }
 
 :root {
-  --workspace-tab-row-height: 32px;
+  --workspace-tab-row-height: 36px;
   /* How far a split divider's invisible grab area reaches past its visible line. */
   --divider-grab-reach: 7px;
   --divider-hover-delay: 200ms;

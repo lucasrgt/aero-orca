@@ -123,7 +123,7 @@ export function getCheckRunTimeFacts(
     durationMs !== null && durationMs >= 1000 ? formatRunDuration(durationMs, intlLocale) : null
   ]
     .filter(Boolean)
-    .join(' · ')
+    .join(', ')
   return { whenMs, running, fixedText, details }
 }
 
@@ -183,7 +183,7 @@ export function CheckRunTime({ check }: { check: PRCheckDetail }): React.JSX.Ele
           {facts.fixedText && (
             <span className="min-w-0 truncate">
               {facts.fixedText}
-              {age ? ' ·\u00a0' : null}
+              {age ? '\u00a0' : null}
             </span>
           )}
           {/* The age answers "when did it run", so it never truncates; its reserved width ("10m ago", "1h 5m") keeps a growing age from re-truncating the name. */}

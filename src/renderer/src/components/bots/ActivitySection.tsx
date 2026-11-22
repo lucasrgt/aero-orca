@@ -7,7 +7,7 @@ export function workersHeading(running: number): string {
   const heading = translate('bots.activity.workers', 'Workers')
   return running === 0
     ? heading
-    : `${heading} · ${translate('bots.activity.running', '{{value0}} running', { value0: running })}`
+    : `${heading} (${translate('bots.activity.running', '{{value0}} running', { value0: running })})`
 }
 
 export function ActivitySection({

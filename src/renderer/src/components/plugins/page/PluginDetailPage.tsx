@@ -274,7 +274,12 @@ export function PluginDetailPage({
               .filter(Boolean)
               .map((fact, index) => (
                 <Fragment key={fact}>
-                  {author || index > 0 ? <span aria-hidden="true">·</span> : null}
+                  {author || index > 0 ? (
+                    <span
+                      aria-hidden="true"
+                      className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+                    />
+                  ) : null}
                   <span>{fact}</span>
                 </Fragment>
               ))}

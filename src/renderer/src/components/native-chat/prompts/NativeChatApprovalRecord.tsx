@@ -81,7 +81,10 @@ export function NativeChatApprovalRecord({
           />
           {line.opensWorker && onOpenWorker ? (
             <>
-              <span aria-hidden> · </span>
+              <span
+                aria-hidden="true"
+                className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+              />
               <button type="button" onClick={onOpenWorker} className={OPEN_WORKER_CLASS}>
                 {t('components.native-chat.approval.openWorker', 'Open worker')}
               </button>

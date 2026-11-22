@@ -66,9 +66,15 @@ export function SkillSharePackageSummary({
         {bundle ? null : <SkillDescriptionDisclosure description={preview.description} />}
         <p className="mt-1 flex flex-wrap items-center gap-x-1.5 text-xs text-muted-foreground">
           <span>{fileCountLabel(preview.fileCount, t)}</span>
-          <span aria-hidden>·</span>
+          <span
+            aria-hidden="true"
+            className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+          />
           <span>{byteLabel(preview.totalBytes)}</span>
-          <span aria-hidden>·</span>
+          <span
+            aria-hidden="true"
+            className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+          />
           <span className={cn('inline-flex items-center gap-1', risk.risky && 'text-foreground')}>
             {risk.risky ? <AlertTriangle className="size-3.5" /> : null}
             {risk.label}

@@ -248,7 +248,7 @@ export function CommentRow({
         {authorName}
         {relativeTime ? (
           <span className={presentation.time} aria-hidden={presentation.time === 'hidden'}>
-            {presentation.useCardLayout ? `· ${relativeTime}` : relativeTime}
+            {relativeTime}
           </span>
         ) : null}
         {automated && (

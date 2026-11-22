@@ -74,9 +74,10 @@ export function DeleteWorktreeLocalFilesHint({
           </span>
           {inlinePreview ? (
             <span className="flex min-w-0 shrink-[9999] items-center gap-1 text-muted-foreground group-data-[state=open]:hidden">
-              <span aria-hidden="true" className="shrink-0">
-                ·
-              </span>
+              <span
+                aria-hidden="true"
+                className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+              />
               <span className="min-w-0 truncate font-mono text-2xs">{inlinePreview}</span>
             </span>
           ) : null}

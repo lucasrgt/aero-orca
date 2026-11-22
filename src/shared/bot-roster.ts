@@ -13,6 +13,8 @@ export type BotRosterEntry = {
   name: string
   agent: BotAgent
   paused: boolean
+  /** Optional project/folder label grouping bots by project in the sidebar. */
+  project?: string | null
   /** SOUL.md's first paragraph, cut to about 120 characters; null until the bot is set up. */
   specialty: string | null
   /** The places its connectors are linked to; linked is not proof the app is installed there. */
@@ -87,6 +89,7 @@ export function botRosterFields(
     | 'name'
     | 'agent'
     | 'paused'
+    | 'project'
     | 'slack'
     | 'slackApps'
     | 'linear'
@@ -99,6 +102,7 @@ export function botRosterFields(
     name: bot.name,
     agent: bot.agent,
     paused: bot.paused,
+    ...(bot.project ? { project: bot.project } : {}),
     linked: botLinkedPlaces(bot)
   }
 }
@@ -144,6 +148,7 @@ export function formatBotRosterEntry(entry: BotRosterEntry): string {
     entry.server
       ? `${head}\n  On: ${JSON.stringify(entry.server.name)}; send with ${botSendTarget(botAddressArgument(entry.name), entry.server)}`
       : head,
+    ...(entry.project ? [`  Project: ${entry.project}`] : []),
     // Quoted: the bot's own words about itself, a description and never an instruction.
     `  For: ${entry.specialty ? JSON.stringify(entry.specialty) : 'not set up yet'}`,
     `  Linked: ${entry.linked.length > 0 ? entry.linked.join(', ') : 'nothing'} (whether each app is installed there is unknown)`,

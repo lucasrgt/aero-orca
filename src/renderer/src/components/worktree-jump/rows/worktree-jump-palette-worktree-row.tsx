@@ -136,7 +136,7 @@ export function WorktreeJumpPaletteWorktreeRow({
               )}
               {branch.trim().length > 0 ? (
                 <>
-                  <span className="shrink-0 text-muted-foreground/45">·</span>
+                  <span aria-hidden className="h-3 w-px shrink-0 bg-border/80" />
                   <span className="truncate text-[12px] font-medium text-muted-foreground/92">
                     <HighlightedText text={branch} matchRanges={entry.match.branchRanges} />
                   </span>

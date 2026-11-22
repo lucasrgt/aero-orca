@@ -279,7 +279,12 @@ export function BotMemoryList({
                   {fact.date ? (
                     <span className="shrink-0 tabular-nums">{shortDate(fact.date)}</span>
                   ) : null}
-                  {fact.date && fact.source ? <span aria-hidden>·</span> : null}
+                  {fact.date && fact.source ? (
+                    <span
+                      aria-hidden="true"
+                      className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+                    />
+                  ) : null}
                   {fact.source ? <FactSource source={fact.source} /> : null}
                 </div>
               ) : null}

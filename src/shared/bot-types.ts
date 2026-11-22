@@ -11,6 +11,7 @@ import { BotTidyUpSchema } from './bots/bot-tidy-up'
 import { BotOfferAnswerSchema } from './bots/bot-offer-answers'
 import { BotCancelledWaitSchema } from './bots/bot-cancelled-waits'
 import { BotAvatarColorSchema } from './bots/bot-avatar-color'
+import { BotProjectSchema } from './bots/bot-project-groups'
 
 /** Native-chat agents a bot cannot run on yet; each waits on a live check of its preamble delivery. */
 export const BOT_HELD_BACK_AGENTS = [] as const
@@ -194,6 +195,8 @@ export const BotSchema = z.object({
   google: z.boolean().optional(),
   /** Projects (repo ids) whose skills the bot loads when a chat starts; absent is none. */
   skillProjects: z.array(z.string().min(1)).max(BOT_MAX_SKILL_PROJECTS).optional(),
+  /** Optional project/folder label used to group bots by project in the sidebar. */
+  project: BotProjectSchema.min(1).nullable().optional().catch(undefined),
   /** Its place in the sidebar's Bots list, set by a drag; a bot without one follows the placed bots. */
   sidebarOrder: z.number().int().nonnegative().optional(),
   /** The bot's Chat, its one ongoing conversation; null until first opened. */

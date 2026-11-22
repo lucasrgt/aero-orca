@@ -4,23 +4,27 @@ import { CLI_GLOBAL_FLAGS as GLOBAL_FLAGS } from '../../shared/cli/cli-argument-
 import { SLACK_MARKDOWN, SLACK_MENTION, TEXT_FILE } from './slack'
 
 const BOT_NOTES = ['A bot lives on the computer that runs the command, in ~/.orca/bots/<name>.']
+const BOT_CONFIG_FLAGS = [
+  'name',
+  'project',
+  'agent',
+  'model',
+  'permission-mode',
+  'avatar',
+  'avatar-color',
+  'soul',
+  'soul-file'
+] as const
 
 export const BOT_COMMAND_SPECS: CommandSpec[] = [
   {
     path: ['bot', 'create'],
     summary: 'Create a new bot on this computer (or --environment), or propose one with --offer',
     usage:
-      'orca bot create [--name <name>] [--agent <agent>] [--model <model>] [--permission-mode <mode>] [--purpose <one sentence>] [--soul <markdown> | --soul-file <path>] [--template <id>] [--watches <text>] [--does <text>] [--reports <text>] [--avatar <emoji|mascot>] [--avatar-color <color>] [--worktree <selector>]... [--no-kickoff] [--offer] [--json]',
+      'orca bot create [--name <name>] [--project <name>] [--agent <agent>] [--model <model>] [--permission-mode <mode>] [--purpose <one sentence>] [--soul <markdown> | --soul-file <path>] [--template <id>] [--watches <text>] [--does <text>] [--reports <text>] [--avatar <emoji|mascot>] [--avatar-color <color>] [--worktree <selector>]... [--no-kickoff] [--offer] [--json]',
     allowedFlags: [
       ...GLOBAL_FLAGS,
-      'name',
-      'agent',
-      'model',
-      'permission-mode',
-      'avatar',
-      'avatar-color',
-      'soul',
-      'soul-file',
+      ...BOT_CONFIG_FLAGS,
       'no-kickoff',
       'offer',
       'purpose',
@@ -45,31 +49,25 @@ export const BOT_COMMAND_SPECS: CommandSpec[] = [
     usage: 'orca bot show <bot> [--json]',
     allowedFlags: [...GLOBAL_FLAGS, 'bot'],
     positionalArgs: ['bot'],
-    notes: [...BOT_NOTES]
+    notes: BOT_NOTES
   },
   {
     path: ['bot', 'update'],
-    summary: 'Update a bot’s name, agent, model, permissions, avatar, pause state or SOUL.md',
+    summary: 'Update a bot’s name, project, agent, model, permissions, avatar, pause or SOUL.md',
     usage:
-      'orca bot update <bot> [--name <name>] [--agent <agent>] [--model <model> | --clear-model] [--permission-mode <mode>] [--avatar <emoji|mascot>] [--avatar-color <color>] [--pause | --resume] [--soul <markdown> | --soul-file <path>] [--tidy-up on|off] [--json]',
+      'orca bot update <bot> [--name <name>] [--project <name> | --clear-project] [--agent <agent>] [--model <model> | --clear-model] [--permission-mode <mode>] [--avatar <emoji|mascot>] [--avatar-color <color>] [--pause | --resume] [--soul <markdown> | --soul-file <path>] [--tidy-up on|off] [--json]',
     allowedFlags: [
       ...GLOBAL_FLAGS,
       'bot',
-      'name',
-      'agent',
-      'model',
+      ...BOT_CONFIG_FLAGS,
+      'clear-project',
       'clear-model',
-      'permission-mode',
-      'avatar',
-      'avatar-color',
       'pause',
       'resume',
-      'soul',
-      'soul-file',
       'tidy-up'
     ],
     positionalArgs: ['bot'],
-    notes: [...BOT_NOTES]
+    notes: BOT_NOTES
   },
   {
     path: ['bot', 'delete'],
@@ -78,14 +76,14 @@ export const BOT_COMMAND_SPECS: CommandSpec[] = [
     usage: 'orca bot delete <bot> --yes [--delete-folder] [--json]',
     allowedFlags: [...GLOBAL_FLAGS, 'bot', 'yes', 'delete-folder'],
     positionalArgs: ['bot'],
-    notes: [...BOT_NOTES]
+    notes: BOT_NOTES
   },
   {
     path: ['bot', 'agents'],
     summary: 'List chat agents available for bots on this host (or --environment)',
     usage: 'orca bot agents [--json]',
     allowedFlags: [...GLOBAL_FLAGS],
-    notes: [...BOT_NOTES]
+    notes: BOT_NOTES
   },
   {
     path: ['bot', 'send'],
@@ -93,7 +91,7 @@ export const BOT_COMMAND_SPECS: CommandSpec[] = [
     usage: 'orca bot send <bot> (--message <text> | --message-file <path>) [--chat <id>] [--json]',
     allowedFlags: [...GLOBAL_FLAGS, 'bot', 'message', 'message-file', 'chat'],
     positionalArgs: ['bot'],
-    notes: [...BOT_NOTES]
+    notes: BOT_NOTES
   },
   {
     path: ['bot', 'list'],

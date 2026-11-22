@@ -5,6 +5,7 @@ import { translate } from '@/i18n/i18n'
 /** One drill-in of the view; the root has none. */
 export type BotSettingsPage =
   | 'agent'
+  | 'project'
   | 'permissions'
   | 'computer'
   | 'look-around'
@@ -54,6 +55,8 @@ export function botSettingsPageTitle(page: BotSettingsPage): string {
   switch (page) {
     case 'agent':
       return translate('bots.settingsView.agent', 'Agent and model')
+    case 'project':
+      return translate('bots.project.label', 'Project')
     case 'permissions':
       return translate('settings.bots.permissions', 'Permissions')
     case 'computer':

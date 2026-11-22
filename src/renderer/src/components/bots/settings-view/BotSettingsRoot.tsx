@@ -6,6 +6,7 @@ import {
   Bot as BotIcon,
   Brain,
   Eye,
+  Folder,
   Laptop,
   Moon,
   Plug,
@@ -329,6 +330,13 @@ export function BotSettingsRoot({
           value={botAgentLabel(bot.agent)}
           page="agent"
           onOpen={() => open('agent')}
+        />
+        <SettingsInsetRow
+          icon={<Folder />}
+          title={t('bots.project.label', 'Project')}
+          value={bot.project || t('bots.project.none', 'None')}
+          page="project"
+          onOpen={() => open('project')}
         />
         <SettingsInsetRow
           icon={<Shield />}

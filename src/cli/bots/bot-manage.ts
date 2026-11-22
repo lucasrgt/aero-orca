@@ -39,6 +39,7 @@ function formatBotShow(payload: BotShowPayload, toolsResult: BotToolsListPayload
   const lines = [
     formatBot(bot),
     `Home: ${homeFolder}`,
+    ...(bot.project ? [`Project: ${bot.project}`] : []),
     ...(bot.launch?.model ? [`Model: ${bot.launch.model}`] : []),
     ...(bot.permissionMode ? [`Permission: ${bot.permissionMode}`] : []),
     ...(bot.avatar
@@ -125,6 +126,14 @@ async function handleBotUpdate({ flags, client, cwd, json }: HandlerContext): Pr
   const permissionMode = parseBotPermissionModeFlag(getOptionalStringFlag(flags, 'permission-mode'))
   const avatar = getOptionalStringFlag(flags, 'avatar')
   const avatarColor = getOptionalStringFlag(flags, 'avatar-color')
+  const project = getOptionalStringFlag(flags, 'project')
+  const clearProject = flags.has('clear-project')
+  if (project !== undefined && clearProject) {
+    throw new RuntimeClientError(
+      'invalid_argument',
+      'Pass either --project or --clear-project, not both.'
+    )
+  }
   const soul = await readSoulFlags(flags, cwd)
   const tidyUpFlag = getOptionalStringFlag(flags, 'tidy-up')
   if (tidyUpFlag !== undefined && tidyUpFlag !== 'on' && tidyUpFlag !== 'off') {
@@ -137,6 +146,11 @@ async function handleBotUpdate({ flags, client, cwd, json }: HandlerContext): Pr
     ...(permissionMode !== undefined ? { permissionMode } : {}),
     ...(avatar !== undefined ? { avatar } : {}),
     ...(avatarColor !== undefined ? { avatarColor } : {}),
+    ...(project !== undefined
+      ? { project: project.trim() || null }
+      : clearProject
+        ? { project: null }
+        : {}),
     ...(pause ? { paused: true } : resume ? { paused: false } : {}),
     ...(soul !== undefined ? { soul } : {}),
     ...(tidyUpFlag !== undefined ? { tidyUp: { on: tidyUpFlag === 'on' } } : {})
@@ -144,7 +158,7 @@ async function handleBotUpdate({ flags, client, cwd, json }: HandlerContext): Pr
   if (Object.keys(updates).length === 0) {
     throw new RuntimeClientError(
       'invalid_argument',
-      'Specify at least one update flag (--name, --agent, --model, --permission-mode, --soul, --soul-file, --pause, --resume, --avatar, --tidy-up).'
+      'Specify at least one update flag (--name, --agent, --model, --permission-mode, --project, --clear-project, --soul, --soul-file, --pause, --resume, --avatar, --tidy-up).'
     )
   }
   const result = await callBots<{ bot: Bot }>(client, 'bots.update', { botId: target.id, updates })

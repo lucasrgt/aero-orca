@@ -12,7 +12,10 @@ export function NativeChatTypedByTag({ typist }: { typist: OtherPersonTypist }):
   return (
     <Badge variant="chatSender" title={label}>
       <span className="min-w-0 truncate font-medium text-chat-foreground">{name}</span>
-      <span aria-hidden>·</span>
+      <span
+        aria-hidden="true"
+        className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+      />
       <span className="min-w-0 truncate">{computer}</span>
     </Badge>
   )
@@ -35,9 +38,10 @@ export function NativeChatTypedByQueuedLine({
         {t('components.native-chat.queuedMessages.fromSender', 'From')}
       </span>
       <span className="min-w-0 truncate pr-1 pl-2">{name}</span>
-      <span aria-hidden className="shrink-0 pr-1">
-        ·
-      </span>
+      <span
+        aria-hidden="true"
+        className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+      />
       <span className="min-w-0 truncate">{computer}</span>
     </div>
   )

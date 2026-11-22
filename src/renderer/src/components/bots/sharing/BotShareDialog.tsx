@@ -137,9 +137,10 @@ export function BotShareUpdatedLine({
       })}
       {upToDate === null ? null : (
         <>
-          <span aria-hidden className="opacity-60">
-            ·
-          </span>
+          <span
+            aria-hidden="true"
+            className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+          />
           {upToDate
             ? t('bots.share.upToDate', 'Up to date')
             : t('bots.share.changedSince', 'Bot changed since')}

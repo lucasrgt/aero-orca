@@ -65,7 +65,10 @@ export function SkillsSelectionHeader({
             <span className="shrink-0" role="status" aria-live="polite">
               {selectedCountLabel(selectedCount, t)}
             </span>
-            <span aria-hidden>·</span>
+            <span
+              aria-hidden="true"
+              className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+            />
             <Button
               type="button"
               variant="link"
@@ -79,7 +82,10 @@ export function SkillsSelectionHeader({
                 { count: eligibleCount }
               )}
             </Button>
-            <span aria-hidden>·</span>
+            <span
+              aria-hidden="true"
+              className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+            />
             <Button
               type="button"
               variant="link"

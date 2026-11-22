@@ -89,7 +89,10 @@ export function GitHubItemDialogIssueHeader({
             <ChevronLeft className="size-4" />
             {backLabel}
           </Button>
-          <span className="text-border">·</span>
+          <span
+            aria-hidden="true"
+            className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+          />
           {ownerRepo ? (
             <>
               <span className="truncate">
@@ -97,7 +100,10 @@ export function GitHubItemDialogIssueHeader({
                 <span className="mx-1 text-muted-foreground/60">/</span>
                 <span className="font-medium text-foreground">{ownerRepo.repo}</span>
               </span>
-              <span className="text-muted-foreground/60">·</span>
+              <span
+                aria-hidden="true"
+                className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+              />
             </>
           ) : null}
           <span className="font-mono text-muted-foreground">#{workItem.number}</span>

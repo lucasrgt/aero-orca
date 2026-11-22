@@ -88,7 +88,10 @@ export function RuntimeShareComputerButton(): React.JSX.Element {
                     t('auto.components.settings.serverList.thisComputer', 'This computer')
                 })}
               </span>
-              <span aria-hidden>·</span>
+              <span
+                aria-hidden="true"
+                className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+              />
               <button
                 type="button"
                 className="shrink-0 cursor-pointer rounded-sm text-foreground underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"

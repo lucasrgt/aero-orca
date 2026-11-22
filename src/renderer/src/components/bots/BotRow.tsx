@@ -1,8 +1,24 @@
 import React, { useEffect } from 'react'
 import { openBotSettings } from './bot-settings-open'
-import { ChevronDown, Copy, Pause, Play, Server, Settings, Trash2 } from 'lucide-react'
+import {
+  Check,
+  ChevronDown,
+  Copy,
+  Folder,
+  Pause,
+  Play,
+  Server,
+  Settings,
+  Trash2
+} from 'lucide-react'
 import { toast } from 'sonner'
-import { ContextMenuItem, ContextMenuSeparator } from '@/components/ui/context-menu'
+import {
+  ContextMenuItem,
+  ContextMenuSeparator,
+  ContextMenuSub,
+  ContextMenuSubContent,
+  ContextMenuSubTrigger
+} from '@/components/ui/context-menu'
 import StatusIndicator from '@/components/sidebar/workspace-card/surface/StatusIndicator'
 import { useTranslate } from '@/i18n/use-translate'
 import { openBotHome, updateBot } from '@/lib/bot-catalog'
@@ -28,6 +44,9 @@ import { revealBotUpNext } from './bot-up-next-reveal'
 import { useDeleteBot } from './use-delete-bot'
 import { setBotPurpose } from './bot-purpose-cache'
 import { botSidebarEntryKey } from './bot-sidebar-entry-keys'
+import { useBotProjectSuggestions } from './BotProjectPicker'
+import { normalizeBotProjectKey } from '../../../../shared/bots/bot-project-groups'
+import { RepoIconGlyph } from '@/components/repo/repo-icon'
 
 type BotRowFold = {
   folded: boolean
@@ -79,6 +98,8 @@ export function BotRow({
     work.catch((error: unknown) => toast.error(botErrorMessage(error)))
   }
   const handleDelete = useDeleteBot(bot)
+  const projectSuggestions = useBotProjectSuggestions()
+  const currentProjectKey = normalizeBotProjectKey(bot.project)
   return (
     <BotSidebarRow
       avatar={<BotAvatar bot={bot} className="size-8 rounded-md text-sm" />}
@@ -142,6 +163,50 @@ export function BotRow({
             <Settings className="size-3.5" />
             {t('bots.row.settings', 'Bot settings…')}
           </ContextMenuItem>
+          {projectSuggestions.length > 0 || bot.project ? (
+            <ContextMenuSub>
+              <ContextMenuSubTrigger disabled={offline}>
+                <Folder className="size-3.5" />
+                {t('bots.project.label', 'Project')}
+              </ContextMenuSubTrigger>
+              <ContextMenuSubContent className="w-48">
+                {projectSuggestions.map((item) => {
+                  const selected = currentProjectKey === item.key
+                  return (
+                    <ContextMenuItem
+                      key={item.key}
+                      onSelect={() =>
+                        run(updateBot(bot, { project: selected ? null : item.label }))
+                      }
+                    >
+                      {item.repo ? (
+                        <RepoIconGlyph
+                          repoIcon={item.repo.repoIcon}
+                          color={item.repo.badgeColor}
+                          className="size-3.5 shrink-0"
+                          iconClassName="size-3.5"
+                        />
+                      ) : (
+                        <Folder className="size-3.5 shrink-0 text-muted-foreground" />
+                      )}
+                      <span className="min-w-0 flex-1 truncate">{item.label}</span>
+                      {selected ? <Check className="size-3.5 shrink-0" /> : null}
+                    </ContextMenuItem>
+                  )
+                })}
+                {bot.project ? (
+                  <>
+                    <ContextMenuSeparator />
+                    <ContextMenuItem onSelect={() => run(updateBot(bot, { project: null }))}>
+                      <span className="text-muted-foreground">
+                        {t('bots.project.remove', 'Remove from project')}
+                      </span>
+                    </ContextMenuItem>
+                  </>
+                ) : null}
+              </ContextMenuSubContent>
+            </ContextMenuSub>
+          ) : null}
           <ContextMenuItem
             disabled={offline}
             onSelect={() => run(updateBot(bot, { paused: !bot.paused }))}

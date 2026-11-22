@@ -60,7 +60,10 @@ export function BotPictureIntakeLine({
         <>
           <Check className="size-3.5" />
           {t('bots.avatar.intake.saved', 'Picture updated')}
-          <span aria-hidden>·</span>
+          <span
+            aria-hidden="true"
+            className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+          />
           <LineAction onClick={onUndo}>{t('bots.avatar.intake.undo', 'Undo')}</LineAction>
         </>
       ) : null}

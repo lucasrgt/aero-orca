@@ -245,7 +245,10 @@ function BrowserNewTabSection({
         <span className="shrink-0 font-semibold tracking-[0.05em] uppercase">{label}</span>
         {detail ? (
           <>
-            <span aria-hidden>·</span>
+            <span
+              aria-hidden="true"
+              className="inline-block h-2.5 w-px shrink-0 bg-border/80 align-middle"
+            />
             <span className="truncate">{detail}</span>
           </>
         ) : null}

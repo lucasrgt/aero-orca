@@ -114,7 +114,7 @@ export function buildCodexStatusSwitchGroups(
               getCodexAccountDisplayDetail(account, accountsForTarget)
             ]
               .filter(Boolean)
-              .join(' · ') || null,
+              .join(', ') || null,
           active: account.id === activeId,
           runtimeTarget: target
         }))

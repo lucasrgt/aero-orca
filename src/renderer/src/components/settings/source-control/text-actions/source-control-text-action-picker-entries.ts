@@ -19,13 +19,13 @@ export function textActionPickerEntryView(
     entry.catalog.origin !== 'unknown'
       ? entry.catalog.models.find((model) => model.id === entry.terminal.model)
       : undefined
-  const defaultLabel = t('agentPicker.sameAsTextDefault', 'Same as default · {{value0}}', {
+  const defaultLabel = t('agentPicker.sameAsTextDefault', 'Same as default ({{value0}})', {
     value0: [
       defaultModel?.label ?? entry.terminal.model,
       defaultModel?.efforts.find((effort) => effort.value === entry.terminal.options?.effort)?.label
     ]
       .filter(Boolean)
-      .join(' · ')
+      .join(', ')
   })
   return {
     ...entry,

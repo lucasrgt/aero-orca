@@ -37,7 +37,8 @@ export function AgentPermissionMenuOptions({
             onSelect={() => permission.onSelect('default')}
           >
             <span className="flex min-w-0 items-center gap-1.5 py-0.5">
-              <span className="shrink-0">{followAll} ·</span>
+              <span className="shrink-0">{followAll}</span>
+              <span aria-hidden className="h-3 w-px shrink-0 bg-border" />
               <AgentPermissionChoiceName
                 choice={permission.defaultChoice}
                 ownLabel={ownLabel}

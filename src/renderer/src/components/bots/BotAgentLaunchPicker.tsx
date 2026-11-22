@@ -206,7 +206,7 @@ export function BotAgentLaunchPicker({
   const extraChoice = inherit
     ? {
         id: 'inherit',
-        label: inherit.detail ? `${inherit.label} · ${inherit.detail}` : inherit.label,
+        label: inherit.detail ? `${inherit.label} (${inherit.detail})` : inherit.label,
         icon: inherit.chosen ? <Check className="size-3.5" /> : undefined,
         onSelect: inherit.onChoose
       }
