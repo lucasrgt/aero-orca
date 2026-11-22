@@ -39,8 +39,8 @@ async function offer(flags: [string, string | boolean][]) {
   return calls.filter((entry) => entry.method === 'bots.createOffer')
 }
 
-describe('orca bot create --offer', () => {
-  it('proposes the bot as a card, filling what the template says and naming each workspace', async () => {
+describe('orca bot create', () => {
+  it('proposes the bot as a card with --offer, filling what the template says and naming each workspace', async () => {
     const calls = await offer([
       ['name', 'Cutter'],
       ['purpose', 'Tracks what’s blocking the 1.5 release.'],
@@ -67,28 +67,46 @@ describe('orca bot create --offer', () => {
     ])
   })
 
-  it('never creates a bot directly: without --offer it refuses and calls nothing', async () => {
-    const calls: string[] = []
-    vi.stubEnv(ORCA_AGENT_SESSION_ID_ENV, 'chat-1')
+  it('creates a bot directly without --offer, passing agent, model, soul and skipKickoff', async () => {
+    const calls: { method: string; params: unknown }[] = []
+    const call = vi.fn(async (method: string, params?: unknown) => {
+      calls.push({ method, params })
+      return {
+        id: 'r',
+        ok: true as const,
+        result: {
+          bot: { id: 'bot-1', name: 'Cutter', agent: 'codex', launch: { model: 'gpt-5.4' } }
+        },
+        _meta: { runtimeId: 'rt' }
+      }
+    })
+    vi.spyOn(console, 'log').mockImplementation(() => {})
     // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the handler reads only client.call.
-    const client = {
-      call: vi.fn(async (method: string) => {
-        calls.push(method)
-        return { id: 'r', ok: true as const, result: {}, _meta: { runtimeId: 'rt' } }
-      })
-    } as unknown as RuntimeClient
-    await expect(
-      BOT_CREATE_HANDLERS['bot create']!({
-        flags: new Map([
-          ['name', 'Cutter'],
-          ['purpose', 'Track release']
-        ]),
-        client,
-        cwd: '/',
-        json: false
-      })
-    ).rejects.toThrow('A bot can’t create a bot. Propose one with --offer')
-    expect(calls).toEqual([])
+    const client = { call } as unknown as RuntimeClient
+    await BOT_CREATE_HANDLERS['bot create']!({
+      flags: new Map<string, string | boolean>([
+        ['name', 'Cutter'],
+        ['agent', 'codex'],
+        ['model', 'gpt-5.4'],
+        ['soul', '# Cutter\nTracks releases.'],
+        ['no-kickoff', true]
+      ]),
+      client,
+      cwd: '/',
+      json: false
+    })
+    expect(calls).toEqual([
+      {
+        method: 'bots.create',
+        params: {
+          name: 'Cutter',
+          agent: 'codex',
+          launch: { model: 'gpt-5.4' },
+          soul: '# Cutter\nTracks releases.',
+          skipKickoff: true
+        }
+      }
+    ])
   })
 
   it('refuses a template Orca does not have', async () => {

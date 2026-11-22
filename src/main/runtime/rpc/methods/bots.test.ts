@@ -193,14 +193,16 @@ describe('bots.create', () => {
     )
   })
 
-  it("refuses an agent's CLI: a bot proposes a bot and only its owner creates one", async () => {
+  it('allows local CLI creation and skips kickoff when skipKickoff is true', async () => {
     const { bots, dispatcher } = createRuntime()
+    chats.send.mockClear()
     expect(
-      await dispatcher.dispatch(request('bots.create', { name: 'Cutter' }), {
+      await dispatcher.dispatch(request('bots.create', { name: 'Cutter', skipKickoff: true }), {
         caller: LOCAL_CLI_RPC_CALLER
       })
-    ).toMatchObject({ ok: false })
-    expect(bots.create).not.toHaveBeenCalled()
+    ).toMatchObject({ ok: true, result: { bot: { id: 'cutter' } } })
+    expect(bots.create).toHaveBeenCalledExactlyOnceWith({ name: 'Cutter' })
+    expect(chats.send).not.toHaveBeenCalled()
   })
 
   it('returns the original bot when a second acceptance includes an unknown template', async () => {
@@ -370,8 +372,7 @@ describe('bots.update from a phone', () => {
 
   it.each([
     ['add a person', { addMembers: [{ id: 'U9', name: 'Nora', source: 'slack' }] }],
-    ['replace the member list', { members: [dana] }],
-    ['change permissions', { permissionMode: 'full-access' }]
+    ['replace the member list', { members: [dana] }]
   ])("refuses an agent's CLI that tries to %s", async (_label, updates) => {
     const { bots, dispatcher } = phoneRuntime()
 

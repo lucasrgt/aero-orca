@@ -73,6 +73,10 @@ export const BotCreate = z.object({
   takingOver: z.literal(true).optional(),
   /** What the new bot is for, from a template or a proposal: seeded into its SOUL.md before its first turn. */
   seed: BotProposalSeedSchema.optional(),
+  /** Full SOUL.md markdown written directly when creating the bot. */
+  soul: z.string().max(64_000).optional(),
+  /** Skip the automatic first-run greeting turn (e.g. when created programmatically via CLI). */
+  skipKickoff: z.boolean().optional(),
   /** The bot-create card the owner accepted: the proposing bot and that card's id. */
   fromOffer: z.object({ botId: z.string().min(1), offerId: z.string().min(1) }).optional(),
   /** A built-in template the owner reviewed: the host applies its own catalog's package, keeping only the
@@ -160,7 +164,9 @@ export const BotUpdate = z.object({
        *  Applied inside the host's update queue, so a claim is a compare-and-set. */
       offerAnswer: BotOfferAnswerUpdateSchema.optional(),
       itemsStale: BotItemsStaleSchema.optional(),
-      slackMirror: z.boolean().optional()
+      slackMirror: z.boolean().optional(),
+      /** Full SOUL.md markdown replacement written to the bot's home folder. */
+      soul: z.string().max(64_000).optional()
     })
     // Strict so a phone's unknown key fails the phone gate instead of being dropped.
     .strict()
@@ -202,6 +208,16 @@ export const BotAvatarUpload = z.object({
 })
 
 export const BotAvatarRead = z.object({ botId: requiredString('Missing bot id') })
+
+/** Full bot profile: record, home folder path, SOUL.md and MEMORY.md. */
+export const BotShow = z.object({ botId: requiredString('Missing bot id') })
+
+/** Send a direct message to a bot's Home Chat (or a specific chat session of that bot). */
+export const BotSend = z.object({
+  botId: requiredString('Missing bot id'),
+  message: requiredString('Missing message'),
+  sessionId: OptionalString
+})
 
 /** The bot's Activity rows, as its host builds them. */
 export const BotActivityRead = z.object({ botId: requiredString('Missing bot id') })
@@ -334,6 +350,7 @@ export function applyBotUpdates(bot: Bot, updates: BotHostUpdates): Bot {
     tidyUp,
     offerAnswer,
     cancelledWait,
+    soul: _soul,
     ...rest
   } = updates
   const next: Bot = { ...bot, ...rest }

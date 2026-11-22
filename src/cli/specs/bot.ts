@@ -8,13 +8,20 @@ const BOT_NOTES = ['A bot lives on the computer that runs the command, in ~/.orc
 export const BOT_COMMAND_SPECS: CommandSpec[] = [
   {
     path: ['bot', 'create'],
-    summary:
-      'Propose a new bot to your owner as a card in your chat; it is created only when they accept',
+    summary: 'Create a new bot on this computer (or --environment), or propose one with --offer',
     usage:
-      'orca bot create --offer --name <name> --purpose <one sentence> [--template <id>] [--watches <text>] [--does <text>] [--reports <text>] [--worktree <selector>]... [--json]',
+      'orca bot create [--name <name>] [--agent <agent>] [--model <model>] [--permission-mode <mode>] [--purpose <one sentence>] [--soul <markdown> | --soul-file <path>] [--template <id>] [--watches <text>] [--does <text>] [--reports <text>] [--avatar <emoji|mascot>] [--avatar-color <color>] [--worktree <selector>]... [--no-kickoff] [--offer] [--json]',
     allowedFlags: [
       ...GLOBAL_FLAGS,
       'name',
+      'agent',
+      'model',
+      'permission-mode',
+      'avatar',
+      'avatar-color',
+      'soul',
+      'soul-file',
+      'no-kickoff',
       'offer',
       'purpose',
       'template',
@@ -26,10 +33,67 @@ export const BOT_COMMAND_SPECS: CommandSpec[] = [
     repeatableFlags: ['worktree'],
     notes: [
       ...BOT_NOTES,
-      "Run it from a bot's chat when your owner asks for a new bot, or work fits no bot `orca bot list` shows. Nothing is created until they press Create bot (or Edit it first); a Not now comes back as a message.",
-      '--purpose becomes the first line of its SOUL.md, written before its first turn; it starts by reading and reporting only. --template takes a built-in template id (pr-review, release, support…; a wrong id lists them all) and fills --name, --purpose, --watches, --does and --reports when you leave them out.',
+      'Without --offer, creates the bot immediately on this host (or on a paired server / Local Sandbox with --environment <name>). Use `orca bot agents` to check installed agents first.',
+      'With --offer (from a bot’s chat), proposes the bot as a card for the owner to accept before anything is created.',
+      '--soul / --soul-file writes the full SOUL.md directly; otherwise --purpose seeds the first line of SOUL.md. --template takes a built-in template id (pr-review, release, support…).',
       "--worktree takes id:<id> or name:<workspace name>, as `orca worktree ps` shows them; the new bot's first turn takes each over. Repeat it for several."
     ]
+  },
+  {
+    path: ['bot', 'show'],
+    summary: 'Show a bot’s configuration, tools (MCP servers), SOUL.md and MEMORY.md',
+    usage: 'orca bot show <bot> [--json]',
+    allowedFlags: [...GLOBAL_FLAGS, 'bot'],
+    positionalArgs: ['bot'],
+    notes: [...BOT_NOTES]
+  },
+  {
+    path: ['bot', 'update'],
+    summary: 'Update a bot’s name, agent, model, permissions, avatar, pause state or SOUL.md',
+    usage:
+      'orca bot update <bot> [--name <name>] [--agent <agent>] [--model <model> | --clear-model] [--permission-mode <mode>] [--avatar <emoji|mascot>] [--avatar-color <color>] [--pause | --resume] [--soul <markdown> | --soul-file <path>] [--tidy-up on|off] [--json]',
+    allowedFlags: [
+      ...GLOBAL_FLAGS,
+      'bot',
+      'name',
+      'agent',
+      'model',
+      'clear-model',
+      'permission-mode',
+      'avatar',
+      'avatar-color',
+      'pause',
+      'resume',
+      'soul',
+      'soul-file',
+      'tidy-up'
+    ],
+    positionalArgs: ['bot'],
+    notes: [...BOT_NOTES]
+  },
+  {
+    path: ['bot', 'delete'],
+    destructive: true,
+    summary: 'Delete a bot (pass --yes; add --delete-folder to also remove its home folder)',
+    usage: 'orca bot delete <bot> --yes [--delete-folder] [--json]',
+    allowedFlags: [...GLOBAL_FLAGS, 'bot', 'yes', 'delete-folder'],
+    positionalArgs: ['bot'],
+    notes: [...BOT_NOTES]
+  },
+  {
+    path: ['bot', 'agents'],
+    summary: 'List chat agents available for bots on this host (or --environment)',
+    usage: 'orca bot agents [--json]',
+    allowedFlags: [...GLOBAL_FLAGS],
+    notes: [...BOT_NOTES]
+  },
+  {
+    path: ['bot', 'send'],
+    summary: 'Send a message directly to a bot’s Home Chat (or a specific --chat session)',
+    usage: 'orca bot send <bot> (--message <text> | --message-file <path>) [--chat <id>] [--json]',
+    allowedFlags: [...GLOBAL_FLAGS, 'bot', 'message', 'message-file', 'chat'],
+    positionalArgs: ['bot'],
+    notes: [...BOT_NOTES]
   },
   {
     path: ['bot', 'list'],

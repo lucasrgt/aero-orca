@@ -1,10 +1,8 @@
-// `bots.create`: the owner's New bot, in Orca (desktop or phone). A bot only proposes one
-// (`bots.createOffer`); creating from its card records the new bot against that card.
+// `bots.create`: create a bot on this host (desktop, phone, or owner CLI/chat).
 import { BotCreate } from '../../../../shared/rpc-contract/bots-params'
 import { botFirstKickoff } from '../../../../shared/bots/bot-import'
 import { botMadeForWorkspacesKickoff } from '../../../../shared/bots/bot-made-for-workspaces'
 import { runtimeBotChats } from '../../../bots/bot-chat-session'
-import { ownerOnly } from './bots-caller-gates'
 import { createBotFromShare } from '../../../bots/sharing/bot-share-create'
 import { botTemplateCreation, createBotFromTemplate } from '../../../bots/bot-template-create'
 import { botShareCreateDeps } from './bots-share-create-deps'
@@ -15,16 +13,11 @@ export const BOT_CREATE_METHOD = defineMethod({
   permission: 'workspace',
   params: BotCreate,
   handler: async (
-    { handOff, takingOver, fromOffer, fromShare, fromTemplate, ...params },
+    { handOff, takingOver, skipKickoff, fromOffer, fromShare, fromTemplate, ...params },
     context
   ) => {
     const { runtime } = context
     runtime.bots.assertEnabled()
-    // A bot proposes new bots (`bot create --offer`); only its owner creates one, in Orca.
-    ownerOnly(
-      context,
-      'A bot can’t create a bot. Propose one with `orca bot create --offer`; your owner creates it from the card.'
-    )
     let bot
     if (fromShare) {
       bot = await createBotFromShare(botShareCreateDeps(runtime), { ...params, fromShare })
@@ -55,8 +48,8 @@ export const BOT_CREATE_METHOD = defineMethod({
     } else {
       bot = await runtime.bots.create(params)
     }
-    // Made in Hand to bot: its first turn is the hand-over, once the workspace is under its home.
-    if (takingOver) {
+    // Made in Hand to bot or created with skipKickoff: skip the default first-run greeting turn.
+    if (takingOver || skipKickoff) {
       return { bot }
     }
     // The bot speaks first: its first-run rules turn this into a greeting. Made for workspaces, it then

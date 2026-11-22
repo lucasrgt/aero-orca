@@ -182,7 +182,11 @@ export class BotController {
             this.deps.filesystem,
             path,
             { ...draft, folder, folderWorkspaceId: '' },
-            input.seed ? proposalSoul(name, input.seed) : undefined
+            input.soul !== undefined
+              ? `${input.soul.trimEnd()}\n`
+              : input.seed
+                ? proposalSoul(name, input.seed)
+                : undefined
           )
       ))
     }
@@ -214,7 +218,14 @@ export class BotController {
       }
       const updated: Bot = { ...applyBotUpdates(bot, updates), updatedAt: Date.now() }
       const next = stampBotLinkOwners(bot, updated, () => this.deps.accountUserId?.() ?? null)
-      await writeBotHome(this.deps.filesystem, botHomeFolder(next, this.deps.botsRoot()), next)
+      const homeFolder = botHomeFolder(next, this.deps.botsRoot())
+      await writeBotHome(this.deps.filesystem, homeFolder, next)
+      if (updates.soul !== undefined) {
+        await this.deps.filesystem.writeText(
+          join(homeFolder, 'SOUL.md'),
+          `${updates.soul.trimEnd()}\n`
+        )
+      }
       if (next.name !== bot.name) {
         store.updateFolderWorkspace(bot.folderWorkspaceId, { name: next.name })
       }

@@ -1,6 +1,12 @@
-// `orca bot create --offer`: shows the owner a card proposing a new bot, which creates nothing until
-// they press Create bot. Creating a bot is the owner's, in Orca.
+// `orca bot create`: create a bot directly on this host (or `--environment`), or with `--offer` propose one as a card.
+import { readFile } from 'node:fs/promises'
+import { resolve } from 'node:path'
 import { readInjectedAgentSessionId } from '../../shared/agent-session/lifecycle/launch/agent-session-caller-env'
+import {
+  AGENT_CHAT_PERMISSION_MODES,
+  type AgentChatPermissionMode
+} from '../../shared/agent-launch/permissions/agent-chat-permission-mode'
+import { BOT_AGENTS, isBotAgent, type Bot, type BotAgent } from '../../shared/bot-types'
 import { BOT_TEMPLATES, botTemplate } from '../../shared/bots/bot-templates'
 import type { HandedWorkspace } from '../../shared/bots/bot-made-for-workspaces'
 import type {
@@ -16,7 +22,7 @@ import {
 import { printResult } from '../output/command-result-output'
 import { RuntimeClientError } from '../runtime/connection/types'
 import type { RuntimeClient } from '../runtime/client'
-import { callBots } from './bot'
+import { callBots, formatBot } from './bot'
 import { WORKTREE_PS_SINCE_READ_LIMIT } from '../workspaces/worktree-ps-recent'
 import { readWorktreePsAcrossServers } from '../workspaces/worktree-ps-fleet'
 
@@ -60,11 +66,51 @@ async function worktreesOf(client: RuntimeClient, selectors: string[]): Promise<
   return found
 }
 
-async function offer({ flags, client, json }: Parameters<CommandHandler>[0]): Promise<void> {
-  const callerSessionId = readInjectedAgentSessionId()
-  if (!callerSessionId) {
-    throw new RuntimeClientError('invalid_argument', "Run this from a bot's chat.")
+export function parseBotAgentFlag(value: string | undefined): BotAgent | undefined {
+  if (value === undefined) {
+    return undefined
   }
+  if (!isBotAgent(value)) {
+    throw new RuntimeClientError(
+      'invalid_argument',
+      `--agent must be one of: ${BOT_AGENTS.join(', ')}`
+    )
+  }
+  return value
+}
+
+export function parseBotPermissionModeFlag(
+  value: string | undefined
+): AgentChatPermissionMode | undefined {
+  if (value === undefined) {
+    return undefined
+  }
+  const match = AGENT_CHAT_PERMISSION_MODES.find((mode) => mode === value)
+  if (!match) {
+    throw new RuntimeClientError(
+      'invalid_argument',
+      `--permission-mode must be one of: ${AGENT_CHAT_PERMISSION_MODES.join(', ')}`
+    )
+  }
+  return match
+}
+
+export async function readSoulFlags(
+  flags: Map<string, string | boolean>,
+  cwd: string
+): Promise<string | undefined> {
+  const inline = getOptionalStringFlag(flags, 'soul')
+  const filePath = getOptionalStringFlag(flags, 'soul-file')
+  if (inline !== undefined && filePath !== undefined) {
+    throw new RuntimeClientError('invalid_argument', 'Pass either --soul or --soul-file, not both.')
+  }
+  if (filePath !== undefined) {
+    return await readFile(resolve(cwd, filePath), 'utf8')
+  }
+  return inline
+}
+
+function resolveTemplate(flags: Map<string, string | boolean>) {
   const templateId = getOptionalStringFlag(flags, 'template')
   const template = templateId === undefined ? null : botTemplate(templateId)
   if (templateId !== undefined && !template) {
@@ -73,6 +119,15 @@ async function offer({ flags, client, json }: Parameters<CommandHandler>[0]): Pr
       `--template is one of: ${BOT_TEMPLATES.map((entry) => entry.id).join(', ')}`
     )
   }
+  return template
+}
+
+async function offer({ flags, client, json }: Parameters<CommandHandler>[0]): Promise<void> {
+  const callerSessionId = readInjectedAgentSessionId()
+  if (!callerSessionId) {
+    throw new RuntimeClientError('invalid_argument', "Run this from a bot's chat.")
+  }
+  const template = resolveTemplate(flags)
   const purpose = getOptionalStringFlag(flags, 'purpose') ?? template?.line
   if (!purpose) {
     throw new RuntimeClientError(
@@ -102,15 +157,61 @@ async function offer({ flags, client, json }: Parameters<CommandHandler>[0]): Pr
   printResult(result, json, (value) => value.message)
 }
 
+async function createDirect({
+  flags,
+  client,
+  cwd,
+  json
+}: Parameters<CommandHandler>[0]): Promise<void> {
+  const template = resolveTemplate(flags)
+  const name = getOptionalStringFlag(flags, 'name') ?? template?.name ?? ''
+  const agent = parseBotAgentFlag(getOptionalStringFlag(flags, 'agent'))
+  const model = getOptionalStringFlag(flags, 'model')
+  const permissionMode = parseBotPermissionModeFlag(getOptionalStringFlag(flags, 'permission-mode'))
+  const avatar = getOptionalStringFlag(flags, 'avatar')
+  const avatarColor = getOptionalStringFlag(flags, 'avatar-color')
+  const soul = await readSoulFlags(flags, cwd)
+  const purpose = getOptionalStringFlag(flags, 'purpose') ?? template?.line
+  const watches = getOptionalStringFlag(flags, 'watches') ?? template?.watches
+  const does = getOptionalStringFlag(flags, 'does') ?? template?.does
+  const reports = getOptionalStringFlag(flags, 'reports') ?? template?.reports
+  const worktrees = await worktreesOf(client, getRepeatedStringFlag(flags, 'worktree'))
+  const seed =
+    purpose !== undefined
+      ? {
+          purpose,
+          ...(watches ? { watches } : {}),
+          ...(does ? { does } : {}),
+          ...(reports ? { reports } : {}),
+          ...(template ? { templateId: template.id } : {})
+        }
+      : undefined
+  const params: Record<string, unknown> = {
+    name,
+    ...(agent ? { agent } : {}),
+    ...(model ? { launch: { model } } : {}),
+    ...(permissionMode ? { permissionMode } : {}),
+    ...(avatar ? { avatar } : {}),
+    ...(avatarColor ? { avatarColor } : {}),
+    ...(seed ? { seed } : {}),
+    ...(soul !== undefined ? { soul } : {}),
+    ...(worktrees.length ? { handOff: worktrees } : {}),
+    ...(template ? { fromTemplate: { id: template.id, skills: [] } } : {}),
+    ...(flags.has('no-kickoff') ? { skipKickoff: true } : {})
+  }
+  const result = await callBots<{ bot: Bot }>(client, 'bots.create', params)
+  printResult(result, json, ({ bot }) => {
+    const modelNote = bot.launch?.model ? `, model: ${bot.launch.model}` : ''
+    return `Created bot ${formatBot(bot)}${modelNote}`
+  })
+}
+
 export const BOT_CREATE_HANDLERS: Record<string, CommandHandler> = {
   'bot create': async (context) => {
-    // Only the owner creates a bot, in Orca; from the CLI a bot can only propose one.
-    if (!context.flags.has('offer')) {
-      throw new RuntimeClientError(
-        'invalid_argument',
-        'A bot can’t create a bot. Propose one with --offer; your owner creates it from the card.'
-      )
+    if (context.flags.has('offer')) {
+      await offer(context)
+      return
     }
-    await offer(context)
+    await createDirect(context)
   }
 }

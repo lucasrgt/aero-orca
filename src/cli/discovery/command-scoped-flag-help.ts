@@ -10,6 +10,43 @@ const AGENT_ID_FLAG_HELP =
   "--id <id>              The agent's orca_session_id: ID; also accepted positionally"
 
 const COMMAND_SCOPED_FLAG_HELP: Record<string, Record<string, string>> = {
+  'bot create': {
+    agent: '--agent <id>           Agent backend (run `orca bot agents` to list available ones)',
+    model: '--model <id>           Default model id for the bot’s chats',
+    'permission-mode':
+      '--permission-mode <m>  Permission mode (default, acceptEdits, bypassPermissions, plan, full-access)',
+    soul: '--soul <markdown>      Full SOUL.md contents for the bot',
+    'soul-file': '--soul-file <path>     Read SOUL.md contents from a local file',
+    'no-kickoff': '--no-kickoff           Skip the automatic first-run greeting turn',
+    offer:
+      '--offer                Propose the bot as an acceptance card instead of creating it directly'
+  },
+  'bot show': {
+    bot: '--bot <name|id>        Bot name or id (also accepted positionally)'
+  },
+  'bot update': {
+    bot: '--bot <name|id>        Bot name or id (also accepted positionally)',
+    agent: '--agent <id>           Switch the bot’s agent backend',
+    model: '--model <id>           Set the default model id for the bot’s chats',
+    'clear-model': '--clear-model          Reset launch model/options back to native chat defaults',
+    'permission-mode': '--permission-mode <m>  Set permission mode',
+    pause: '--pause                Pause the bot',
+    resume: '--resume               Resume a paused bot',
+    soul: '--soul <markdown>      Replace SOUL.md contents',
+    'soul-file': '--soul-file <path>     Replace SOUL.md from a local file',
+    'tidy-up': '--tidy-up <on|off>     Enable or disable periodic tidy-up'
+  },
+  'bot delete': {
+    bot: '--bot <name|id>        Bot name or id (also accepted positionally)',
+    yes: '--yes                  Confirm deleting the bot',
+    'delete-folder': '--delete-folder        Also delete the bot’s home folder on disk'
+  },
+  'bot send': {
+    bot: '--bot <name|id>        Bot name or id (also accepted positionally)',
+    message: '--message <text>       Message text to send to the bot',
+    'message-file': '--message-file <path>  Read message text from a local file',
+    chat: '--chat <id>            Target a specific chat session id instead of the Home Chat'
+  },
   'bot item add': {
     title: BOT_ITEM_TITLE_HELP,
     for: '--for bot:<name>       Make the item for another bot'

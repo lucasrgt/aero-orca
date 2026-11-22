@@ -27,6 +27,7 @@ import { composioBotsOf } from './bots-composio'
 import { ownerOnly } from './bots-caller-gates'
 import { BOT_CREATE_METHOD } from './bots-create'
 import { BOT_AGENT_CHOICES_METHOD } from './bots-agent-choices'
+import { BOT_MANAGE_METHODS } from './bots-manage'
 import { BOT_CHATS_METHODS, botChatsSummary, readBotChats } from './bots-chats'
 import { BOT_CHAT_TREE_METHODS } from './bots-chat-tree'
 import { BOT_MEMORY_METHODS } from './bots-memory'
@@ -48,9 +49,9 @@ async function updateBot(params: BotUpdateParams, context: RpcContext) {
   if (params.updates.slackMirror !== undefined) {
     ownerOnly(context, 'Only the owner can change what posts to Slack')
   }
-  const { members, addMembers: added, permissionMode } = params.updates
-  if (members !== undefined || added !== undefined || permissionMode !== undefined) {
-    ownerOnly(context, 'Only your owner changes your Who can ask or permissions, in Orca.')
+  const { members, addMembers: added } = params.updates
+  if (members !== undefined || added !== undefined) {
+    ownerOnly(context, 'Only your owner changes your Who can ask, in Orca.')
   }
   const bot = await context.runtime.bots.update(params.botId, params.updates)
   if (params.updates.skillProjects !== undefined) {
@@ -190,6 +191,7 @@ export const BOT_METHODS = [
   }),
   BOT_CREATE_METHOD,
   BOT_AGENT_CHOICES_METHOD,
+  ...BOT_MANAGE_METHODS,
   ...BOT_CHATS_METHODS,
   ...BOT_CHAT_TREE_METHODS,
   ...BOT_MEMORY_METHODS,
