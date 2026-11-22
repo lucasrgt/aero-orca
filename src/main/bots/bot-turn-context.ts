@@ -60,10 +60,11 @@ export function createBotTurnContext(
   firstRun: BotFirstRun = NO_FIRST_RUN,
   /** Any conversation's rows, so a turn end hears of outside turns still running beside it. */
   chats = NO_BOT_CHAT_JOURNAL,
-  /** Which worker a turn's conversation handed its code work to. */
+  /** Which worker a turn's conversation handed its code work to (or a Captain's warm slot). */
   workNote: (
     sessionId: string,
-    message: AgentJournalMessageItem
+    message: AgentJournalMessageItem,
+    botId: string
   ) => Promise<string | null> = async () => null,
   /** Each bot's MEMORY.md as Orca last recorded it, which Forget also updates. */
   record: Pick<
@@ -164,7 +165,7 @@ export function createBotTurnContext(
       const [entry, files, work, topics, recent, unanswered] = await Promise.all([
         relinked(sessionId, stored),
         readBotHomeFiles(fs, stored.folder),
-        workNote(sessionId, message).catch(() => null),
+        workNote(sessionId, message, stored.botId).catch(() => null),
         readTopics(stored.folder),
         recentChats(stored.botId, sessionId, message).catch(() => null),
         unansweredQuestionNote(sessionId).catch(() => null)

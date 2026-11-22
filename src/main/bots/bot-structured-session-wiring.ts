@@ -47,6 +47,8 @@ export function botStructuredSessionWiring(deps: {
   chats: BotChatJournal
   /** Which worker a turn's conversation handed its code work to. */
   work: Pick<BotWorkRecord, 'turnNote' | 'handedOver' | 'turnEnded'>
+  /** Warm territory worker slot guidance for a Captain bot when no external thread owns a worker. */
+  warmSlotNote?: (bot: Bot | undefined, sessionId: string) => Promise<string | null>
   lookAround: Pick<BotLookAroundStore, 'botOfLook' | 'botOfTidyUp' | 'lookTurnIsQuiet'>
   /** A turn ended: one that worked on another bot's request and left it unanswered tells that bot. */
   requestTurnEnded?: (sessionId: string, turnId: string, ended?: TurnEndedVerdict) => void
@@ -106,7 +108,13 @@ export function botStructuredSessionWiring(deps: {
       }
     },
     deps.chats,
-    (sessionId, message) => deps.work.turnNote(sessionId, message),
+    async (sessionId, message, botId) => {
+      const note = await deps.work.turnNote(sessionId, message)
+      if (note) {
+        return note
+      }
+      return deps.warmSlotNote ? deps.warmSlotNote(botById(botId), sessionId) : null
+    },
     deps.bots.memory,
     {
       projects: (botId) => botById(botId)?.skillProjects ?? null,

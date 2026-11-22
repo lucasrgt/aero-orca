@@ -40,6 +40,7 @@ import { profileAccountUserId } from '../orca-profiles/profile-account-user-id'
 import { getProfileUserDataPath } from '../orca-profiles/profile-storage-paths'
 import { OrcaRuntimeWithLinearCommands } from './integrations/linear/linear-commands'
 import { botStructuredSessionWiring, type WiredBot } from '../bots/bot-structured-session-wiring'
+import { readCaptainWarmSlotNote } from '../bots/bot-warm-slot-runtime'
 import { botChatJournal } from '../bots/bot-chat-reads'
 import type { RuntimeStore } from './construction/runtime-store-contract'
 import { googleSetupRuns } from '../google/google-setup-runs'
@@ -272,6 +273,8 @@ export abstract class OrcaRuntimeWithBots extends OrcaRuntimeWithLinearCommands 
         bots: this.bots,
         chats: botChatJournal(),
         work: this.botWork,
+        warmSlotNote: (bot, sessionId) =>
+          readCaptainWarmSlotNote(this.botWorkRuntime, bot, sessionId),
         lookAround: this.lookAround,
         requestTurnEnded: (sessionId, turnId, ended) =>
           this.botSessions.turnEnded(sessionId, turnId, ended),

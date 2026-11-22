@@ -148,7 +148,12 @@ export function buildBotFleetSection(
       ? `**Your territory:** ${bot.territory.trim()}`
       : 'You own a dedicated territory of this project.',
     '',
-    'Own work inside your territory end-to-end: keep `MEMORY.md` warm with key files, pitfalls, and verification commands; spawn workers in isolated worktrees (`orchestration worker-start`) for code work (one or several in parallel when tasks are independent); and verify results before reporting done.'
+    'Own work inside your territory end-to-end: keep `MEMORY.md` warm with key files, pitfalls, and verification commands, and verify results before reporting done.',
+    '',
+    '### Warm worker slot policy',
+    `- Maintain **one primary warm worker slot** in your territory so prompt cache stays hot even for small tasks. When Orca reports a warm idle slot (\`[Orca warm slot: ...]\`), **reuse it** via \`${orcaCli} orchestration send --to dispatch:<id> --body "..."\` instead of opening a fresh worktree.`,
+    '- Open a **second parallel worker slot** (`--worktree new-child`) only when the primary slot is busy with an independent task or when a separate branch/PR is explicitly needed.',
+    '- When Orca flags **RECYCLE RECOMMENDED** (context nearing saturation), ask the worker for a brief handoff summary, save durable territory learnings into `MEMORY.md`, and start a fresh slot for the next task.'
   ]
   if (admiral) {
     lines.push(
