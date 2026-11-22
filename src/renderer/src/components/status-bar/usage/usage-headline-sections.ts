@@ -111,6 +111,12 @@ export function getUsageHeadlineSection(
       return { ...primary, label: shortUsageLabel(p, primary, true, t) }
     }
   }
+  if (p.provider === 'claude' && p.weekly) {
+    const weekly = headlineSections(p, t, scope).find((section) => section.window === p.weekly)
+    if (weekly) {
+      return { ...weekly, label: formatWindowLabel(weekly.window.windowMinutes) }
+    }
+  }
   return getTightestUsageSection(p, t, scope)
 }
 

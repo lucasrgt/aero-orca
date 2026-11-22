@@ -112,7 +112,8 @@ function OwnerNotSetUpLabel({
  * the user chose. Why 80: the status bar's original threshold; it drives collapsing, not color.
  */
 export function isUsageUrgent(p: ProviderRateLimits): boolean {
-  const tightest = getTightestUsageSection(p, undefined, 'all')
+  const tightest =
+    getTightestUsageSection(p, undefined, 'primary') ?? getTightestUsageSection(p, undefined, 'all')
   return tightest !== null && clampUsedPercent(tightest.window.usedPercent) >= USAGE_WARNING_PERCENT
 }
 
@@ -129,7 +130,8 @@ export function UsageOverflowChip({
   const t = useTranslate()
   const names = hidden
     .map((p) => {
-      const tightest = getTightestUsageSection(p, t, 'all')
+      const tightest =
+        getUsageHeadlineSection(p, t, 'primary') ?? getTightestUsageSection(p, t, 'all')
       const name = getProviderDisplayName(p.provider)
       return tightest
         ? `${name} ${formatUsagePercentageLabel(tightest.window.usedPercent, display, t)}`
@@ -275,8 +277,8 @@ export function ProviderSegment({
   const calmClock = useNow(60_000, calm && p?.status === 'error')
   const tightest = p
     ? mode === 'compact'
-      ? getUsageHeadlineSection(p, t, 'all')
-      : getTightestUsageSection(p, t, 'all')
+      ? (getUsageHeadlineSection(p, t, 'primary') ?? getUsageHeadlineSection(p, t, 'all'))
+      : (getTightestUsageSection(p, t, 'primary') ?? getTightestUsageSection(p, t, 'all'))
     : null
   const sections = getStatusBarUsageSections(p, mode, t)
   const groupedBuckets = sections.map((section) => section.window).filter(isGroupedUsagePool)

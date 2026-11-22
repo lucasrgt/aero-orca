@@ -7,6 +7,7 @@ import { isCursorUsageBucket } from '../../../../../shared/agent-usage/rate-limi
 import { translate } from '@/i18n/i18n'
 import type { Translate } from '@/i18n/use-translate'
 import { formatRateLimitWindowChipLabel } from '../../../../../shared/agent-usage/rate-limits/rate-limit-window-label'
+import { formatWindowLabel } from '../usage/rate-limit-window-localized-label'
 import { getUsageHeadlineSection } from '../usage/usage-headline-sections'
 
 export type StatusBarUsageSection = {
@@ -27,8 +28,9 @@ export function getStatusBarUsageSections(
     return []
   }
   if (mode === 'compact') {
-    // Why 'all': the status bar keeps its original headline, Fable included.
-    const headline = getUsageHeadlineSection(p, t, 'all')
+    // Prefer primary windows (e.g. Claude weekly) before falling back to scoped-only snapshots like Fable.
+    const headline =
+      getUsageHeadlineSection(p, t, 'primary') ?? getUsageHeadlineSection(p, t, 'all')
     if (!headline) {
       return []
     }
@@ -62,9 +64,17 @@ export function getStatusBarUsageSections(
       ? { key: 'session', window: p.session, label: formatRateLimitWindowChipLabel(p.session) }
       : null,
     p.weekly
-      ? { key: 'weekly', window: p.weekly, label: formatRateLimitWindowChipLabel(p.weekly) }
+      ? {
+          key: 'weekly',
+          window: p.weekly,
+          label:
+            p.provider === 'claude'
+              ? formatWindowLabel(p.weekly.windowMinutes)
+              : formatRateLimitWindowChipLabel(p.weekly)
+        }
       : null,
-    p.fableWeekly
+    // Keep Fable out of the status bar when Claude has primary windows; it stays available in the popover.
+    p.fableWeekly && !p.session && !p.weekly
       ? {
           key: 'fableWeekly',
           window: p.fableWeekly,
