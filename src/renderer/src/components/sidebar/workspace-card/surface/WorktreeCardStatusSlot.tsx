@@ -66,10 +66,6 @@ const compactReviewAndBranchStatusIconClassName = 'size-[13px] translate-x-px'
 export const branchStatusIconClassName = `${compactReviewAndBranchStatusIconClassName} text-muted-foreground/70`
 // The whole sleeping row is dimmed; extra glyph tint would double-dim it.
 const sleepingStatusIconClassName = 'size-[13px] text-muted-foreground'
-// Overlay unread on the glyph's corner without widening the lane; the ring separates it from busy glyphs.
-// Blue, not amber: the lane already spends yellow and orange on working, pending checks and needs-you.
-const newCardUnreadAlertClassName =
-  'pointer-events-none absolute right-0 bottom-0 size-[6px] rounded-full bg-unread ring-2 ring-worktree-sidebar'
 
 export function getUnreadToggleTooltip(isUnread: boolean): string {
   return isUnread
@@ -77,27 +73,12 @@ export function getUnreadToggleTooltip(isUnread: boolean): string {
     : translate('auto.components.sidebar.useWorktreeCardWorkspaceActions.markUnread', 'Mark unread')
 }
 
+// Keep the left status lane to a single clean glyph; unread renders beside the title timestamp instead of colliding here.
 export function overlayNewCardUnreadStatus(
   status: React.JSX.Element,
-  showUnreadAlert: boolean
+  _showUnreadAlert: boolean
 ): React.JSX.Element {
-  if (!showUnreadAlert) {
-    return status
-  }
-
-  return (
-    <span
-      data-worktree-status-lane-unread=""
-      className="relative inline-flex size-5 shrink-0 items-center justify-center"
-    >
-      {status}
-      <span
-        data-worktree-unread-alert=""
-        className={newCardUnreadAlertClassName}
-        aria-hidden="true"
-      />
-    </span>
-  )
+  return status
 }
 
 function getReviewStatusLabel(review: WorktreeCardPrDisplay, t: Translate = translate): string {

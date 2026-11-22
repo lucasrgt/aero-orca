@@ -1,6 +1,7 @@
 import React from 'react'
 import { Activity } from 'lucide-react'
 import { cn } from '@/lib/class-names'
+import { AgentDoneIcon } from '@/components/agent/status/AgentDoneIcon'
 import { AgentQuestionIcon } from '@/components/agent/status/AgentQuestionIcon'
 import { AgentStateDot } from '@/components/agent/status/AgentStateDot'
 import { AgentWorkingSpinner } from '@/components/agent/status/AgentWorkingSpinner'
@@ -96,21 +97,22 @@ const StatusIndicator = React.memo(function StatusIndicator({
         <AgentQuestionIcon className="size-3" />
       </span>
     )
+  } else if (status === 'done' || status === 'active') {
+    indicator = (
+      <span
+        className={cn('inline-flex h-3 w-3 shrink-0 items-center justify-center', className)}
+        {...rest}
+      >
+        <AgentDoneIcon className="size-2.5" />
+      </span>
+    )
   } else {
     indicator = (
       <span
         className={cn('inline-flex h-3 w-3 shrink-0 items-center justify-center', className)}
         {...rest}
       >
-        <span
-          className={cn(
-            'block size-2 rounded-full',
-            status === 'done' || status === 'active'
-              ? // Quiet active terminals share the completed-session dot.
-                'bg-emerald-500'
-              : 'bg-neutral-500/40'
-          )}
-        />
+        <span className="block size-2 rounded-full bg-muted-foreground/40" />
       </span>
     )
   }

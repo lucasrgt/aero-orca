@@ -38,11 +38,13 @@ function slotLabel(signal: SlotSignal, t: Translate): string | undefined {
 export function WorktreeCardSlot({
   signal,
   now,
-  timeTone
+  timeTone,
+  unread = false
 }: {
   signal: Extract<SlotSignal, { kind: 'time' } | { kind: 'offline' }>
   now: number
   timeTone?: 'unread' | 'working'
+  unread?: boolean
 }): React.JSX.Element {
   const t = useTranslate()
   return (
@@ -51,16 +53,23 @@ export function WorktreeCardSlot({
       title={slotLabel(signal, t)}
       // Why 2.5em: fits the widest time ("999d") so title icons line up across rows; "offline" grows past it.
       className={cn(
-        'inline-flex min-w-[2.5em] shrink-0 items-center justify-end whitespace-nowrap text-3xs leading-none tabular-nums',
+        'inline-flex min-w-[2.5em] shrink-0 items-center justify-end gap-1.5 whitespace-nowrap text-3xs leading-none tabular-nums',
         signal.kind === 'offline'
           ? 'italic text-muted-foreground/70'
-          : timeTone === 'unread'
+          : timeTone === 'unread' || unread
             ? 'font-medium text-foreground'
             : timeTone === 'working'
               ? 'text-muted-foreground'
               : 'text-muted-foreground/70'
       )}
     >
+      {unread && signal.kind === 'time' ? (
+        <span
+          data-worktree-unread-alert=""
+          aria-hidden="true"
+          className="size-1.5 shrink-0 rounded-full bg-unread"
+        />
+      ) : null}
       {signal.kind === 'offline'
         ? t('sidebar.cardSlot.offline', 'offline')
         : formatSlotTime(signal.at, now)}
@@ -144,17 +153,20 @@ export function WorktreeCardTitlePills({
 export function WorktreeCardTitleTime({
   exceptions,
   at,
-  now
+  now,
+  unread = false
 }: {
   exceptions: readonly SlotException[]
   at: number | null
   now: number
+  unread?: boolean
 }): React.JSX.Element {
   return (
     <WorktreeCardSlot
       signal={{ kind: 'time', at }}
       now={now}
       timeTone={titleTimeTone(exceptions)}
+      unread={unread}
     />
   )
 }

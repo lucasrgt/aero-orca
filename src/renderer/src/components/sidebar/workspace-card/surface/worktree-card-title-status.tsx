@@ -151,7 +151,9 @@ export function WorktreeCardTitleStatusProvider({
   const at = slot.kind === 'status' ? slot.at : null
   // Why: a collapsed parent rolls up its children's unread agent lines, so each child must show
   // the same dot even when the line is visible, or expanding hides where the unread came from.
-  const unread = titleRowUnread({ lines: signals.allSignals, collapsedLineage, workspaceUnread })
+  const unread =
+    worktree.isUnread ||
+    titleRowUnread({ lines: signals.allSignals, collapsedLineage, workspaceUnread })
   const lineageStatus = lineageLaneStatus(collapsedLineage)
   const value = useMemo<TitleStatus>(
     () => ({ offline, exceptions, unread, lineageStatus, at, resolveTargets }),
@@ -186,7 +188,12 @@ export function WorktreeCardTitleStatus(): React.JSX.Element | null {
         exceptions={status.exceptions}
         resolveTargets={status.resolveTargets}
       />
-      <WorktreeCardTitleTime exceptions={status.exceptions} at={status.at} now={now} />
+      <WorktreeCardTitleTime
+        exceptions={status.exceptions}
+        at={status.at}
+        now={now}
+        unread={status.unread}
+      />
     </>
   )
 }
