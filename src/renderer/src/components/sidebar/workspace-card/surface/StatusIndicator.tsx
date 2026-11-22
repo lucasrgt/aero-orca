@@ -1,7 +1,12 @@
 import React from 'react'
 import { Activity } from 'lucide-react'
 import { cn } from '@/lib/class-names'
-import { AgentDoneIcon } from '@/components/agent/status/AgentDoneIcon'
+import {
+  AgentDoneIcon,
+  AgentFailedIcon,
+  AgentIdleIcon,
+  AgentStoppedIcon
+} from '@/components/agent/status/AgentDoneIcon'
 import { AgentQuestionIcon } from '@/components/agent/status/AgentQuestionIcon'
 import { AgentStateDot } from '@/components/agent/status/AgentStateDot'
 import { AgentWorkingSpinner } from '@/components/agent/status/AgentWorkingSpinner'
@@ -65,7 +70,7 @@ const StatusIndicator = React.memo(function StatusIndicator({
         className={cn('inline-flex h-3 w-3 shrink-0 items-center justify-center', className)}
         {...rest}
       >
-        <span className="block size-1.5 rounded-full bg-red-500" />
+        <AgentFailedIcon className="size-2.5" />
       </span>
     )
   } else if (status === 'interrupted') {
@@ -75,7 +80,7 @@ const StatusIndicator = React.memo(function StatusIndicator({
         className={cn('inline-flex h-3 w-3 shrink-0 items-center justify-center', className)}
         {...rest}
       >
-        <span className="block size-1.5 rounded-full bg-muted-foreground" />
+        <AgentStoppedIcon className="size-2.5" />
       </span>
     )
   } else if (status === 'unconfirmed') {
@@ -112,7 +117,7 @@ const StatusIndicator = React.memo(function StatusIndicator({
         className={cn('inline-flex h-3 w-3 shrink-0 items-center justify-center', className)}
         {...rest}
       >
-        <span className="block size-2 rounded-full bg-muted-foreground/40" />
+        <AgentIdleIcon className="size-2.5" />
       </span>
     )
   }

@@ -3,7 +3,12 @@ import { Activity, CircleDashed } from 'lucide-react'
 import { cn } from '@/lib/class-names'
 import { translate } from '@/i18n/i18n'
 import { useTranslate } from '@/i18n/use-translate'
-import { AgentDoneIcon } from '@/components/agent/status/AgentDoneIcon'
+import {
+  AgentDoneIcon,
+  AgentFailedIcon,
+  AgentIdleIcon,
+  AgentStoppedIcon
+} from '@/components/agent/status/AgentDoneIcon'
 import { AgentQuestionIcon } from '@/components/agent/status/AgentQuestionIcon'
 import { AgentWorkingSpinner } from '@/components/agent/status/AgentWorkingSpinner'
 import {
@@ -102,7 +107,6 @@ export const AgentStateDot = React.memo(function AgentStateDot({
 }: Props): React.JSX.Element {
   const t = useTranslate()
   const box = size === 'md' ? 'h-3 w-3' : 'h-2.5 w-2.5'
-  const inner = size === 'md' ? 'size-2' : 'size-1.5'
   const icon = size === 'md' ? 'size-3' : 'size-2.5'
   const ring = progressRing(state, progress)
   const announceUnread = unread && state === 'done'
@@ -175,18 +179,14 @@ export const AgentStateDot = React.memo(function AgentStateDot({
         className={cn('inline-flex shrink-0 items-center justify-center', box, className)}
         aria-label={agentStateLabel(state)}
       >
-        <span
-          className={cn(
-            'block rounded-full',
-            inner,
-            state === 'blocked' || state === 'failed'
-              ? 'bg-red-500'
-              : // User Stop is muted, not a fault or completion.
-                state === 'interrupted'
-                ? 'bg-muted-foreground'
-                : 'bg-neutral-500/40'
-          )}
-        />
+        {state === 'blocked' || state === 'failed' ? (
+          <AgentFailedIcon className={icon} />
+        ) : // User Stop is muted, not a fault or completion.
+        state === 'interrupted' ? (
+          <AgentStoppedIcon className={icon} />
+        ) : (
+          <AgentIdleIcon className={icon} />
+        )}
       </span>
     )
   }
