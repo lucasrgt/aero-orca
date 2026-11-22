@@ -57,10 +57,24 @@ describe('buildBotFleetSection', () => {
 })
 
 describe('buildBotSidebarRows fleet ordering', () => {
-  it('places Admirals first with a fleet divider before Captains inside each project group', () => {
+  it('nests Captains under their project Admiral with continuous tree positions', () => {
     const entries = [
       { id: 'std', kind: 'bot' as const, bot: { project: 'Host Point' } },
-      { id: 'cap', kind: 'bot' as const, bot: { project: 'Host Point', role: 'captain' as const } },
+      {
+        id: 'cap1',
+        kind: 'bot' as const,
+        bot: { project: 'Host Point', role: 'captain' as const }
+      },
+      {
+        id: 'cap2',
+        kind: 'bot' as const,
+        bot: { project: 'Host Point', role: 'captain' as const }
+      },
+      {
+        id: 'cap3',
+        kind: 'bot' as const,
+        bot: { project: 'Host Point', role: 'captain' as const }
+      },
       { id: 'adm', kind: 'bot' as const, bot: { project: 'Host Point', role: 'admiral' as const } }
     ]
     const { rows } = buildBotSidebarRows(entries, 'project', new Set())
@@ -68,11 +82,16 @@ describe('buildBotSidebarRows fleet ordering', () => {
       rows.map((row) =>
         row.kind === 'project-header'
           ? `header:${row.projectKey}`
-          : row.kind === 'fleet-divider'
-            ? `divider:${row.projectKey}:${row.count}`
-            : row.id
+          : `${row.id}:${row.fleetChild ?? 'root'}`
       )
-    ).toEqual(['header:host point', 'adm', 'divider:host point:1', 'cap', 'std'])
+    ).toEqual([
+      'header:host point',
+      'adm:root',
+      'cap1:first',
+      'cap2:middle',
+      'cap3:last',
+      'std:root'
+    ])
   })
 
   it('pins global Admirals at the very top outside any General folder and separates the first project', () => {
@@ -85,10 +104,8 @@ describe('buildBotSidebarRows fleet ordering', () => {
       rows.map((row) =>
         row.kind === 'project-header'
           ? `header:${row.projectKey}:${Boolean(row.afterGlobalAdmiral)}`
-          : row.kind === 'fleet-divider'
-            ? `divider:${row.projectKey}`
-            : `${row.id}:${row.grouped}`
+          : `${row.id}:${row.grouped}:${row.fleetChild ?? 'root'}`
       )
-    ).toEqual(['global-adm:false', 'header:host point:true', 'cap:true'])
+    ).toEqual(['global-adm:false:root', 'header:host point:true', 'cap:true:root'])
   })
 })

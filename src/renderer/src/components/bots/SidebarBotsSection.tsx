@@ -43,7 +43,7 @@ import { BotsRevealProvider } from './bots-sidebar-reveal-context'
 import { SidebarBotsEmptyState } from './SidebarBotsEmptyState'
 import { SidebarBotsNewMenu } from './SidebarBotsNewMenu'
 import { BotSidebarVirtualRows } from './BotSidebarVirtualRows'
-import { BotFleetDividerRow } from './BotFleetRolePicker'
+import { BotFleetChildFrame } from './BotFleetRolePicker'
 import { BotProjectHeaderRow } from './BotProjectPicker'
 import {
   botProjectCollapseKey,
@@ -293,10 +293,7 @@ export function SidebarBotsSection({
                         />
                       )
                     }
-                    if (row.kind === 'fleet-divider') {
-                      return <BotFleetDividerRow projectKey={row.projectKey} count={row.count} />
-                    }
-                    const { entry, originalIndex } = row
+                    const { entry, originalIndex, fleetChild } = row
                     const entryDrag: BotSidebarEntryDrag | undefined = draggable
                       ? {
                           index: originalIndex,
@@ -306,27 +303,33 @@ export function SidebarBotsSection({
                           onPointerDown: (event) => drag.onHandlePointerDown(event, entry.id)
                         }
                       : undefined
-                    return entry.kind === 'group' ? (
-                      <BotSidebarDragFrame id={entry.id} drag={entryDrag}>
-                        <BotGroupRow
-                          group={entry.group}
+                    const entryNode =
+                      entry.kind === 'group' ? (
+                        <BotSidebarDragFrame id={entry.id} drag={entryDrag}>
+                          <BotGroupRow
+                            group={entry.group}
+                            home={entry.home}
+                            members={botGroupMemberBots(entry.group, bots)}
+                            isActive={activeGroupId === entry.group.id}
+                            onOpen={onOpenBot}
+                            onManageMembers={() => setEditingGroup(entry.group)}
+                            onDelete={() => void deleteGroup(entry.group)}
+                            dragHandle={draggable}
+                          />
+                        </BotSidebarDragFrame>
+                      ) : (
+                        <BotSidebarEntry
+                          bot={entry.bot}
                           home={entry.home}
-                          members={botGroupMemberBots(entry.group, bots)}
-                          isActive={activeGroupId === entry.group.id}
+                          isActive={activeWorkspaceId === folderWorkspaceKey(entry.home.id)}
                           onOpen={onOpenBot}
-                          onManageMembers={() => setEditingGroup(entry.group)}
-                          onDelete={() => void deleteGroup(entry.group)}
-                          dragHandle={draggable}
+                          drag={entryDrag}
                         />
-                      </BotSidebarDragFrame>
+                      )
+                    return fleetChild ? (
+                      <BotFleetChildFrame position={fleetChild}>{entryNode}</BotFleetChildFrame>
                     ) : (
-                      <BotSidebarEntry
-                        bot={entry.bot}
-                        home={entry.home}
-                        isActive={activeWorkspaceId === folderWorkspaceKey(entry.home.id)}
-                        onOpen={onOpenBot}
-                        drag={entryDrag}
-                      />
+                      entryNode
                     )
                   }}
                 />

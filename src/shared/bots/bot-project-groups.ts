@@ -35,6 +35,8 @@ function sortGroupItemsByFleetRole<E extends GroupableBotEntry>(
   })
 }
 
+export type BotFleetChildPosition = 'first' | 'middle' | 'last' | 'only'
+
 export type BotSidebarVirtualRow<E extends GroupableBotEntry> =
   | {
       kind: 'project-header'
@@ -47,50 +49,58 @@ export type BotSidebarVirtualRow<E extends GroupableBotEntry> =
       afterGlobalAdmiral?: boolean
     }
   | {
-      kind: 'fleet-divider'
-      id: string
-      projectKey: string
-      count: number
-    }
-  | {
       kind: 'entry'
       id: string
       entry: E
       originalIndex: number
       grouped: boolean
+      fleetChild?: BotFleetChildPosition
     }
 
 function pushFleetRows<E extends GroupableBotEntry>(
   rows: BotSidebarVirtualRow<E>[],
-  projectKey: string,
   sortedItems: readonly { entry: E; originalIndex: number }[]
 ): void {
-  const captainCount = sortedItems.filter(
-    ({ entry }) => entry.kind === 'bot' && entry.bot.role === 'captain'
-  ).length
-  let sawAdmiral = false
-  let insertedDivider = false
-  for (const item of sortedItems) {
-    const role = item.entry.kind === 'bot' ? item.entry.bot.role : null
-    if (role === 'admiral') {
-      sawAdmiral = true
-    } else if (sawAdmiral && !insertedDivider && role === 'captain') {
-      rows.push({
-        kind: 'fleet-divider',
-        id: `bot-fleet-divider:${projectKey}`,
-        projectKey,
-        count: captainCount
-      })
-      insertedDivider = true
+  const hasAdmiral = sortedItems.some(
+    ({ entry }) => entry.kind === 'bot' && entry.bot.role === 'admiral'
+  )
+  const captainIndices: number[] = []
+  if (hasAdmiral) {
+    sortedItems.forEach(({ entry }, index) => {
+      if (entry.kind === 'bot' && entry.bot.role === 'captain') {
+        captainIndices.push(index)
+      }
+    })
+  }
+  const firstCaptain = captainIndices[0]
+  const lastCaptain = captainIndices.at(-1)
+  sortedItems.forEach((item, index) => {
+    let fleetChild: BotFleetChildPosition | undefined
+    if (
+      firstCaptain !== undefined &&
+      lastCaptain !== undefined &&
+      item.entry.kind === 'bot' &&
+      item.entry.bot.role === 'captain'
+    ) {
+      if (firstCaptain === lastCaptain) {
+        fleetChild = 'only'
+      } else if (index === firstCaptain) {
+        fleetChild = 'first'
+      } else if (index === lastCaptain) {
+        fleetChild = 'last'
+      } else {
+        fleetChild = 'middle'
+      }
     }
     rows.push({
       kind: 'entry',
       id: item.entry.id,
       entry: item.entry,
       originalIndex: item.originalIndex,
-      grouped: true
+      grouped: true,
+      ...(fleetChild ? { fleetChild } : {})
     })
-  }
+  })
 }
 
 /**
@@ -175,7 +185,7 @@ export function buildBotSidebarRows<E extends GroupableBotEntry>(
       ...(projectIndex === 0 && globalAdmirals.length > 0 ? { afterGlobalAdmiral: true } : {})
     })
     if (!collapsed) {
-      pushFleetRows(rows, projectKey, sortGroupItemsByFleetRole(bucket.items))
+      pushFleetRows(rows, sortGroupItemsByFleetRole(bucket.items))
     }
   }
 

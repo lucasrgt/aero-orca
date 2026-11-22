@@ -138,27 +138,34 @@ export const MobileHomeBotProjectRows = memo(function MobileHomeBotProjectRows(p
         </Pressable>
       )
     }
-    if (item.kind === 'fleet-divider') {
-      return (
-        <View key={item.id} style={projectHeaderStyles.fleetDivider}>
-          <View style={projectHeaderStyles.fleetDividerTick} />
-          <Text style={projectHeaderStyles.fleetDividerLabel}>
-            {t('bots.fleet.captainsDivider', 'Captains')}
-          </Text>
-          <View style={projectHeaderStyles.fleetDividerRule} />
-          <Text style={projectHeaderStyles.fleetDividerCount}>{item.count}</Text>
-        </View>
-      )
-    }
     const prev = virtualRows[index - 1]
-    const showDivider = prev?.kind === 'entry'
-    return (
+    const showDivider =
+      prev?.kind === 'entry' && !(item.fleetChild === 'first' || item.fleetChild === 'only')
+    const rowEl = (
       <MobileHomeBotRow
         key={item.id}
         row={item.entry.row}
         divider={showDivider}
         onOpen={props.onOpen}
       />
+    )
+    if (!item.fleetChild) {
+      return rowEl
+    }
+    return (
+      <View key={item.id} style={projectHeaderStyles.fleetChildWrap}>
+        <View
+          pointerEvents="none"
+          style={[
+            projectHeaderStyles.fleetChildRail,
+            (item.fleetChild === 'first' || item.fleetChild === 'only') &&
+              projectHeaderStyles.fleetChildRailStart,
+            (item.fleetChild === 'last' || item.fleetChild === 'only') &&
+              projectHeaderStyles.fleetChildRailEnd
+          ]}
+        />
+        {rowEl}
+      </View>
     )
   })
 })
@@ -193,36 +200,23 @@ const projectHeaderStyles = themedStyleSheet(() => ({
     fontSize: 11,
     color: colors.textMuted
   },
-  fleetDivider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.xs,
-    paddingBottom: 2
+  fleetChildWrap: {
+    position: 'relative',
+    paddingLeft: 16
   },
-  fleetDividerTick: {
-    width: 10,
-    height: StyleSheet.hairlineWidth,
+  fleetChildRail: {
+    position: 'absolute',
+    left: 20,
+    top: 0,
+    bottom: 0,
+    width: StyleSheet.hairlineWidth,
     backgroundColor: colors.borderSubtle
   },
-  fleetDividerLabel: {
-    fontSize: 10,
-    fontWeight: '600',
-    letterSpacing: 0.6,
-    textTransform: 'uppercase',
-    color: colors.textMuted,
-    opacity: 0.75
+  fleetChildRailStart: {
+    top: 4
   },
-  fleetDividerRule: {
-    flex: 1,
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: colors.borderSubtle
-  },
-  fleetDividerCount: {
-    fontSize: 10,
-    color: colors.textMuted,
-    opacity: 0.65
+  fleetChildRailEnd: {
+    bottom: 10
   },
   pressed: { opacity: feedback.pressedOpacity }
 }))

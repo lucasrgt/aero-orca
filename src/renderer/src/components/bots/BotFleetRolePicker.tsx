@@ -6,6 +6,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { useTranslate } from '@/i18n/use-translate'
 import { cn } from '@/lib/class-names'
 import { BOT_TERRITORY_MAX_LENGTH, type BotRole } from '../../../../shared/bots/bot-fleet-role'
+import type { BotFleetChildPosition } from '../../../../shared/bots/bot-project-groups'
 import { BotProjectPicker } from './BotProjectPicker'
 
 /** Project + Fleet role/territory group rendered together in NewBotDialog. */
@@ -37,30 +38,27 @@ export function NewBotPlacementFields({
   )
 }
 
-/** Subtle hairline separator between a project's Admiral and its Territory Captains. */
-export function BotFleetDividerRow({
-  projectKey,
-  count
+/** Indents a Territory Captain under its project Admiral with a continuous subtle vertical rail. */
+export function BotFleetChildFrame({
+  position,
+  children
 }: {
-  projectKey: string
-  count: number
+  position: BotFleetChildPosition
+  children: React.ReactNode
 }): React.JSX.Element {
-  const t = useTranslate()
   return (
-    <div
-      role="separator"
-      data-bot-fleet-divider={projectKey}
-      aria-label={t('bots.fleet.captainsDivider', 'Captains')}
-      className="flex select-none items-center gap-2 px-2.5 pt-1.5 pb-0.5"
-    >
-      <span className="h-px w-2.5 shrink-0 bg-border/60" aria-hidden />
-      <span className="text-[10px] leading-none font-medium tracking-[0.06em] text-muted-foreground/60 uppercase">
-        {t('bots.fleet.captainsDivider', 'Captains')}
-      </span>
-      <span className="h-px flex-1 bg-border/60" aria-hidden />
-      <span className="text-[10px] leading-none text-muted-foreground/50 tabular-nums">
-        {count}
-      </span>
+    <div data-bot-fleet-child={position} className="relative pl-4">
+      <span
+        aria-hidden="true"
+        className={cn(
+          'pointer-events-none absolute left-3 w-px rounded-full bg-[color-mix(in_srgb,var(--worktree-sidebar-border)_75%,transparent)]',
+          position === 'first' && 'top-0.5 bottom-0',
+          position === 'middle' && 'inset-y-0',
+          position === 'last' && 'top-0 bottom-2',
+          position === 'only' && 'top-0.5 bottom-2'
+        )}
+      />
+      {children}
     </div>
   )
 }
