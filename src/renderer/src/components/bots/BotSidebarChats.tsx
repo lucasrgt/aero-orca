@@ -48,7 +48,7 @@ export function BotSidebarChats({
   steps: Readonly<Record<string, number>>
   onStep: (chatId: string, steps: number) => void
   onOpen: () => void
-}): React.JSX.Element {
+}): React.JSX.Element | null {
   const t = useTranslate()
   const { chats, workspaceChats } = tree
   // Only this bot's chats' folds, so a fold anywhere else re-renders nothing here.
@@ -101,6 +101,56 @@ export function BotSidebarChats({
     }
     return labels
   }, [view.notes, t])
+
+  // When Home Chat is the bot's sole listed chat, hide the redundant row and show its workers directly under the bot.
+  const onlyHomeChat =
+    view.chats.length === 1 && view.chats[0]!.chat.origin === 'home' ? view.chats[0]! : null
+
+  if (onlyHomeChat) {
+    if (onlyHomeChat.lines.length === 0 && view.stray.length === 0) {
+      return null
+    }
+    return (
+      <>
+        {onlyHomeChat.lines.length > 0 ? (
+          <>
+            <AttachedWorktreeCards
+              roots={onlyHomeChat.lines}
+              lineageChildrenByParentIdentity={lineageChildrenByParentIdentity}
+              compactLine
+              lineOwnerHostId={bot.hostId}
+              lineNotes={notes}
+              onOpen={onOpen}
+            />
+            <BotChatPaging
+              more={
+                onlyHomeChat.paging
+                  ? [
+                      {
+                        label: botSidebarWorkerPagingLabel(t, onlyHomeChat.paging),
+                        onClick: () => onStep(onlyHomeChat.chat.chatId, onlyHomeChat.steps + 1)
+                      }
+                    ]
+                  : []
+              }
+              onFewer={onlyHomeChat.steps > 0 ? () => onStep(onlyHomeChat.chat.chatId, 0) : null}
+              className="pr-2 pb-1 pl-1"
+            />
+          </>
+        ) : null}
+        {view.stray.length > 0 ? (
+          <AttachedWorktreeCards
+            roots={view.stray}
+            lineageChildrenByParentIdentity={lineageChildrenByParentIdentity}
+            compactLine
+            lineOwnerHostId={bot.hostId}
+            lineNotes={notes}
+            onOpen={onOpen}
+          />
+        ) : null}
+      </>
+    )
+  }
 
   return (
     <>

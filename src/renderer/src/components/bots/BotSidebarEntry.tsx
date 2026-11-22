@@ -157,7 +157,7 @@ export function BotSidebarEntry({
         <div
           className={cn(
             // Nested workspace rows' spacing, with a subtle Capy-style vertical guide rail.
-            'sidebar-tree-children relative flex flex-col gap-0.5 pt-0.5 transition-opacity duration-200',
+            'sidebar-tree-children relative flex flex-col gap-0.5 pt-0.5 transition-opacity duration-200 empty:hidden',
             bot.paused && 'opacity-60'
           )}
           style={{
@@ -202,9 +202,12 @@ function BotSidebarList({
   const entryKey = botSidebarEntryKey(bot)
   useEffect(() => {
     if (chatTree.state === 'ready') {
-      setBotSidebarChildren(entryKey, { chats: chatTree.chats.length > 0 })
+      const hasVisibleChats =
+        chatTree.chats.length > 1 ||
+        (chatTree.chats.length === 1 && chatTree.chats[0]!.origin !== 'home')
+      setBotSidebarChildren(entryKey, { chats: hasVisibleChats })
     }
-  }, [entryKey, chatTree.state, chatTree.chats.length])
+  }, [entryKey, chatTree.state, chatTree.chats])
   const { showAllWorkspaces, toggleWorkspaces, chatSteps, setChatSteps } =
     useBotSidebarPaging(entryKey)
   // Once the host answers (or can't), the rows a reveal waits for are as listed as they will get.

@@ -562,4 +562,77 @@ describe('BotSidebarEntry', () => {
     act(() => useAppStore.setState({ activeWorktreeId: worktree('second').id }))
     expect(lines()).toEqual([])
   })
+
+  it('hides the redundant Home Chat row when it is the only chat and lists its workers flat', () => {
+    seed({ 'warm-slot': 'working' })
+    mocks.chatTree = {
+      state: 'ready',
+      workspaceChats: { [worktree('warm-slot').id]: 'home-1' },
+      chats: [
+        {
+          chatId: 'home-1',
+          title: 'Home Chat',
+          origin: 'home',
+          live: 'idle',
+          lastActiveAt: 0,
+          unread: false,
+          closed: false,
+          tab: true,
+          running: [],
+          runningTotal: 1,
+          finished: [],
+          finishedTotal: 0,
+          failedTotal: 0
+        }
+      ]
+    }
+    renderEntry()
+
+    expect(screen.queryByText('Home Chat')).toBeNull()
+    expect(lines()).toEqual(['warm-slot'])
+  })
+
+  it('shows Home Chat alongside other chats once a second chat exists', () => {
+    seed({ 'warm-slot': 'working' })
+    mocks.chatTree = {
+      state: 'ready',
+      workspaceChats: { [worktree('warm-slot').id]: 'home-1' },
+      chats: [
+        {
+          chatId: 'home-1',
+          title: 'Home Chat',
+          origin: 'home',
+          live: 'idle',
+          lastActiveAt: 0,
+          unread: false,
+          closed: false,
+          tab: true,
+          running: [],
+          runningTotal: 1,
+          finished: [],
+          finishedTotal: 0,
+          failedTotal: 0
+        },
+        {
+          chatId: 'side-1',
+          title: 'Extra thread',
+          origin: 'side',
+          live: 'idle',
+          lastActiveAt: 0,
+          unread: false,
+          closed: false,
+          tab: true,
+          running: [],
+          runningTotal: 0,
+          finished: [],
+          finishedTotal: 0,
+          failedTotal: 0
+        }
+      ]
+    }
+    renderEntry()
+
+    expect(screen.getByText('Home Chat')).toBeTruthy()
+    expect(screen.getByText('Extra thread')).toBeTruthy()
+  })
 })
