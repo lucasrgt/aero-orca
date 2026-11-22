@@ -80,13 +80,18 @@ export function buildBotSidebarRows<E extends GroupableBotEntry>(
     }
   }
 
+  const globalAdmirals: { entry: E; originalIndex: number }[] = []
   const buckets = new Map<string, { label: string; items: { entry: E; originalIndex: number }[] }>()
   const general: { entry: E; originalIndex: number }[] = []
 
   entries.forEach((entry, originalIndex) => {
     const key = entry.kind === 'bot' ? normalizeBotProjectKey(entry.bot.project) : null
     if (!key) {
-      general.push({ entry, originalIndex })
+      if (entry.kind === 'bot' && entry.bot.role === 'admiral') {
+        globalAdmirals.push({ entry, originalIndex })
+      } else {
+        general.push({ entry, originalIndex })
+      }
       return
     }
     const existing = buckets.get(key)
@@ -106,6 +111,15 @@ export function buildBotSidebarRows<E extends GroupableBotEntry>(
   )
 
   const rows: BotSidebarVirtualRow<E>[] = []
+  for (const item of globalAdmirals) {
+    rows.push({
+      kind: 'entry',
+      id: item.entry.id,
+      entry: item.entry,
+      originalIndex: item.originalIndex,
+      grouped: false
+    })
+  }
   for (const projectKey of sortedKeys) {
     const bucket = buckets.get(projectKey)!
     const collapsed = collapsedGroups.has(botProjectCollapseKey(projectKey))

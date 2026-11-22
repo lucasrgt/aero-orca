@@ -67,4 +67,17 @@ describe('buildBotSidebarRows fleet ordering', () => {
     const ids = rows.filter((row) => row.kind === 'entry').map((row) => row.id)
     expect(ids).toEqual(['adm', 'cap', 'std'])
   })
+
+  it('pins global Admirals at the very top outside any General folder', () => {
+    const entries = [
+      { id: 'cap', kind: 'bot' as const, bot: { project: 'Host Point', role: 'captain' as const } },
+      { id: 'global-adm', kind: 'bot' as const, bot: { role: 'admiral' as const } }
+    ]
+    const { rows } = buildBotSidebarRows(entries, 'project', new Set())
+    expect(
+      rows.map((row) =>
+        row.kind === 'project-header' ? `header:${row.projectKey}` : `${row.id}:${row.grouped}`
+      )
+    ).toEqual(['global-adm:false', 'header:host point', 'cap:true'])
+  })
 })

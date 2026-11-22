@@ -34,6 +34,7 @@ import {
   type BotWorkWorkspace
 } from './bot-work-record'
 import { BotWorkStore, botWorkStoreFile, type BotWorkHost } from './bot-work-store'
+import { readCaptainWarmSlotNote } from './bot-warm-slot-runtime'
 import { isInBotHome } from './bot-home-membership'
 import { readRemoteGitHubRepo, readRemoteWorkspace } from './bot-work-remote-workspace'
 import { readServerOwnedWorker } from './bot-work-server-owned-worker'
@@ -302,7 +303,8 @@ export function runtimeBotWork(runtime: BotWorkRuntime): BotWorkRecord {
     conversationTitle: (address) => {
       const store = runtime.linkStore()
       return (store && findLink(store, address)?.link.title) || null
-    }
+    },
+    warmSlotNote: (bot, sessionId) => readCaptainWarmSlotNote(runtime, bot, sessionId)
   })
 }
 

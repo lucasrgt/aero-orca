@@ -57,6 +57,13 @@ export type BotWorkRecordDeps = {
     sessionId: string,
     message: Pick<AgentJournalMessageItem, 'origin'>
   ) => Promise<BotTurnAddress | null>
+  /** Optional warm territory worker slot guidance for a Captain bot. */
+  warmSlotNote?: (
+    bot:
+      | { id: string; role?: 'admiral' | 'captain' | null; chatSessionId: string | null }
+      | undefined,
+    sessionId: string
+  ) => Promise<string | null>
 }
 
 /** A live row as validated now: its worker, or null when that can't be read. */

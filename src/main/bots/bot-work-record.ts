@@ -109,6 +109,16 @@ export class BotWorkRecord {
     return checked ? botWorkTurnNote(checked) : null
   }
 
+  /** Live warm territory worker slot guidance for a Captain bot when no external thread owns a worker. */
+  warmSlotNote(
+    bot:
+      | { id: string; role?: 'admiral' | 'captain' | null; chatSessionId: string | null }
+      | undefined,
+    sessionId: string
+  ): Promise<string | null> {
+    return this.deps.warmSlotNote ? this.deps.warmSlotNote(bot, sessionId) : Promise.resolve(null)
+  }
+
   /** The work a bot started that is still its conversations', newest first. */
   async list(botId: string): Promise<BotWorkerSummary[]> {
     const items: BotWorkerSummary[] = []
