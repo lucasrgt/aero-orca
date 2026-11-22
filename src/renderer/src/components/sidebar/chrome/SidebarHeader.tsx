@@ -106,7 +106,7 @@ const SidebarHeader = React.memo(function SidebarHeader({
                       variant="ghost"
                       size="icon-xs"
                       className={cn(
-                        'w-8 text-muted-foreground',
+                        'w-auto min-w-6',
                         agentsViewActive &&
                           'bg-foreground/10 text-foreground hover:bg-foreground/15 dark:hover:bg-foreground/15'
                       )}
@@ -115,13 +115,18 @@ const SidebarHeader = React.memo(function SidebarHeader({
                       aria-describedby={activityBadgeId}
                       onClick={() => setSidebarBody?.(agentsViewActive ? 'workspaces' : 'agents')}
                     >
-                      <span className="relative h-5 w-6 shrink-0">
-                        <Bell className="absolute left-0 top-1 size-3" />
+                      <span
+                        className={cn(
+                          'relative inline-flex h-6 min-w-6 shrink-0 items-center justify-center',
+                          !agentsViewActive && 'text-muted-foreground'
+                        )}
+                      >
                         <span
                           id={activityBadgeId}
                           ref={activityBadgeTarget}
-                          className="pointer-events-none absolute inset-0"
+                          className="peer inline-flex items-center justify-center empty:hidden"
                         />
+                        <Bell className="hidden size-3.5 peer-empty:block" />
                       </span>
                     </Button>
                   </PopoverAnchor>
