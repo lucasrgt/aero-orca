@@ -1,7 +1,7 @@
 import React from 'react'
 import { cn } from '@/lib/class-names'
 import { observeOffscreenAnimation } from '@/lib/window-activity/offscreen-animation-pause'
-import { handleSpinnerAnimationStart } from '@/components/ui/spinner-phase'
+import { handleSpinnerAnimationStart } from '@/components/ui/shared-animation-clock'
 import { PixelSpinner } from '@/components/ui/PixelSpinner'
 
 function observeSpinner(el: HTMLSpanElement): () => void {

@@ -1,21 +1,14 @@
 // The work record as this runtime reads it: links from the conversation store, workers from
 // orchestration, workspaces from the runtime's worktrees.
-import { existsSync } from 'node:fs'
 import type { AgentJournalMessageItem } from '../../shared/agent-session/journal/agent-session-journal-types'
-import {
-  getRepoExecutionHostId,
-  getRepoRoutingConnectionId,
-  LOCAL_EXECUTION_HOST_ID
-} from '../../shared/execution-host/execution-host'
+import { getRepoRoutingConnectionId } from '../../shared/execution-host/execution-host'
 import { splitWorktreeId } from '../../shared/worktree/id'
-import { parseWslUncPath } from '../../shared/file-access/wsl-paths'
 import type { Worktree } from '../../shared/worktree/types'
 import {
   findLink,
   findLinkForSession,
   type ExternalConversationLinkStore
 } from '../external-conversations/external-conversation-links'
-import { readWorkspaceReviewPR } from '../../shared/sidebar-list/feed-facts/workspace-review-facts'
 import type { RuntimeStore } from '../runtime/construction/runtime-store-contract'
 import { getProfileUserDataPath } from '../orca-profiles/profile-storage-paths'
 import type { OrcaRuntimeService } from '../runtime/orca-runtime'
@@ -36,6 +29,7 @@ import {
 import { BotWorkStore, botWorkStoreFile, type BotWorkHost } from './bot-work-store'
 import { readCaptainWarmSlotNote } from './bot-warm-slot-runtime'
 import { isInBotHome } from './bot-home-membership'
+import { readLocalWorkspace } from './bot-work-local-workspace'
 import { readRemoteGitHubRepo, readRemoteWorkspace } from './bot-work-remote-workspace'
 import { readServerOwnedWorker } from './bot-work-server-owned-worker'
 import { getRemoteDispatch } from '../runtime/orchestration/db/remote-owned/remote-dispatch-records'
@@ -143,50 +137,6 @@ export async function readWorkspace(
     return readRemoteWorkspace(runtime, worker)
   }
   return worker.worktreeId ? readLocalWorkspace(runtime, worker.worktreeId) : null
-}
-
-/** One of this host's worktrees as the work record reads it; 'gone' only with proof. */
-async function readLocalWorkspace(
-  runtime: BotWorkRuntime,
-  worktreeId: string
-): Promise<BotWorkWorkspace | 'gone' | null> {
-  const store = runtime.linkStore()
-  const parsed = splitWorktreeId(worktreeId)
-  if (!store || !parsed) {
-    return null
-  }
-  const repo = store.getRepos().find((entry) => entry.id === parsed.repoId)
-  if (!repo) {
-    return null
-  }
-  // Only this machine's own disk proves a deletion, with the repository still there: an SSH host,
-  // a stopped WSL distro or an unmounted drive proves nothing.
-  if (
-    getRepoExecutionHostId(repo) === LOCAL_EXECUTION_HOST_ID &&
-    !parseWslUncPath(parsed.worktreePath) &&
-    existsSync(repo.path) &&
-    !existsSync(parsed.worktreePath)
-  ) {
-    return 'gone'
-  }
-  const worktree = await runtime.showManagedTerminalWorkspace(`id:${worktreeId}`)
-  // The PR the workspace's row shows: the desktop's cached read, never a GitHub call of its own.
-  const pr = readWorkspaceReviewPR(worktree, repo, store.getGitHubCache().pr)
-  return {
-    name: worktree.displayName || worktree.branch,
-    branch: worktree.branch || null,
-    head: worktree.head,
-    pullRequest: pr
-      ? {
-          number: pr.number,
-          url: pr.url,
-          state: pr.state,
-          checks: pr.checksStatus,
-          review: pr.reviewDecision ?? null,
-          headSha: pr.headSha ?? null
-        }
-      : null
-  }
 }
 
 export type BotHomeLineage = {

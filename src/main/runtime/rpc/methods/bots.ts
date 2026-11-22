@@ -49,9 +49,9 @@ async function updateBot(params: BotUpdateParams, context: RpcContext) {
   if (params.updates.slackMirror !== undefined) {
     ownerOnly(context, 'Only the owner can change what posts to Slack')
   }
-  const { members, addMembers: added } = params.updates
-  if (members !== undefined || added !== undefined) {
-    ownerOnly(context, 'Only your owner changes your Who can ask, in Orca.')
+  const { members, addMembers: added, permissionMode } = params.updates
+  if (members !== undefined || added !== undefined || permissionMode !== undefined) {
+    ownerOnly(context, 'Only your owner changes your Who can ask or permissions, in Orca.')
   }
   const bot = await context.runtime.bots.update(params.botId, params.updates)
   if (params.updates.skillProjects !== undefined) {
@@ -102,9 +102,8 @@ async function newHomeChat(params: BotChatResetParams, context: RpcContext) {
   ) {
     throw new InvalidArgumentError('Only the bot’s owner can start a new Home Chat.')
   }
+  // Mail its old Chat never read is not carried over (dropped by the reset).
   const sessionId = await runtimeBotChats(runtime).reset(bot.id)
-  // Mail its old Chat never read is not carried over.
-  await dropUnreadBotRequests(runtime, bot.id, 'new-chat', bot.chatSessionId ?? undefined)
   return { sessionId }
 }
 

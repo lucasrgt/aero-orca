@@ -1,6 +1,11 @@
-import { CONNECTOR_REPLY_MAX_FILES } from '../../shared/connector-action-contract'
+import {
+  CONNECTOR_REPLY_CHOICE_MAX_CHARS,
+  CONNECTOR_REPLY_MAX_CHOICES,
+  CONNECTOR_REPLY_MAX_FILES
+} from '../../shared/connector-action-contract'
 import type { CommandSpec } from '../discovery/command-spec'
 import { CLI_GLOBAL_FLAGS as GLOBAL_FLAGS } from '../../shared/cli/cli-argument-boundary'
+import { BOT_IMPORT_COMMAND_SPECS } from './bot-import'
 import { SLACK_MARKDOWN, SLACK_MENTION, TEXT_FILE } from './slack'
 
 const BOT_NOTES = ['A bot lives on the computer that runs the command, in ~/.orca/bots/<name>.']
@@ -158,13 +163,14 @@ export const BOT_COMMAND_SPECS: CommandSpec[] = [
     path: ['bot', 'reply'],
     summary: 'Answer, as this bot, in the issue, pull request or thread that woke this run',
     usage:
-      'orca bot reply [--text <text> | --text-file <path|->] [--note <path:line:text>]... [--file <path>]... [--react <emoji>] [--json]',
-    allowedFlags: [...GLOBAL_FLAGS, 'text', 'text-file', 'note', 'file', 'react'],
-    repeatableFlags: ['note', 'file'],
+      'orca bot reply [--text <text> | --text-file <path|->] [--note <path:line:text>]... [--file <path>]... [--choice <label>]... [--react <emoji>] [--json]',
+    allowedFlags: [...GLOBAL_FLAGS, 'text', 'text-file', 'note', 'file', 'choice', 'react'],
+    repeatableFlags: ['note', 'file', 'choice'],
     notes: [
       'For a progress note, a question, line notes or an emoji before your final message, which Orca posts there for you. Anywhere else, use `gh`, `orca linear` or `orca slack`.',
       'On a pull request, each --note posts as an inline review note (up to 30) with --text as the review, and your final message is then not posted; elsewhere notes follow the text as path:line lines.',
       `--file attaches a file (up to ${CONNECTOR_REPLY_MAX_FILES} files, each up to what Slack takes) in the Slack thread that woke you. Repeat it to send several, and put their words in the same call's --text: they post together as one message. GitHub and Linear take no files: link to it instead.`,
+      `--choice puts a button under your --text in the Slack thread that woke you (up to ${CONNECTOR_REPLY_MAX_CHOICES}, each up to ${CONNECTOR_REPLY_CHOICE_MAX_CHARS} characters). Repeat it for each option. When someone who can ask you presses one, it comes back to you as their next message in the thread, with the label as its text; the first press is the answer and the buttons close. GitHub and Linear take no buttons.`,
       '--react puts an emoji (👀 ✅, or :shortcode:) on the message that woke you.',
       TEXT_FILE,
       `In Slack: ${SLACK_MENTION} ${SLACK_MARKDOWN}`
@@ -183,45 +189,7 @@ export const BOT_COMMAND_SPECS: CommandSpec[] = [
       '--offer shows the owner a Connect card in this chat; --workspace names a workspace or org they asked for that is not listed. Already connected: it says so and shows no card. Signed out of Orca: a connector the bot has, or webhook, shows a Sign in line instead.'
     ]
   },
-  {
-    path: ['bot', 'import', 'sources'],
-    summary: 'List the bots OpenClaw, Hermes and OpenBot keep on this computer, and their folders',
-    usage: 'orca bot import sources [--json]',
-    allowedFlags: [...GLOBAL_FLAGS],
-    notes: ['Reads folder names only; it opens no config, keys or databases.']
-  },
-  {
-    path: ['bot', 'import', 'read'],
-    summary:
-      "Read another app's file for an import, with anything that looks like a secret left out",
-    usage: 'orca bot import read <file|folder|->',
-    allowedFlags: [...GLOBAL_FLAGS, 'path'],
-    positionalArgs: ['path'],
-    notes: [
-      'A folder lists its files and marks the ones never read. - reads what another command pipes in.',
-      'Refuses key, login and chat-history files (.env, auth.json, credentials/, sessions/ and the like), and replaces each line that looks like it holds a secret.'
-    ]
-  },
-  {
-    path: ['bot', 'import', 'plan'],
-    summary:
-      'Show your owner your plan for bringing a bot over from another app, as a card in your chat',
-    usage: 'orca bot import plan --file <plan.json> [--json]',
-    allowedFlags: [...GLOBAL_FLAGS, 'file'],
-    notes: [
-      'Run it from your chat. The file is JSON: {"app","name","again"?,"items":[{"group":"comes|changed|already|stays","what","to"?,"why"}]}.',
-      'Your owner ticks what to bring and answers in this chat; write nothing before that answer.'
-    ]
-  },
-  {
-    path: ['bot', 'import', 'done'],
-    summary: 'Show your owner what an import brought over, as a summary card in your chat',
-    usage: 'orca bot import done --file <done.json> [--json]',
-    allowedFlags: [...GLOBAL_FLAGS, 'file'],
-    notes: [
-      'Run it from your chat. The file is JSON: {"app","name","created":[{"kind":"soul|memory|abilities|automations|tools|other","what","detail"?}],"stayed":[...],"paused":<schedules created paused>}.'
-    ]
-  },
+  ...BOT_IMPORT_COMMAND_SPECS,
   {
     path: ['bot', 'tools'],
     summary:
