@@ -24,7 +24,7 @@ import { stripLeadingAgentTitleDecoration } from '../../../../../shared/agent-st
 import { defaultAgentChatLabel } from '../../../../../shared/agent-session/conversation-naming/agent-session-chat-label'
 import { useAppStore } from '../../../store/index'
 import { agentTypeToIconAgent } from '../../../../../shared/agent-status/presentation/agent-type-icon-agent'
-import { useBotForWorkspace } from '../../bots/bot-workspace'
+import { useBotById, useBotForWorkspace } from '../../bots/bot-workspace'
 import {
   isBotHomeTab,
   isBotSideChatTab,
@@ -92,19 +92,24 @@ function TabBarItemRow({
   const namingFailure = useStructuredChatTabNamingFailure(
     item.type === 'agent-session' ? item.data : undefined
   )
-  const bot = useBotForWorkspace(
+  const workspaceBot = useBotForWorkspace(
     worktreeId,
     item.type === 'agent-session' ? item.data.executionHostId : undefined
   )
-  const isBotChat = item.type === 'agent-session' && isBotHomeTab(item.data, bot)
-  const homeRule = useBotHomeRuleApplies(bot)
+  const embeddedBot = useBotById(
+    item.type === 'agent-session' ? (item.data.embeddedBotId ?? null) : null,
+    item.type === 'agent-session' ? item.data.executionHostId : undefined
+  )
+  const bot = workspaceBot ?? embeddedBot
+  const isBotChat = item.type === 'agent-session' && isBotHomeTab(item.data, workspaceBot)
+  const homeRule = useBotHomeRuleApplies(workspaceBot)
   const ruledHome = useAppStore(
     (state) =>
       state.workspaceSessionReady &&
       homeRule &&
       item.type === 'agent-session' &&
       isBotChat &&
-      isHostedBotChatTab(item.data, bot)
+      isHostedBotChatTab(item.data, workspaceBot)
   )
   const roomMembers = useBotGroupTabMembers(item.type === 'room' ? item.data.entityId : null)
   // A room is unread while one of its own members' replies is; a sibling thread's stays on that tab.

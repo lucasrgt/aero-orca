@@ -81,7 +81,7 @@ import {
 } from './worker-approvals/NativeChatWorkerApprovals'
 
 export function NativeChatStructuredSession(props: Omit<NativeChatStructuredViewProps, 'mode'>) {
-  const { ownerWorktreeId, turnBot, bot: chatBot } = useBotChatOwner(props)
+  const { ownerWorktreeId, botWorkspaceId, turnBot, bot: chatBot } = useBotChatOwner(props)
   const slackMirror = useNativeChatSlackMirror(chatBot, props.sessionId)
   const fileLinkContext = useNativeChatFileLinkContext(props.tabId)
   const provisionalLaunch = useNativeChatProvisionalLaunch(ownerWorktreeId, props.sessionId)
@@ -173,7 +173,7 @@ export function NativeChatStructuredSession(props: Omit<NativeChatStructuredView
   // Unknown prompts leave the composer usable; a send starts a turn whose cancel can resolve them.
   const promptsUnanswerable = pendingPromptsAllUnanswerableHere(controller.prompts)
   // A bot's page whose server is down keeps its last read; the recovery card stands in for the composer.
-  const pageBot = useBotForWorkspace(ownerWorktreeId ?? null)
+  const pageBot = useBotForWorkspace(botWorkspaceId ?? null)
   const botServerDown = pageBot !== null && hostOutage !== null && hostOutage.kind !== 'stopped'
   const subagents = useStructuredNativeChatSubagents({ ...props, paneKey, controller })
   const subagentOpen = subagents.openId !== null
@@ -236,7 +236,7 @@ export function NativeChatStructuredSession(props: Omit<NativeChatStructuredView
     transport
   })
 
-  const bot = useNativeChatBotHome(session, controller, transport, ownerWorktreeId, hostExecution)
+  const bot = useNativeChatBotHome(session, controller, transport, botWorkspaceId, hostExecution)
 
   const { setup, notices } = useNativeChatStructuredPaneNotices({
     props,

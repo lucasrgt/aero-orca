@@ -9,9 +9,13 @@ import type { NativeChatStructuredViewProps } from '../native-chat/native-chat-v
 import { useBots, useBotsEnabled } from '@/lib/bot-catalog'
 import { useAppStore } from '@/store'
 import type { RuntimeClientTarget } from '../../../../shared/remote-runtime/host-catalog/runtime-client-target'
-import { parseWorkspaceKey } from '../../../../shared/workspace/identity/workspace-scope'
+import {
+  folderWorkspaceKey,
+  parseWorkspaceKey
+} from '../../../../shared/workspace/identity/workspace-scope'
 import { botOwnsChatSession } from '../../../../shared/bots/bot-chat-identity'
 import { selectFolderWorkspaceOnHost } from '../../store/folder-workspaces/folder-workspace-record-index'
+import { useEmbeddedBotForTab } from './bot-workspace'
 
 export type BotChatIdentity = {
   showName?: boolean
@@ -56,7 +60,12 @@ export function useBotChatOwner(
   props: Pick<NativeChatStructuredViewProps, 'tabId' | 'sessionId' | 'target'>
 ) {
   const ownerWorktreeId = useNativeChatTabOwnerWorktreeId(props.tabId)
-  const turnBot = useBotChatIdentity(ownerWorktreeId, props.sessionId, props.target)
+  const embeddedBot = useEmbeddedBotForTab(props.tabId)
+  const botWorkspaceId = embeddedBot
+    ? folderWorkspaceKey(embeddedBot.folderWorkspaceId)
+    : ownerWorktreeId
+  const workspaceTurnBot = useBotChatIdentity(ownerWorktreeId, props.sessionId, props.target)
+  const turnBot = embeddedBot ?? workspaceTurnBot
   const src = useBotAvatarSrc(turnBot ?? NO_BOT_AVATAR)
   // Keyed on what it shows, not the Bot object: a re-read bot is a new object, and a new identity here
   // would re-render every mounted row of the chat.
@@ -66,5 +75,5 @@ export function useBotChatOwner(
     () => (name !== null && fallback !== null ? { name, src, fallback } : null),
     [name, src, fallback]
   )
-  return { ownerWorktreeId, turnBot: identity, bot: turnBot }
+  return { ownerWorktreeId, botWorkspaceId, turnBot: identity, bot: turnBot }
 }

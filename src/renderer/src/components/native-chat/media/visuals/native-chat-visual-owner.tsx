@@ -1,5 +1,6 @@
 import { createContext, useContext, useMemo } from 'react'
 import type { RuntimeClientTarget } from '../../../../../../shared/remote-runtime/host-catalog/runtime-client-target'
+import { useEmbeddedBotForTab } from '../../../bots/bot-workspace'
 import { useNativeChatTabOwnerWorktreeId } from '../../pane/ownership/use-native-chat-tab-owner'
 
 export type NativeChatVisualOwner = {
@@ -7,6 +8,7 @@ export type NativeChatVisualOwner = {
   sessionId: string
   worktreeId: string
   tabId?: string
+  embeddedBotId?: string
 }
 
 export const NativeChatVisualOwnerContext = createContext<NativeChatVisualOwner | null>(null)
@@ -24,6 +26,7 @@ export function useNativeChatTabVisualOwner(
 ): NativeChatVisualOwner | null {
   // Until the tab's workspace is known there is no workspace to open a visual's tab in.
   const worktreeId = useNativeChatTabOwnerWorktreeId(tabId)
+  const embeddedBotId = useEmbeddedBotForTab(tabId)?.id
   const environmentId = target?.kind === 'environment' ? target.environmentId : null
   const hasTarget = target !== null
   return useMemo<NativeChatVisualOwner | null>(
@@ -34,9 +37,10 @@ export function useNativeChatTabVisualOwner(
               environmentId === null ? { kind: 'local' } : { kind: 'environment', environmentId },
             sessionId,
             tabId,
-            worktreeId
+            worktreeId,
+            ...(embeddedBotId ? { embeddedBotId } : {})
           }
         : null,
-    [environmentId, hasTarget, sessionId, tabId, worktreeId]
+    [embeddedBotId, environmentId, hasTarget, sessionId, tabId, worktreeId]
   )
 }

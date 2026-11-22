@@ -1,5 +1,6 @@
 // The chat pill always shows avatar + name (no tooltip needed); header containers at most 260 CSS px wide hide it entirely.
 import { useTranslate } from '@/i18n/use-translate'
+import { openBotHome } from '@/lib/bot-catalog'
 import { useAppStore } from '@/store'
 import type { Bot } from '../../../../../shared/bot-types'
 import type { BotOnHost } from '@/lib/bot-hosts'
@@ -14,9 +15,11 @@ function openBotActivityPanel(): void {
 }
 
 export function BotHomeBanner({
-  bot
+  bot,
+  navigateToBotHome = false
 }: {
-  bot: Pick<Bot, 'id' | 'name' | 'avatar'> & BotOnHost
+  bot: Pick<Bot, 'id' | 'name' | 'avatar'> & BotOnHost & Partial<Pick<Bot, 'folderWorkspaceId'>>
+  navigateToBotHome?: boolean
 }): React.JSX.Element {
   const t = useTranslate()
   return (
@@ -26,6 +29,9 @@ export function BotHomeBanner({
       aria-label={t('bots.tabs.homeBanner', "Open {{name}}'s page", { name: bot.name })}
       onClick={(event) => {
         event.stopPropagation()
+        if (navigateToBotHome && bot.folderWorkspaceId) {
+          openBotHome(bot as Bot)
+        }
         openBotActivityPanel()
       }}
     >

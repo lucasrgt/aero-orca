@@ -11,10 +11,14 @@ export function useBotDescription(bot: Bot | null): string | null {
   return useBotSoulDescription(useBotHome(bot))
 }
 
-/** A chat in a bot's home greets as the bot: its picture, its name and its SOUL.md description. */
-export function useBotChatPersona(workspaceId: string | null): NativeChatPersona | null {
+/** A chat in a bot's home (or an embedded split view of a bot) greets as the bot: its picture, name and SOUL.md description. */
+export function useBotChatPersona(
+  workspaceId: string | null,
+  botOverride?: Bot | null
+): NativeChatPersona | null {
   const t = useTranslate()
-  const bot = useBotForWorkspace(workspaceId)
+  const workspaceBot = useBotForWorkspace(botOverride ? null : workspaceId)
+  const bot = botOverride ?? workspaceBot
   const description = useBotDescription(bot)
   if (!bot) {
     return null

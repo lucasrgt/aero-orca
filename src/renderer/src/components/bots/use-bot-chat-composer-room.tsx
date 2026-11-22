@@ -25,7 +25,8 @@ import {
 } from '../native-chat/native-chat-room-context'
 import { useBotChatPicker } from './use-bot-chat-picker'
 import { NativeChatVisualOwnerContext } from '../native-chat/media/visuals/native-chat-visual-owner'
-import { useBotForWorkspace } from './bot-workspace'
+import { folderWorkspaceKey } from '../../../../shared/workspace/identity/workspace-scope'
+import { useBotForWorkspace, useEmbeddedBotForTab } from './bot-workspace'
 import { BotAvatar } from './BotAvatar'
 import { refreshBotPurposes, useKnownBotPurposes } from './use-bot-purposes'
 import { useBotMentionTargets } from './use-bot-mention-targets'
@@ -127,7 +128,11 @@ export function BotChatRoom({
   sessionId?: string
   children: ReactNode
 }): React.JSX.Element {
-  const workspaceId = useNativeChatTabOwnerWorktreeId(tabId)
+  const ownerWorkspaceId = useNativeChatTabOwnerWorktreeId(tabId)
+  const embeddedBot = useEmbeddedBotForTab(tabId)
+  const workspaceId = embeddedBot
+    ? folderWorkspaceKey(embeddedBot.folderWorkspaceId)
+    : ownerWorkspaceId
   // The visual owner names the host the chat's agent runs on; only that host's bots can be asked.
   const target = useContext(NativeChatVisualOwnerContext)?.target
   const hostId = target ? getRuntimeTargetHostId(target) : null

@@ -67,7 +67,9 @@ export function NativeChatAssistantMessageRow({
   // The same words slot construction chooses the turn's action holder by; Copy needs them.
   const words = nativeChatAgentRowWords(message, t)
   const streaming = messageIsStreaming(message, activeTurnIsWorking, trailingRun)
-  const inBotHome = useBotForWorkspace(useNativeChatVisualOwner()?.worktreeId ?? null) !== null
+  const visualOwner = useNativeChatVisualOwner()
+  const workspaceBot = useBotForWorkspace(visualOwner?.worktreeId ?? null)
+  const inBotHome = Boolean(visualOwner?.embeddedBotId) || workspaceBot !== null
   const quiet = quietBotAnswer(words, {
     botAnswer: inBotHome && message.role === 'assistant',
     streaming,

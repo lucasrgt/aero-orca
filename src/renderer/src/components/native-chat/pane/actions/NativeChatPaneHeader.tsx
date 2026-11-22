@@ -11,7 +11,7 @@ import type { NativeChatTabSession } from '../../../tab-bar/session-actions/tab-
 import { useDocumentDarkTheme } from '@/hooks/theme/use-document-dark-theme'
 import { useStructuredChatPaneActions } from './use-structured-chat-pane-actions'
 import { NativeChatResumeInCliButton } from './NativeChatResumeInCliButton'
-import { useBotForWorkspace } from '../../../bots/bot-workspace'
+import { useBotById, useBotForWorkspace } from '../../../bots/bot-workspace'
 import { BotHomeBanner } from '../../../bots/home-chat/BotHomeBanner'
 import { isHostedBotChatTab } from '../../../../../../shared/bots/bot-home-tab'
 import { useBotHomeRuleApplies } from '@/lib/bot-host-status'
@@ -44,21 +44,22 @@ export function NativeChatPaneHeader({
 }): React.JSX.Element {
   const t = useTranslate()
   const actions = useStructuredChatPaneActions(tabId, worktreeId, groupId)
-  const tabHostId = useAppStore(
-    (state) =>
-      state.unifiedTabsByWorktree[worktreeId]?.find((entry) => entry.id === tabId)?.executionHostId
+  const tab = useAppStore((state) =>
+    state.unifiedTabsByWorktree[worktreeId]?.find((entry) => entry.id === tabId)
   )
-  const bot = useBotForWorkspace(worktreeId, tabHostId)
+  const workspaceBot = useBotForWorkspace(worktreeId, tab?.executionHostId)
+  const embeddedBot = useBotById(tab?.embeddedBotId ?? null, tab?.executionHostId)
+  const bot = workspaceBot ?? embeddedBot
   // A bot's chats stay native chats.
   const onBotPage = bot !== null
   const homeRule = useBotHomeRuleApplies(bot)
   const hostedChat = useAppStore((state) => {
-    const tab = state.unifiedTabsByWorktree[worktreeId]?.find((entry) => entry.id === tabId)
+    const current = state.unifiedTabsByWorktree[worktreeId]?.find((entry) => entry.id === tabId)
     return Boolean(
       state.workspaceSessionReady &&
-      tab &&
-      tab.entityId === nativeChat.sessionId &&
-      isHostedBotChatTab(tab, bot)
+      current &&
+      current.entityId === nativeChat.sessionId &&
+      isHostedBotChatTab(current, workspaceBot)
     )
   })
   const documentDark = useDocumentDarkTheme()
@@ -69,7 +70,11 @@ export function NativeChatPaneHeader({
     'components.agentSessionContinuation.handOffToAnotherAgent',
     'Hand off to agent'
   )
-  const homeBot = hostedChat && homeRule && bot?.chatSessionId === nativeChat.sessionId ? bot : null
+  const homeBot =
+    embeddedBot ??
+    (hostedChat && homeRule && workspaceBot?.chatSessionId === nativeChat.sessionId
+      ? workspaceBot
+      : null)
   return (
     <div
       className="pane-title-bar z-20"
@@ -78,7 +83,7 @@ export function NativeChatPaneHeader({
       data-pane-title-surface={light ? 'light' : 'dark'}
       style={HEADER_STYLE}
     >
-      {homeBot ? <BotHomeBanner bot={homeBot} /> : null}
+      {homeBot ? <BotHomeBanner bot={homeBot} navigateToBotHome={embeddedBot !== null} /> : null}
       <div className="pane-title-actions ml-auto flex shrink-0 items-center gap-0">
         {handOff && focused ? (
           <Tooltip>
