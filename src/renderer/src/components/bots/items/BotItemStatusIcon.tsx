@@ -1,6 +1,7 @@
 // An item's status glyph: Planned a dashed ring, In progress a spinner while a linked worker runs (a ring
 // otherwise), Needs you an orange dot (grey once stale), Done a check, Canceled a slashed circle.
-import { CircleCheck, CircleSlash } from 'lucide-react'
+import { CircleSlash } from 'lucide-react'
+import { AgentDoneIcon } from '@/components/agent/status/AgentDoneIcon'
 import { AgentWorkingSpinner } from '@/components/agent/status/AgentWorkingSpinner'
 import { cn } from '@/lib/class-names'
 import type { BotItemStatus } from '../../../../../shared/bots/bot-items'
@@ -48,13 +49,7 @@ export function BotItemStatusIcon({
         />
       )
     case 'done':
-      return (
-        <CircleCheck
-          aria-hidden
-          {...LUCIDE}
-          className={cn(BOX, 'text-status-success', className)}
-        />
-      )
+      return <AgentDoneIcon className={cn(BOX, 'text-status-success', className)} />
     case 'canceled':
       return (
         <CircleSlash

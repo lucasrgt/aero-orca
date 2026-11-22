@@ -1,8 +1,9 @@
 import React from 'react'
-import { Activity, CircleCheck, CircleDashed } from 'lucide-react'
+import { Activity, CircleDashed } from 'lucide-react'
 import { cn } from '@/lib/class-names'
 import { translate } from '@/i18n/i18n'
 import { useTranslate } from '@/i18n/use-translate'
+import { AgentDoneIcon } from '@/components/agent/status/AgentDoneIcon'
 import { AgentQuestionIcon } from '@/components/agent/status/AgentQuestionIcon'
 import { AgentWorkingSpinner } from '@/components/agent/status/AgentWorkingSpinner'
 import {
@@ -146,7 +147,7 @@ export const AgentStateDot = React.memo(function AgentStateDot({
         className={cn('inline-flex shrink-0 items-center justify-center', box, className)}
         aria-label={label}
       >
-        <CircleCheck className={cn('text-emerald-500', icon)} aria-hidden="true" />
+        <AgentDoneIcon className={icon} />
       </span>
     )
   } else if (state === 'unverifiable' || state === 'unconfirmed') {

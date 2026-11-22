@@ -1,4 +1,5 @@
-import { Circle, CircleCheck, CircleDot, ChevronRight, ListChecks } from 'lucide-react'
+import { Circle, CircleDot, ChevronRight, ListChecks } from 'lucide-react'
+import { AgentDoneIcon } from '@/components/agent/status/AgentDoneIcon'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { cn } from '@/lib/class-names'
 import { translate } from '@/i18n/i18n'
@@ -46,8 +47,7 @@ function changeLabel(change: NativeChatTaskChange, t: Translate = translate): st
 
 function TaskRow({ task, label }: { task: NativeChatTask; label?: string }): React.JSX.Element {
   const t = useTranslate()
-  const Icon =
-    task.status === 'completed' ? CircleCheck : task.status === 'in_progress' ? CircleDot : Circle
+  const Icon = task.status === 'in_progress' ? CircleDot : Circle
   return (
     <li
       className={cn(
@@ -55,7 +55,11 @@ function TaskRow({ task, label }: { task: NativeChatTask; label?: string }): Rea
         task.status === 'in_progress' && 'font-medium text-chat-foreground-strong'
       )}
     >
-      <Icon aria-hidden className="mt-0.5 size-3.5 shrink-0" />
+      {task.status === 'completed' ? (
+        <AgentDoneIcon className="mt-0.5 size-3.5 shrink-0" />
+      ) : (
+        <Icon aria-hidden className="mt-0.5 size-3.5 shrink-0" />
+      )}
       <span className="sr-only">{statusLabel(task, t)}: </span>
       <span
         className={cn(
