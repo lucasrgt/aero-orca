@@ -1,8 +1,9 @@
 import { composeWorktreeHostIdentity } from '../../../../../../shared/worktree/host-qualified-identity'
 import React, { useCallback, useState } from 'react'
-import { Activity, CircleX } from 'lucide-react'
+import { Activity } from 'lucide-react'
 import { AgentQuestionIcon } from '@/components/agent/status/AgentQuestionIcon'
 import { AgentWorkingSpinner } from '@/components/agent/status/AgentWorkingSpinner'
+import { FailedIcon } from '@/components/ui/StatusGlyphs'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -35,7 +36,7 @@ export function SlotKindGlyph({
     case 'needs':
       return <AgentQuestionIcon className="size-2.5 shrink-0" />
     case 'failed':
-      return <CircleX className="size-2.5 shrink-0 text-destructive" aria-hidden />
+      return <FailedIcon className="size-2.5" />
     case 'working':
       return monitoring ? (
         <Activity className="size-2.5 shrink-0 text-agent-working" aria-hidden />

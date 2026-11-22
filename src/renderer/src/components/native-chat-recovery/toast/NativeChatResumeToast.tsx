@@ -1,5 +1,7 @@
 import { useEffect, useId, useRef, useState } from 'react'
-import { AlertCircle, CheckCircle2, Loader2, RotateCcw, X } from 'lucide-react'
+import { AlertCircle, RotateCcw, X } from 'lucide-react'
+import { PixelSpinner } from '@/components/ui/PixelSpinner'
+import { DoneIcon } from '@/components/ui/StatusGlyphs'
 import { Button } from '@/components/ui/button'
 import { useTranslate, type Translate } from '@/i18n/use-translate'
 import { formatShortTimeAgo } from '@/lib/time-format/short-time-ago'
@@ -118,14 +120,16 @@ function headline(view: ResumeToastView, t: Translate, machineName?: string): st
 function HeadlineIcon({ view }: { view: ResumeToastView }): React.JSX.Element {
   if (view.phase === 'resuming') {
     return (
-      <Loader2 className="size-4 shrink-0 animate-spin text-muted-foreground motion-reduce:animate-none" />
+      <span className="inline-flex size-4 shrink-0 items-center justify-center text-muted-foreground">
+        <PixelSpinner className="size-3.5" />
+      </span>
     )
   }
   if (view.counts.needsYou > 0) {
     return <AlertCircle className="size-4 shrink-0 text-status-warning" />
   }
   if (view.phase === 'finished') {
-    return <CheckCircle2 className="size-4 shrink-0 text-status-success" />
+    return <DoneIcon className="size-4" />
   }
   return <RotateCcw className="size-4 shrink-0 text-muted-foreground" />
 }

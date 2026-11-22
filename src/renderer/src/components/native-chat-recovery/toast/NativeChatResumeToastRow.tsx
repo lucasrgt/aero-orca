@@ -1,5 +1,7 @@
-import { AlertCircle, CheckCircle2, Loader2 } from 'lucide-react'
+import { AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { PixelSpinner } from '@/components/ui/PixelSpinner'
+import { DoneIcon, StoppedIcon } from '@/components/ui/StatusGlyphs'
 import { useTranslate, type Translate } from '@/i18n/use-translate'
 import {
   resumeFailureGuidance,
@@ -44,38 +46,45 @@ function actionLabel(action: ResumeFailureAction, row: ResumeToastRow, t: Transl
 function StateMark({ row }: { row: ResumeToastRow }): React.JSX.Element {
   const t = useTranslate()
   if (row.state === 'stopped') {
-    // A plain dot: an empty circle would read as a checkbox, and nothing here is selectable.
     return (
       <span
         role="img"
         aria-label={t('auto.components.NativeChatResumeToast.stateStopped', 'Stopped')}
         className="mt-0.5 inline-flex size-3.5 shrink-0 items-center justify-center"
       >
-        <span className="size-1.5 rounded-full bg-muted-foreground/60" />
+        <StoppedIcon className="size-3" />
       </span>
     )
   }
-  const [Icon, className, label] =
-    row.state === 'resumed'
-      ? [
-          CheckCircle2,
-          'text-status-success',
-          t('auto.components.NativeChatResumeToast.stateResumed', 'Resumed')
-        ]
-      : row.state === 'needs-you'
-        ? [
-            AlertCircle,
-            'text-status-warning',
-            t('auto.components.NativeChatResumeToast.stateNeedsYou', 'Needs you')
-          ]
-        : [
-            Loader2,
-            'animate-spin text-muted-foreground motion-reduce:animate-none',
-            t('auto.components.NativeChatResumeToast.stateResuming', 'Resuming')
-          ]
+  if (row.state === 'resumed') {
+    return (
+      <span
+        role="img"
+        aria-label={t('auto.components.NativeChatResumeToast.stateResumed', 'Resumed')}
+        className="mt-0.5 inline-flex shrink-0"
+      >
+        <DoneIcon className="size-3.5" />
+      </span>
+    )
+  }
+  if (row.state === 'needs-you') {
+    return (
+      <span
+        role="img"
+        aria-label={t('auto.components.NativeChatResumeToast.stateNeedsYou', 'Needs you')}
+        className="mt-0.5 inline-flex shrink-0"
+      >
+        <AlertCircle className="size-3.5 text-status-warning" />
+      </span>
+    )
+  }
   return (
-    <span role="img" aria-label={label} className="mt-0.5 inline-flex shrink-0">
-      <Icon className={`size-3.5 ${className}`} />
+    <span
+      role="img"
+      aria-label={t('auto.components.NativeChatResumeToast.stateResuming', 'Resuming')}
+      className="mt-0.5 inline-flex size-3.5 shrink-0 items-center justify-center text-muted-foreground"
+    >
+      <PixelSpinner className="size-3" />
     </span>
   )
 }

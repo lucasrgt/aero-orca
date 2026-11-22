@@ -2,13 +2,13 @@ import { isCompletePRCheckOwner } from '../../../../../../shared/github/checks/c
 import React from 'react'
 import {
   AlertTriangle,
-  CircleCheck,
   CircleDashed,
   CircleX,
   LoaderCircle,
   RefreshCw,
   Sparkles
 } from 'lucide-react'
+import { DoneIcon } from '@/components/ui/StatusGlyphs'
 import { Button } from '@/components/ui/button'
 import type { PRCheckDetail } from '../../../../../../shared/github/checks/check-types'
 import type { ConflictReview } from './conflict-summary'
@@ -228,7 +228,7 @@ export function PRTriageStrip({
   return (
     <div className="border-b border-border px-3 py-2">
       <div className="flex min-w-0 items-center gap-2">
-        <CircleCheck className="size-3.5 shrink-0 text-emerald-500" />
+        <DoneIcon className="size-3.5" />
         <div className="min-w-0 flex-1">
           <div className="truncate text-[11px] font-medium text-foreground">
             {t(

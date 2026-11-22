@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as SwitchPrimitive from 'radix-ui/switch'
-import { Loader2 } from 'lucide-react'
+import { PixelSpinner } from '@/components/ui/PixelSpinner'
 
 import { cn } from '@/lib/class-names'
 
@@ -48,19 +48,11 @@ function Switch({
         className={cn(
           thumbClassName,
           size === 'compact' && compactThumbClassName,
-          pending && 'flex items-center justify-center',
+          pending && 'flex items-center justify-center text-muted-foreground',
           thumbClasses
         )}
       >
-        {pending ? (
-          <Loader2
-            aria-hidden="true"
-            className={cn(
-              'animate-spin text-muted-foreground motion-reduce:animate-none',
-              size === 'compact' ? 'size-2' : 'size-2.5'
-            )}
-          />
-        ) : null}
+        {pending ? <PixelSpinner className={size === 'compact' ? 'size-2' : 'size-2.5'} /> : null}
       </SwitchPrimitive.Thumb>
     </SwitchPrimitive.Root>
   )

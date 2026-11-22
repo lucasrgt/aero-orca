@@ -1,6 +1,8 @@
 import React from 'react'
-import { Circle, CircleCheck, CircleX, Loader2, RotateCcw } from 'lucide-react'
+import { RotateCcw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { PixelSpinner } from '@/components/ui/PixelSpinner'
+import { DoneIcon, FailedIcon, IdleIcon } from '@/components/ui/StatusGlyphs'
 import { Progress } from '@/components/ui/progress'
 import { cn } from '@/lib/class-names'
 import { translate } from '@/i18n/i18n'
@@ -31,14 +33,16 @@ export function StepIcon({ state }: { state: WorktreeSetupStep['state'] }): Reac
   switch (state) {
     case 'running':
       return (
-        <Loader2 aria-hidden className="size-3.5 shrink-0 animate-spin text-muted-foreground" />
+        <span className="inline-flex size-3.5 shrink-0 items-center justify-center text-muted-foreground">
+          <PixelSpinner className="size-3" />
+        </span>
       )
     case 'done':
-      return <CircleCheck aria-hidden className="size-3.5 shrink-0 text-muted-foreground" />
+      return <DoneIcon className="size-3.5" />
     case 'failed':
-      return <CircleX aria-hidden className="size-3.5 shrink-0 text-destructive" />
+      return <FailedIcon className="size-3.5" />
     case 'pending':
-      return <Circle aria-hidden className="size-3.5 shrink-0 text-muted-foreground/60" />
+      return <IdleIcon className="size-3.5" />
   }
 }
 

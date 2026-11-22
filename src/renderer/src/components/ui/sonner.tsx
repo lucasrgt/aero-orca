@@ -1,12 +1,8 @@
-import {
-  CircleCheckIcon,
-  InfoIcon,
-  Loader2Icon,
-  OctagonXIcon,
-  TriangleAlertIcon
-} from 'lucide-react'
+import { InfoIcon, TriangleAlertIcon } from 'lucide-react'
 import { useRef, type SyntheticEvent } from 'react'
 import { Toaster as Sonner, type ToasterProps } from 'sonner'
+import { PixelSpinner } from '@/components/ui/PixelSpinner'
+import { DoneIcon, FailedIcon } from '@/components/ui/StatusGlyphs'
 import { useAppStore } from '@/store/index'
 import { MODAL_OVERLAY_CHILD_SELECTOR } from '@/lib/overlay-interaction/body-overlay-attributes'
 import {
@@ -103,11 +99,11 @@ const Toaster = ({ ...props }: ToasterProps) => {
         mobileOffset={TOASTER_OFFSET}
         className="toaster group"
         icons={{
-          success: <CircleCheckIcon className="size-4" />,
+          success: <DoneIcon className="size-4" />,
           info: <InfoIcon className="size-4" />,
           warning: <TriangleAlertIcon className="size-4" />,
-          error: <OctagonXIcon className="size-4" />,
-          loading: <Loader2Icon className="size-4 animate-spin" />
+          error: <FailedIcon className="size-4" />,
+          loading: <PixelSpinner className="size-3.5" />
         }}
         style={TOASTER_STYLE}
         {...props}

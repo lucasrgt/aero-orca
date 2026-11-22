@@ -3,7 +3,8 @@ import React from 'react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { getReviewChecksTone } from '../review/worktree-review-presentation'
 import { Badge } from '@/components/ui/badge'
-import { CircleCheck, CircleDot, CircleX, Clock, GitMerge } from 'lucide-react'
+import { CircleDot, Clock, GitMerge } from 'lucide-react'
+import { DoneIcon, FailedIcon } from '@/components/ui/StatusGlyphs'
 import { cn } from '@/lib/class-names'
 import '../activity/worktree-card-empty-inputs'
 import { PullRequestIcon } from '../identity/worktree-card-glyphs'
@@ -64,7 +65,7 @@ export function ReviewStateBadge({
         label={reviewStateLabel(state, label, t)}
         className="border-rose-500/25 bg-rose-500/5 text-rose-600 dark:text-rose-300"
       >
-        <CircleX />
+        <FailedIcon />
       </MetadataStatusBadge>
     )
   }
@@ -117,7 +118,7 @@ export function ReviewChecksBadge({
         label={label}
         className="border-border bg-muted/30 text-muted-foreground"
       >
-        <CircleX />
+        <FailedIcon />
       </MetadataStatusBadge>
     )
   }
@@ -127,7 +128,7 @@ export function ReviewChecksBadge({
         label={label}
         className="border-emerald-500/25 bg-emerald-500/5 text-emerald-600 dark:text-emerald-300"
       >
-        <CircleCheck />
+        <DoneIcon />
       </MetadataStatusBadge>
     )
   }
@@ -138,7 +139,7 @@ export function ReviewChecksBadge({
         label={label}
         className="border-rose-500/25 bg-rose-500/5 text-rose-600 dark:text-rose-300"
       >
-        <CircleX />
+        <FailedIcon />
       </MetadataStatusBadge>
     )
   }
@@ -198,9 +199,9 @@ export function ReviewChecksIndicator({
   )
   const Icon =
     status === 'success'
-      ? CircleCheck
+      ? DoneIcon
       : status === 'failure' || status === 'cancelled'
-        ? CircleX
+        ? FailedIcon
         : Clock
   return (
     <Tooltip>

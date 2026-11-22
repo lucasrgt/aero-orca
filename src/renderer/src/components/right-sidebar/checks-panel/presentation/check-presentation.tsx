@@ -2,13 +2,12 @@ import React from 'react'
 import { getCheckConclusion } from '@/components/github/pr-check-counts'
 import {
   AlertTriangle,
-  CircleCheck,
-  CircleX,
   LoaderCircle,
   CircleDashed,
   CircleMinus,
   GitPullRequest
 } from 'lucide-react'
+import { DoneIcon, FailedIcon } from '@/components/ui/StatusGlyphs'
 import type { PRInfo } from '../../../../../../shared/github/pull-requests/pull-request-types'
 import type { PRCheckDetail } from '../../../../../../shared/github/checks/check-types'
 
@@ -22,13 +21,13 @@ export function checkPresentationKey(check: PRCheckDetail): string {
 
 export const CHECK_ICON: Record<string, React.ComponentType<{ className?: string }>> = {
   gitlabAllowedFailure: AlertTriangle,
-  success: CircleCheck,
-  failure: CircleX,
+  success: DoneIcon,
+  failure: FailedIcon,
   pending: LoaderCircle,
-  cancelled: CircleX,
+  cancelled: FailedIcon,
   skipped: CircleMinus,
   neutral: CircleDashed,
-  timed_out: CircleX,
+  timed_out: FailedIcon,
   action_required: AlertTriangle,
   stale: CircleDashed
 }

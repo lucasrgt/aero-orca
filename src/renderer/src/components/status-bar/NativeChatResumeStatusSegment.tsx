@@ -1,4 +1,5 @@
-import { AlertCircle, CheckCircle2, Loader2, RotateCcw } from 'lucide-react'
+import { AlertCircle, Loader2, RotateCcw } from 'lucide-react'
+import { DoneIcon } from '@/components/ui/StatusGlyphs'
 import { useLocalStructuredChatsInUse } from '../../runtime/native-chat/local-sessions/local-structured-chats'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { translate } from '@/i18n/i18n'
@@ -230,7 +231,7 @@ function NativeChatRuntimeResumeStatusSegment({
         <Segment
           onOpen={store.reopenNativeChatRestartOffer}
           machineName={machineName}
-          icon={<CheckCircle2 className="size-3 text-status-success" />}
+          icon={<DoneIcon className="size-3" />}
           {...resumedText(resumed, t)}
         />
       )}

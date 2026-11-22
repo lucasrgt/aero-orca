@@ -1,6 +1,6 @@
 import React from 'react'
-import { CircleX } from 'lucide-react'
 import { AgentQuestionIcon } from '@/components/agent/status/AgentQuestionIcon'
+import { FailedIcon } from '@/components/ui/StatusGlyphs'
 import { useTranslate, type Translate } from '@/i18n/use-translate'
 import { formatShortTimeAgo } from '@/lib/time-format/short-time-ago'
 import { cn } from '@/lib/class-names'
@@ -104,8 +104,8 @@ export function WorktreeCardStatusPill({ signal }: { signal: PillSignal }): Reac
         // Same question glyph tabs, the dashboard and kanban use for an agent waiting on you.
         <AgentQuestionIcon className="size-2.5 shrink-0" />
       ) : (
-        // A crossed circle, not a red dot, so failed never reads like the blue unread dot.
-        <CircleX className="size-2.5 shrink-0" aria-hidden="true" />
+        // Solid X cutout matching the failed status icon across tabs and sidebar.
+        <FailedIcon className="size-2.5" />
       )}
       {signal.kind === 'failed'
         ? t('sidebar.cardSlot.failed', 'Failed')

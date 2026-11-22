@@ -49,7 +49,7 @@ export function BotItemStatusIcon({
         />
       )
     case 'done':
-      return <AgentDoneIcon className={cn(BOX, 'text-status-success', className)} />
+      return <AgentDoneIcon className={cn(BOX, className)} />
     case 'canceled':
       return (
         <CircleSlash

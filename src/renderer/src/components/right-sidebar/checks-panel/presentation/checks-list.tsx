@@ -1,13 +1,6 @@
 import React from 'react'
-import {
-  ChevronDown,
-  ChevronRight,
-  CircleCheck,
-  CircleDashed,
-  CircleX,
-  ExternalLink,
-  LoaderCircle
-} from 'lucide-react'
+import { ChevronDown, ChevronRight, CircleDashed, ExternalLink, LoaderCircle } from 'lucide-react'
+import { DoneIcon, FailedIcon } from '@/components/ui/StatusGlyphs'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/lib/class-names'
@@ -69,7 +62,7 @@ export function ChecksList(props: ChecksListProps): React.JSX.Element {
           />
           {passingCount > 0 && (
             <span className="flex items-center gap-1">
-              <CircleCheck className="size-3 text-emerald-500" />
+              <DoneIcon className="size-3" />
               {t(
                 'auto.components.right.sidebar.checks.panel.content.passingCount',
                 '{{count}} passing',
@@ -79,7 +72,7 @@ export function ChecksList(props: ChecksListProps): React.JSX.Element {
           )}
           {failingCount > 0 && (
             <span className="flex items-center gap-1">
-              <CircleX className="size-3 text-rose-500" />
+              <FailedIcon className="size-3" />
               {t(
                 'auto.components.right.sidebar.checks.panel.content.failingCount',
                 '{{count}} failing',
