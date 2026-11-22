@@ -162,9 +162,9 @@ export function NativeChatComposerWorkspace({
               <span className={FOOTER_TEXT}>{checkout}</span>
               {kindLabel && (
                 <span
-                  className={`${FOOTER_TEXT} max-w-[max(0px,calc(100%_-_var(--spacing)*5))] shrink-0 font-normal text-chat-foreground-faint`}
+                  className={`${FOOTER_TEXT} max-w-[max(0px,calc(100%_-_var(--spacing)*5))] shrink-0 font-normal text-chat-foreground-faint opacity-75`}
                 >
-                  · {kindLabel}
+                  {kindLabel}
                 </span>
               )}
             </Button>

@@ -156,8 +156,8 @@ export function BotSidebarEntry({
       {!botListsUnderRow({ folded, hostDown: offline }) ? null : (
         <div
           className={cn(
-            // Nested workspace rows' spacing, so a selected row's highlight clears its neighbours.
-            'flex flex-col gap-1 transition-opacity duration-200',
+            // Nested workspace rows' spacing, with a subtle Capy-style vertical guide rail.
+            'sidebar-tree-children relative flex flex-col gap-0.5 pt-0.5 transition-opacity duration-200',
             bot.paused && 'opacity-60'
           )}
           style={{
@@ -242,7 +242,7 @@ function BotSidebarList({
       >
         <GitBranch className="size-2.5 shrink-0" />
         <span className="truncate">
-          {t('bots.workspaces.heading', 'Workspaces · {{total}}', {
+          {t('bots.workspaces.heading', 'Workspaces ({{total}})', {
             total: workspaces.length
           })}
         </span>

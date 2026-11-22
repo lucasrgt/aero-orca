@@ -195,7 +195,7 @@ function SessionOptionPopover(props: {
   const knownModel = model.valueSource !== 'unknown' && selectedNativeChatChoice(model)
   const tooltipLabel = knownModel
     ? effortChoice
-      ? t('components.native-chat.composer.modelAndEffortValue', '{{model}} · {{effort}}', {
+      ? t('components.native-chat.composer.modelAndEffortValue', '{{model}} ({{effort}})', {
           model: modelLabel,
           effort: nativeChatSessionChoiceLabel(effortChoice, say, 'effort')
         })

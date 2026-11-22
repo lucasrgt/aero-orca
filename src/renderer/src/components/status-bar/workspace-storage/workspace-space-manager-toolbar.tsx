@@ -43,7 +43,10 @@ export function WorkspaceSpaceManagerToolbar({
                 { count: selectedDeletableIds.length, defaultValue_one: '{{count}} selected' }
               )}
             </span>
-            <span className="mx-1.5">·</span>
+            <span
+              aria-hidden="true"
+              className="mx-1.5 inline-block h-2.5 w-px bg-border align-middle"
+            />
             <span>
               {t(
                 'auto.components.status.bar.WorkspaceSpaceManagerPanel.reclaimableSize',

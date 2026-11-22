@@ -19957,7 +19957,7 @@
         "pastedTextTooLarge": "此次粘贴会使消息超过单条消息 256 KB 的上限。请缩短后再粘贴",
         "imageUnavailable": "预览不可用",
         "permissionAppliesNextMessage": "{{saved}} 从下一条消息起生效；当前使用 {{active}}",
-        "modelAndEffortValue": "{{model}} · {{effort}}",
+        "modelAndEffortValue": "{{model}}（{{effort}}）",
         "modelAndEffort": "模型和推理强度",
         "draftNotSaved": "此草稿尚未保存成功，Orca 会继续尝试",
         "imageNotBroughtBack": "无法随此草稿恢复 {{name}}，请重新附加或将其移除",
@@ -26397,7 +26397,7 @@
       "showFewer": "显示较少",
       "handedOver": "已移交",
       "fromClosedChat": "来自已关闭的聊天",
-      "automationTerminal": "自动化运行 · 终端",
+      "automationTerminal": "自动化运行（终端）",
       "needsYou": "需要你",
       "askingBot": "正在询问 {{name}}",
       "asking": "正在询问",
@@ -28145,7 +28145,7 @@
       "botHeader": "Bot",
       "moveToProject": "移至项目",
       "moreAgents": "另有 {{count}} 个智能体",
-      "heading": "工作区 · {{total}}"
+      "heading": "工作区（{{total}}）"
     },
     "connector": {
       "howToAsk": "如何提问",

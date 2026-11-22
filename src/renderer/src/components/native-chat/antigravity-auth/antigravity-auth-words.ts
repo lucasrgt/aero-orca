@@ -13,20 +13,20 @@ export function antigravityProgramLabel(
 ): string {
   if (program === 'orcasAgy') {
     return version
-      ? t('components.native-chat.antigravityAuth.orcasAgyVersion', "Orca's agy · v{{version}}", {
+      ? t('components.native-chat.antigravityAuth.orcasAgyVersion', "Orca's agy v{{version}}", {
           version
         })
       : t('components.native-chat.antigravityAuth.orcasAgy', "Orca's agy")
   }
   if (program === 'agy') {
     return version
-      ? t('components.native-chat.antigravityAuth.yourAgyVersion', 'Your agy · v{{version}}', {
+      ? t('components.native-chat.antigravityAuth.yourAgyVersion', 'Your agy v{{version}}', {
           version
         })
       : t('components.native-chat.antigravityAuth.yourAgy', 'Your agy')
   }
   return version
-    ? t('components.native-chat.antigravityAuth.orcaCopyVersion', "Orca's copy · v{{version}}", {
+    ? t('components.native-chat.antigravityAuth.orcaCopyVersion', "Orca's copy v{{version}}", {
         version
       })
     : t('components.native-chat.antigravityAuth.orcaCopy', "Orca's copy")

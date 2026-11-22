@@ -77,10 +77,9 @@ function WindowLabel({
 export function ProviderLetterBadge({ p }: { p: ProviderRateLimits }): React.JSX.Element {
   const hasData = Boolean(p.session || p.weekly || p.fableWeekly || p.monthly || p.buckets?.length)
   return (
-    <span className="inline-flex items-center gap-1 text-muted-foreground">
-      <span
-        className={`inline-block h-2 w-2 rounded-full ${hasData ? 'bg-muted-foreground/60' : 'bg-muted-foreground/30'}`}
-      />
+    <span
+      className={`inline-flex items-center font-medium ${hasData ? 'text-muted-foreground' : 'text-muted-foreground/50'}`}
+    >
       {getProviderLetter(p.provider)}
     </span>
   )
@@ -360,7 +359,9 @@ export function ProviderSegment({
       ) : (
         sections.map((section, index) => (
           <React.Fragment key={section.key}>
-            {index > 0 ? <span className="text-muted-foreground">·</span> : null}
+            {index > 0 ? (
+              <span aria-hidden="true" className="h-2.5 w-px shrink-0 bg-border/80" />
+            ) : null}
             <WindowLabel
               w={section.window}
               label={formatStatusBarSectionLabel(p, section, now, t)}
@@ -373,7 +374,7 @@ export function ProviderSegment({
       )}
       {!template && showBalance && p.extraUsage ? (
         <>
-          <span className="text-muted-foreground">·</span>
+          <span aria-hidden="true" className="h-2.5 w-px shrink-0 bg-border/80" />
           <span className="tabular-nums">{formatCompactExtraUsage(p.extraUsage, t)}</span>
         </>
       ) : null}

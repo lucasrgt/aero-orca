@@ -131,7 +131,10 @@ export function WorktreeCardSurface({ card }: { card: WorktreeCardController }):
 
       {lineageChildren ? (
         <div
-          className={cn('space-y-1', newCardStyle ? 'mt-1.5' : 'mt-3')}
+          className={cn(
+            'sidebar-tree-children relative space-y-0.5',
+            newCardStyle ? 'mt-1.5' : 'mt-2.5'
+          )}
           data-worktree-lineage-children=""
           style={lineageChildrenStyle}
         >

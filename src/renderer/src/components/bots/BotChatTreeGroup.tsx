@@ -1,6 +1,7 @@
 // One chat in the Chats tab: one folded row; its chevron shows the workers it started, capped and stepped.
 import { useState } from 'react'
 import { ChevronRight } from 'lucide-react'
+import { AgentQuestionIcon } from '@/components/agent/status/AgentQuestionIcon'
 import StatusIndicator from '@/components/sidebar/workspace-card/surface/StatusIndicator'
 import { useTranslate } from '@/i18n/use-translate'
 import { openBotHomeTab } from '@/lib/bot-catalog'
@@ -84,12 +85,12 @@ export function BotChatLine({
   }
   const place = botChatPlace(chat)
   if (stop && chat.live === 'idle') {
-    return <>{[place, usageLimitStopText(t, stop)].filter(Boolean).join(' · ')}</>
+    return <>{[place, usageLimitStopText(t, stop)].filter(Boolean).join(' — ')}</>
   }
   if (chat.live === 'needs-you') {
     return (
       <>
-        {place ? `${place} · ` : null}
+        {place ? `${place} — ` : null}
         <span className="text-foreground">{t('bots.chats.waiting', 'Waiting for you')}</span>
       </>
     )
@@ -114,7 +115,7 @@ function BotChatPreview({ bot, chat }: { bot: Bot; chat: BotChatTreeChat }): Rea
     (chat.origin === 'home'
       ? t('bots.chats.sayHi', 'Say hi to {{name}}', { name: bot.name })
       : null)
-  return <>{[botChatPlace(chat), closed, preview].filter(Boolean).join(' · ')}</>
+  return <>{[botChatPlace(chat), closed, preview].filter(Boolean).join(' — ')}</>
 }
 
 /** The preview line's end for the chat itself: replying, waiting for the owner, or stopped on its
@@ -172,11 +173,9 @@ function ChatRowWork({ chat }: { chat: BotChatTreeChat }): React.JSX.Element | n
         ) : null}
         {waiting > 0 ? (
           <span className={META}>
-            <span
-              role="img"
-              aria-label={waitingLabel}
-              className="block size-[7px] rounded-full bg-agent-question"
-            />
+            <span role="img" aria-label={waitingLabel} className="flex items-center">
+              <AgentQuestionIcon className="size-3" />
+            </span>
             <span aria-hidden className="text-agent-question-text @max-[240px]:hidden">
               {waitingLabel}
             </span>
@@ -344,7 +343,7 @@ export function BotChatTreeGroup({
         </div>
       </BotChatContextMenu>
       {open ? (
-        <div className="mb-1 ml-6 flex flex-col @max-[240px]:ml-3.5">
+        <div className="mb-1 ml-4 flex flex-col border-l border-worktree-sidebar-border/60 pl-2 @max-[240px]:ml-3">
           {workers.map((worker) => (
             <BotChatTreeWorkerRow key={worker.key} bot={bot} worker={worker} chat={chatName} />
           ))}

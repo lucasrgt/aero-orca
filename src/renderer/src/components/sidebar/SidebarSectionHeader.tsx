@@ -100,18 +100,17 @@ export function SidebarSectionHeader({
             </TooltipContent>
           </Tooltip>
         ) : null}
-        {showChevron ? <SidebarSectionFoldChevron collapsed={fold.collapsed} /> : null}
         <span
           // Truncate localized titles because fixed-width actions cannot shrink inside the short header row.
           className={cn(
-            'min-w-0 truncate select-none pr-0.5 text-xs font-semibold text-muted-foreground/80',
-            showChevron ? 'pl-0' : 'pl-2',
+            'min-w-0 truncate select-none pl-1.5 pr-0.5 text-xs font-medium text-muted-foreground/75 transition-colors peer-hover:text-foreground',
             fold && 'pointer-events-none'
           )}
           data-sidebar-section-title={sectionId}
         >
           {title}
         </span>
+        {showChevron ? <SidebarSectionFoldChevron collapsed={fold.collapsed} /> : null}
         {titleAccessory}
         {summary}
       </div>

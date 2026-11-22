@@ -215,7 +215,7 @@ export function UsageRow({
           )}
         >
           {name}
-          {plan ? <span className="font-normal text-muted-foreground"> · {plan}</span> : null}
+          {plan ? <span className="ml-1.5 font-normal text-muted-foreground">{plan}</span> : null}
         </span>
         {!hasUsage ? (
           <>
@@ -310,7 +310,7 @@ export function UsageRosterPanel({
             {t('auto.components.status.bar.UsageRosterPanel.title', 'Usage')}
           </span>
           <span className="truncate text-[11px]">
-            · {t('auto.components.status.bar.UsageRosterPanel.allAgents', 'all agents')}
+            {t('auto.components.status.bar.UsageRosterPanel.allAgents', 'all agents')}
           </span>
           <DropdownMenuItem
             onSelect={(event) => {

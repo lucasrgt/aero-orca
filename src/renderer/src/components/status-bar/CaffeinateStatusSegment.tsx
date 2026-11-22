@@ -76,7 +76,7 @@ export function CaffeinateStatusSegment(): React.JSX.Element | null {
   const active =
     serviceStatus.mode === configuredMode ? serviceStatus.active : configuredMode === 'on'
   const title = getAgentAwakeTitle(t)
-  const statusText = `${getAgentAwakeModeLabel(mode, t)} · ${activityLabel(active, t)}`
+  const statusText = `${getAgentAwakeModeLabel(mode, t)} (${activityLabel(active, t)})`
   const ariaLabel = t(
     'auto.components.status.bar.CaffeinateStatusSegment.ariaLabel',
     '{{title}}, {{status}}',
@@ -99,13 +99,9 @@ export function CaffeinateStatusSegment(): React.JSX.Element | null {
               aria-label={ariaLabel}
             >
               <Coffee className={`size-3 ${active ? 'text-foreground' : ''}`} />
-              <span className="text-[11px] font-medium">{getAgentAwakeModeLabel(mode, t)}</span>
-              <span
-                aria-hidden
-                className={`size-1.5 rounded-full ${
-                  active ? 'bg-foreground' : 'bg-muted-foreground/40'
-                }`}
-              />
+              <span className={`text-[11px] font-medium ${active ? 'text-foreground' : ''}`}>
+                {getAgentAwakeModeLabel(mode, t)}
+              </span>
             </button>
           </DropdownMenuTrigger>
         </TooltipTrigger>

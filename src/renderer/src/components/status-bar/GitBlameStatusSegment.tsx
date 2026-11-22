@@ -78,8 +78,9 @@ export function GitBlameStatusSegment(): React.JSX.Element | null {
         {details ? (
           <div className="flex flex-col gap-0.5">
             <span className="font-medium">{details.heading}</span>
-            <span className="text-muted-foreground">
-              {details.date} · <span className="font-mono">{details.shortOid}</span>
+            <span className="inline-flex items-center gap-1.5 text-muted-foreground">
+              <span>{details.date}</span>
+              <span className="font-mono">{details.shortOid}</span>
             </span>
             <span>{details.summary}</span>
             {canOpen ? (

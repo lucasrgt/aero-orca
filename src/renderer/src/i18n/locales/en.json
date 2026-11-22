@@ -21303,7 +21303,7 @@
         "noOtherChats": "No other chats",
         "retryChats": "Retry",
         "permissionAppliesNextMessage": "{{saved}} applies to your next message; currently using {{active}}",
-        "modelAndEffortValue": "{{model}} · {{effort}}",
+        "modelAndEffortValue": "{{model}} ({{effort}})",
         "modelAndEffort": "Model and effort"
       },
       "tool": {
@@ -22584,11 +22584,11 @@
         "signInGoogle": "Sign in with Google",
         "useKeyOrGcloud": "API key or gcloud",
         "yourAgy": "Your agy",
-        "yourAgyVersion": "Your agy · v{{version}}",
+        "yourAgyVersion": "Your agy v{{version}}",
         "orcaCopy": "Orca's copy",
-        "orcaCopyVersion": "Orca's copy · v{{version}}",
+        "orcaCopyVersion": "Orca's copy v{{version}}",
         "orcasAgy": "Orca's agy",
-        "orcasAgyVersion": "Orca's agy · v{{version}}",
+        "orcasAgyVersion": "Orca's agy v{{version}}",
         "runsOn": "Runs on: {{program}}",
         "agyItem": "agy's own login",
         "agyHint": "This chat runs the Antigravity CLI on this host. Another method applies to new chats.",
@@ -27373,7 +27373,7 @@
       "botHeader": "Bot",
       "moveToProject": "Move to Project",
       "moreAgents": "{{count}} more agents",
-      "heading": "Workspaces · {{total}}"
+      "heading": "Workspaces ({{total}})"
     },
     "connectorSetup": {
       "pill": {
@@ -29129,7 +29129,7 @@
       "showFewer": "Show fewer",
       "handedOver": "Handed over",
       "fromClosedChat": "From closed chat",
-      "automationTerminal": "Automation run · terminal",
+      "automationTerminal": "Automation run (terminal)",
       "needsYou": "Needs you",
       "askingBot": "Asking {{name}}",
       "asking": "Asking",

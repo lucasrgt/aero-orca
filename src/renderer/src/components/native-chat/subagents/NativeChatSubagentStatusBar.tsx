@@ -55,7 +55,6 @@ export function NativeChatSubagentStatusBar({
                   aria-hidden={state === 'working' || undefined}
                   className="hidden truncate @xs/subagent-status:inline"
                 >
-                  {' · '}
                   <SubagentElapsed
                     startedAt={entry.startedAt}
                     settledAt={entry.settledAt ?? null}
@@ -65,7 +64,7 @@ export function NativeChatSubagentStatusBar({
               ) : null}
               {typeof entry?.tokens === 'number' ? (
                 <span className="hidden truncate @sm/subagent-status:inline">
-                  {` · ${say('tokens', { value0: formatSubagentTokens(entry.tokens) })}`}
+                  {say('tokens', { value0: formatSubagentTokens(entry.tokens) })}
                 </span>
               ) : null}
             </span>

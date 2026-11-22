@@ -1868,13 +1868,26 @@ html.native-shell .app-layout {
   transition: width 200ms ease;
 }
 
+/* Subtle vertical guide rail for expanded nested bot chats and workspace lineage rows. */
+.sidebar-tree-children::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  bottom: 6px;
+  left: -7px;
+  width: 1px;
+  border-radius: 1px;
+  background: color-mix(in srgb, var(--worktree-sidebar-border) 75%, transparent);
+  pointer-events: none;
+}
+
 /* Light sidebar-accent/40 disappears on the panel; lift nested hover without overpowering workspace cards. */
 .worktree-sidebar-card-hover:hover {
-  background: color-mix(in srgb, var(--sidebar-foreground) 4%, transparent);
+  background: color-mix(in srgb, var(--sidebar-foreground) 4.5%, transparent);
 }
 
 .dark .worktree-sidebar-card-hover:hover {
-  background: color-mix(in srgb, var(--sidebar-accent) 40%, transparent);
+  background: color-mix(in srgb, var(--sidebar-accent) 42%, transparent);
 }
 
 /* Why: one multi-selected look for every list on the card surface (workspaces and
@@ -1885,32 +1898,31 @@ html.native-shell .app-layout {
   box-shadow: 0 0 0 1px color-mix(in oklab, var(--worktree-sidebar-ring) 30%, transparent);
 }
 
-/* Why: the brighter border carries the selected state; a translucent wash keeps
-   card text legible instead of lifting the surface toward the foreground color. */
+/* Why: crisp flat active fill without drop-shadow noise, keeping card text cleanly legible. */
 [data-worktree-family-segment='primary'],
 [data-worktree-card-surface][data-worktree-card-active='primary'] {
   border-color: var(
     --worktree-sidebar-active-border,
-    color-mix(in srgb, var(--worktree-sidebar-border) 40%, transparent)
+    color-mix(in srgb, var(--worktree-sidebar-border) 35%, transparent)
   );
   background: var(
     --worktree-sidebar-active,
-    color-mix(in srgb, var(--worktree-sidebar-foreground) 8%, transparent)
+    color-mix(in srgb, var(--worktree-sidebar-foreground) 6.5%, transparent)
   );
-  box-shadow: 0 1px 2px color-mix(in srgb, var(--worktree-sidebar-foreground) 4%, transparent);
+  box-shadow: none;
 }
 
 .dark [data-worktree-family-segment='primary'],
 .dark [data-worktree-card-surface][data-worktree-card-active='primary'] {
   border-color: var(
     --worktree-sidebar-active-border,
-    color-mix(in srgb, var(--worktree-sidebar-foreground) 18%, var(--worktree-sidebar-border))
+    color-mix(in srgb, var(--worktree-sidebar-foreground) 12%, var(--worktree-sidebar-border))
   );
   background: var(
     --worktree-sidebar-active,
-    color-mix(in srgb, var(--worktree-sidebar-foreground) 10%, transparent)
+    color-mix(in srgb, var(--worktree-sidebar-foreground) 8.5%, transparent)
   );
-  box-shadow: 0 1px 2px color-mix(in srgb, var(--worktree-sidebar-foreground) 3%, transparent);
+  box-shadow: none;
 }
 
 /* #15971: the wash matches the pill's fill, so its border carries the shape. A neutral sidebar tint

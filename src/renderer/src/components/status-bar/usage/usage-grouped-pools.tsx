@@ -71,7 +71,9 @@ export function GroupedPoolUsage({
               const window = formatPoolWindowLabel(bucket, now, t)
               return (
                 <React.Fragment key={key}>
-                  {index > 0 ? <span className="text-muted-foreground">·</span> : null}
+                  {index > 0 ? (
+                    <span aria-hidden="true" className="h-2.5 w-px shrink-0 bg-border/80" />
+                  ) : null}
                   <span className="tabular-nums">{`${percentage} ${window}`.trim()}</span>
                 </React.Fragment>
               )

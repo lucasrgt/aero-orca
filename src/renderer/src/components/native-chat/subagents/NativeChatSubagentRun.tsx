@@ -56,7 +56,7 @@ function subagentDetails(
       : null
   ]
     .filter(Boolean)
-    .join(' · ')
+    .join(', ')
   return text || result || facts ? { text, result, facts } : null
 }
 
@@ -159,19 +159,16 @@ export function NativeChatSubagentRun({
       }
     >
       <span className="text-chat-foreground">{headline}</span>
-      <span className="tabular-nums">
-        {` · ${summary}`}
+      <span className="inline-flex items-center gap-1.5 tabular-nums">
+        <span>{summary}</span>
         {clockStartedAt !== null ? (
-          <>
-            {' · '}
-            <SubagentElapsed
-              startedAt={clockStartedAt}
-              settledAt={header.settledAt}
-              counting={working}
-            />
-          </>
+          <SubagentElapsed
+            startedAt={clockStartedAt}
+            settledAt={header.settledAt}
+            counting={working}
+          />
         ) : null}
-        {header.tokens !== null ? ` · ${header.tokens}` : null}
+        {header.tokens !== null ? <span>{header.tokens}</span> : null}
       </span>
     </NativeChatEventRow>
   )

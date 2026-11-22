@@ -48,9 +48,8 @@ export function NativeChatToolRunCallCounts({
     <span className="flex h-[1lh] shrink-0 items-center">
       <span
         aria-label={marks.map((mark) => mark.label).join(', ')}
-        className="shrink-0 font-sans text-xs tabular-nums text-chat-foreground-faint transition-colors group-hover/tool-run:text-chat-foreground"
+        className="ml-1.5 shrink-0 font-sans text-xs tabular-nums text-chat-foreground-faint transition-colors group-hover/tool-run:text-chat-foreground"
       >
-        <span aria-hidden> · </span>
         {marks.map((mark) => mark.text).join(', ')}
       </span>
     </span>

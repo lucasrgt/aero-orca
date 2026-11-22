@@ -57,7 +57,7 @@ export function NativeChatAntigravityAuthChip({
   )
   const label = onAgy ? program : (antigravityChatAuthMethodLabel(method ?? '', t) ?? '')
   const project = method === 'agent-platform' ? auth.detection?.adc.project : null
-  const shown = project ? `${label} · ${project}` : label
+  const shown = project ? `${label} (${project})` : label
   const signsInWith = onAgy
     ? t('components.native-chat.antigravityAuth.agyItem', "agy's own login")
     : shown

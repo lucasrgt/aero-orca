@@ -35,7 +35,6 @@ export function ProviderFrameRow({
       trail={
         frame?.payload.truncated ? (
           <span>
-            ·{' '}
             {t('components.native-chat.providerFrame.byteCount', '{{count}} bytes', {
               count: frame.payload.byteLength,
               defaultValue_one: '{{count}} byte'

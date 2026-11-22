@@ -61,10 +61,10 @@ export function SidebarSectionFoldChevron({
   collapsed: boolean
 }): React.JSX.Element {
   return (
-    <span className="pointer-events-none ml-0.5 flex size-5 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors peer-hover:bg-accent/70 peer-hover:text-foreground">
+    <span className="pointer-events-none flex size-4 shrink-0 items-center justify-center text-muted-foreground/60 transition-colors peer-hover:text-foreground">
       <ChevronDown
         className={cn(
-          'size-3.5 transition-transform motion-reduce:transition-none',
+          'size-3 transition-transform motion-reduce:transition-none',
           collapsed && '-rotate-90'
         )}
       />

@@ -235,8 +235,7 @@ export function BotRowLineText({
       <>
         {limit.place ? (
           <>
-            <span className="font-medium text-foreground">{limit.place}</span>
-            {' · '}
+            <span className="font-medium text-foreground">{limit.place}</span>{' '}
           </>
         ) : null}
         {usageLimitStopText(t, limit.stop)}
@@ -246,9 +245,7 @@ export function BotRowLineText({
   if (line?.kind === 'activity' && line.place) {
     return (
       <>
-        <BotRowPlaceLabel place={line.place} />
-        {' · '}
-        {line.text}
+        <BotRowPlaceLabel place={line.place} /> {line.text}
       </>
     )
   }
@@ -277,7 +274,7 @@ export function BotHoverLatestLine({
   )
   return (
     <div className="mt-2.5 line-clamp-3 border-t border-border pt-2 text-xs leading-snug text-foreground">
-      {age ? <span className="text-muted-foreground">{age} · </span> : null}
+      {age ? <span className="mr-1.5 text-muted-foreground">{age}</span> : null}
       {text}
     </div>
   )

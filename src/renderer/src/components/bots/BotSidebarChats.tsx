@@ -225,7 +225,7 @@ function BotSidebarChat({
         </div>
       </BotChatContextMenu>
       {open ? (
-        <div className="ml-3 flex flex-col gap-1">
+        <div className="sidebar-tree-children relative ml-3 flex flex-col gap-0.5 pt-0.5">
           <AttachedWorktreeCards
             roots={lines}
             lineageChildrenByParentIdentity={lineageChildrenByParentIdentity}

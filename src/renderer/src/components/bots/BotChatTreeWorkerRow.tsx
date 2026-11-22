@@ -1,6 +1,7 @@
 // One worker under its chat in the Chats tab, one line; or a search's worker hit, its chat on line 2.
-import { CircleX } from 'lucide-react'
+import { AgentQuestionIcon } from '@/components/agent/status/AgentQuestionIcon'
 import { AgentStateDot } from '@/components/agent/status/AgentStateDot'
+import { FailedIcon } from '@/components/ui/StatusGlyphs'
 import StatusIndicator from '@/components/sidebar/workspace-card/surface/StatusIndicator'
 import { useAppStore } from '@/store'
 import { findWorktreeById } from '@/store/github/refresh/worktree-refresh'
@@ -30,7 +31,7 @@ export function WorkerStateIcon({
     case 'running':
       return <StatusIndicator status="working" showTooltip={false} />
     case 'needs-you':
-      return <span className="block size-[7px] rounded-full bg-agent-question" />
+      return <AgentQuestionIcon className="size-3" />
     case 'asking-bot':
       // Still and dashed, so it never reads as a chat waiting on you.
       return (
@@ -41,7 +42,7 @@ export function WorkerStateIcon({
     case 'done':
       return <AgentStateDot state="done" size="md" title={null} />
     case 'failed':
-      return <CircleX className="size-3 text-destructive" aria-hidden />
+      return <FailedIcon className="size-3" />
   }
 }
 
@@ -61,7 +62,7 @@ function noteLabel(t: Translate, note: BotChatTreeWorker['note']): string | null
     case 'from-closed-chat':
       return t('bots.chats.fromClosedChat', 'From closed chat')
     case 'automation-terminal':
-      return t('bots.chats.automationTerminal', 'Automation run · terminal')
+      return t('bots.chats.automationTerminal', 'Automation run (terminal)')
     case undefined:
       return null
   }
@@ -172,7 +173,7 @@ export function BotChatTreeWorkerRow({
     worker.branch ?? worktreeBranch
   ]
     .filter(Boolean)
-    .join(' · ')
+    .join(' — ')
   const { dispatchId, worktreeId } = worker
   // Stopped on its usage limit, it reads stopped, never running; a question for the owner still wins.
   const found = useBotUsageLimitStopIndex().byWorkspace.get(worktreeId ?? '')

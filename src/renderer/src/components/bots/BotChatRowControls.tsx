@@ -126,13 +126,12 @@ export function BotChatPaging({
   return (
     <div
       className={cn(
-        'flex min-w-0 flex-wrap items-center gap-x-1 text-2xs text-muted-foreground',
+        'flex min-w-0 flex-wrap items-center gap-x-2.5 text-2xs text-muted-foreground',
         className
       )}
     >
-      {links.map((link, index) => (
+      {links.map((link) => (
         <Fragment key={link.label}>
-          {index > 0 ? <span aria-hidden>·</span> : null}
           <button
             type="button"
             className="cursor-pointer rounded-sm whitespace-nowrap outline-none hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50"
