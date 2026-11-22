@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { buildBotFleetSection } from './bot-fleet-role'
+import { formatBotLaunchSummary } from './bot-launch'
 import { buildBotSidebarRows } from './bot-project-groups'
 
 describe('buildBotFleetSection', () => {
@@ -107,5 +108,26 @@ describe('buildBotSidebarRows fleet ordering', () => {
           : `${row.id}:${row.grouped}:${row.fleetChild ?? 'root'}`
       )
     ).toEqual(['global-adm:false:root', 'header:host point:true', 'cap:true:root'])
+  })
+})
+
+describe('formatBotLaunchSummary', () => {
+  it('formats Claude model id and effort into a clean display label', () => {
+    expect(
+      formatBotLaunchSummary('claude', {
+        model: 'claude-opus-5-5',
+        options: { effort: 'medium' }
+      })
+    ).toBe('Opus 5.5 · Medium')
+  })
+
+  it('includes Fast when fast mode is enabled and returns null when unset', () => {
+    expect(
+      formatBotLaunchSummary('claude', {
+        model: 'claude-opus-5-5',
+        options: { effort: 'high', fastMode: 'true' }
+      })
+    ).toBe('Opus 5.5 · High · Fast')
+    expect(formatBotLaunchSummary('claude', undefined)).toBeNull()
   })
 })

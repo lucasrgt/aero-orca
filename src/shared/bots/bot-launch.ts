@@ -4,6 +4,11 @@ import { OptionKey } from '../rpc-contract/agent-launch/agent-launch-settings-pa
 import { parseStructuredLaunchSeedOptions } from '../native-chat/input/session-options/native-chat-session-option-defaults'
 import { AGENT_CHAT_PERMISSION_MODE_OPTION_ID } from '../agent-launch/permissions/agent-chat-permission-mode'
 import { encodeStructuredAgentSessionOptionValue } from '../agent-session/options/selection/structured-agent-session-option-codec'
+import {
+  findCatalogModel,
+  getAgentSessionOptionLaunchCatalog
+} from '../agent-session/options/agent-session-option-catalog'
+import { claudeListedModelLabel } from '../agent-session/options/model-catalog/claude-model-list-probe'
 
 const ChoiceValue = z
   .string()
@@ -103,4 +108,41 @@ export function botLaunchWithPicks(
   }
   const next = botLaunchFromChoices({ ...(model ? { model } : {}), options })
   return next && BotLaunchSchema.safeParse(next).success ? next : launch
+}
+
+const EFFORT_DISPLAY_LABELS: Readonly<Record<string, string>> = {
+  low: 'Low',
+  medium: 'Medium',
+  high: 'High',
+  xhigh: 'Extra high',
+  max: 'Max',
+  minimal: 'Minimal',
+  none: 'None'
+}
+
+/** Human-readable summary of a bot's pinned launch setup, e.g. "Opus 5.5 · Medium". */
+export function formatBotLaunchSummary(
+  agent: string,
+  launch: Pick<BotLaunch, 'model' | 'options'> | undefined
+): string | null {
+  if (!launch?.model && !launch?.options) {
+    return null
+  }
+  const parts: string[] = []
+  if (launch.model) {
+    const seed = getAgentSessionOptionLaunchCatalog(agent)
+    const catalogLabel = seed ? findCatalogModel(seed, launch.model)?.label : undefined
+    parts.push(
+      catalogLabel ?? (agent === 'claude' ? claudeListedModelLabel(launch.model) : launch.model)
+    )
+  }
+  const effort =
+    launch.options?.effort ?? launch.options?.reasoningEffort ?? launch.options?.thoughtLevel
+  if (effort) {
+    parts.push(EFFORT_DISPLAY_LABELS[effort.toLowerCase()] ?? effort)
+  }
+  if (launch.options?.fastMode === 'true' || launch.options?.serviceTier === 'fast') {
+    parts.push('Fast')
+  }
+  return parts.length > 0 ? parts.join(' · ') : null
 }

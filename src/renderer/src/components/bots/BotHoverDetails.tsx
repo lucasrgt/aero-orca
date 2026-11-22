@@ -1,4 +1,5 @@
 import { House, Server } from 'lucide-react'
+import { AgentIcon } from '@/components/agent/icons/AgentIcon'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import StatusIndicator from '@/components/sidebar/workspace-card/surface/StatusIndicator'
@@ -10,7 +11,9 @@ import { getWorktreeStatusLabel } from '@/lib/workspace/activity/worktree-status
 import { formatAgentToolPreview } from '../../../../shared/agent-status/presentation/agent-row-tool-preview'
 import { getAgentRowPrimaryText } from '../../../../shared/agent-status/presentation/agent-row-primary-text'
 import { foldBotStatus } from '../../../../shared/bots/bot-row-status'
+import { formatBotLaunchSummary } from '../../../../shared/bots/bot-launch'
 import type { Bot } from '../../../../shared/bot-types'
+import { botAgentLabel } from './bot-presentation'
 import { getLocalExecutionHostLabel } from '../../../../shared/execution-host/execution-host'
 import type { FolderWorkspace } from '../../../../shared/folder-workspaces/folder-workspace-types'
 import { folderWorkspaceKey } from '../../../../shared/workspace/identity/workspace-scope'
@@ -84,6 +87,14 @@ export function BotHoverDetails({
               {state}
             </TooltipContent>
           </Tooltip>
+          <div className="flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
+            <AgentIcon agent={bot.agent} size={12} />
+            <span className="min-w-0 truncate">
+              {[botAgentLabel(bot.agent), formatBotLaunchSummary(bot.agent, bot.launch)]
+                .filter(Boolean)
+                .join(' · ')}
+            </span>
+          </div>
           {/* A paired server's bot says where it runs; a disconnected one already named it. */}
           {hostLabel && !offline ? (
             <div className="flex min-w-0 items-center gap-1 text-xs text-muted-foreground">

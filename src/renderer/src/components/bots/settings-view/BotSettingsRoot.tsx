@@ -4,7 +4,6 @@ import {
   Activity,
   Anchor,
   BookOpen,
-  Bot as BotIcon,
   Brain,
   Compass,
   Eye,
@@ -20,6 +19,7 @@ import {
   Users,
   Wrench
 } from 'lucide-react'
+import { AgentIcon } from '@/components/agent/icons/AgentIcon'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
@@ -34,6 +34,7 @@ import {
 } from '../../../../../shared/agent-launch/permissions/agent-chat-permission-support'
 import { botMembersFrom, type Bot } from '../../../../../shared/bot-types'
 import { botRoleDisplayLabel } from '../../../../../shared/bots/bot-fleet-role'
+import { formatBotLaunchSummary } from '../../../../../shared/bots/bot-launch'
 import { botLookAround, lookAroundSupported } from '../../../../../shared/bots/bot-look-around'
 import { botTidyUp } from '../../../../../shared/bots/bot-tidy-up'
 import type { BotUpdateParams } from '../../../../../shared/rpc-contract/bots-params'
@@ -328,9 +329,12 @@ export function BotSettingsRoot({
       </div>
       <SettingsInsetGroup title={t('settings.bots.agent', 'Agent')}>
         <SettingsInsetRow
-          icon={<BotIcon />}
-          title={t('settings.bots.agent', 'Agent')}
-          value={botAgentLabel(bot.agent)}
+          icon={<AgentIcon agent={bot.agent} size={14} />}
+          title={botAgentLabel(bot.agent)}
+          detail={
+            formatBotLaunchSummary(bot.agent, bot.launch) ??
+            t('settings.bots.usingChatDefaultShort', 'Using chat default')
+          }
           page="agent"
           onOpen={() => open('agent')}
         />

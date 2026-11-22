@@ -26,6 +26,7 @@ import type { ConnectorPage } from './connectors/connector-pages'
 import { lookAroundLine, tidyUpLine, whoCanAskLine } from './bot-settings-lines'
 import type { MobileBotAvatarSource } from './host-bot-row-facts'
 import { botAgentLabel } from './mobile-bot-sheet-copy'
+import { formatBotLaunchSummary } from '../../../src/shared/bots/bot-launch'
 import { botRoleDisplayLabel } from '../../../src/shared/bots/bot-fleet-role'
 import { MobileBotAvatar } from './MobileBotAvatar'
 import { themedStyleSheet } from '../theme/themed-styles'
@@ -164,7 +165,7 @@ export function MobileBotSettingsRoot(props: {
         <Section title={t('bots.settings.agent', 'Agent')}>
           <DrillRow
             label={t('bots.settings.agentAndModel', 'Agent and model')}
-            value={`${agent} · ${bot.launch?.model ?? t('bots.settings.chatDefault', 'your chat default')}`}
+            value={`${agent} · ${formatBotLaunchSummary(bot.agent, bot.launch) ?? t('bots.settings.chatDefault', 'your chat default')}`}
             detail
             onPress={() => props.open('agent')}
           />
