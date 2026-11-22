@@ -2,6 +2,7 @@ import {
   botPreviewFacts,
   botStatusNeedsAttention
 } from '../../../src/shared/bots/bot-collapsed-preview'
+import type { BotRole } from '../../../src/shared/bots/bot-fleet-role'
 import { accessRequestPerson } from '../../../src/shared/bots/bot-access-request'
 import { getBotSidebarEntries } from '../../../src/shared/bots/bot-sidebar-entries'
 import type { BotSidebarEntryActivity } from '../../../src/shared/bots/bot-sidebar-view'
@@ -57,7 +58,10 @@ export type HostBotSectionInputs = {
 /** One bot or group of one host, drawn, before the one list arranges them. */
 export type DrawnBotEntry = {
   entry:
-    | { kind: 'bot'; bot: { name: string; paused: boolean } }
+    | {
+        kind: 'bot'
+        bot: { name: string; paused: boolean; project?: string | null; role?: BotRole | null }
+      }
     | { kind: 'group'; group: { name: string } }
   items: WorkspaceListItem[]
   preview?: NonNullable<Section['botPreview']>[number]
@@ -240,6 +244,8 @@ export function drawHostBotEntries(
       ...(access[0] ? { askedForAccess: accessRequestPerson(access[0]) } : {}),
       statusLine: botStatusLine(dot, bot.paused),
       paused: bot.paused,
+      ...(bot.role ? { role: bot.role } : {}),
+      ...(bot.territory ? { territory: bot.territory } : {}),
       ...(host ? { host } : {})
     }
     const botRow: WorkspaceListItem = {

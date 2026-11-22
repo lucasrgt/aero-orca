@@ -1,15 +1,24 @@
-import { memo } from 'react'
+import { memo, useMemo } from 'react'
+import { Pressable, StyleSheet, Text } from 'react-native'
+import { ChevronDown, ChevronRight, Folder } from 'lucide-react-native'
+import {
+  botProjectCollapseKey,
+  buildBotSidebarRows
+} from '../../../../src/shared/bots/bot-project-groups'
 import { botsOfflineWord } from '../../bots/host-bot-listing'
 import { mobileBotAvatarSource } from '../../bots/host-bot-row-facts'
 import { MobileBotFaceStack } from '../../bots/MobileBotFaceStack'
 import {
+  MobileBotFleetBadge,
   MobileBotNeedsYouCount,
   MobileBotRowAvatar,
   MobileBotRowStatus,
   MobileBotRowView
 } from '../../bots/MobileBotHomeRow'
+import { useMobileTranslation } from '../../i18n/use-mobile-translation'
 import { HostContextPill } from '../../worktree/row-presentation/HostContextPill'
-import { colors } from '../../theme/mobile-theme'
+import { colors, feedback, spacing } from '../../theme/mobile-theme'
+import { themedStyleSheet } from '../../theme/themed-styles'
 import { useMobileColorScheme } from '../../theme/use-mobile-color-scheme'
 import type { HomeBotRow } from './home-bot-rows'
 
@@ -41,6 +50,9 @@ export const MobileHomeBotRow = memo(function MobileHomeBotRow(props: {
         )
       }
       title={row.title}
+      titleBadge={
+        row.kind === 'bot' && row.bot.role ? <MobileBotFleetBadge role={row.bot.role} /> : null
+      }
       unread={row.unread}
       preview={row.preview}
       previewLeading={
@@ -76,3 +88,91 @@ export const MobileHomeBotRows = memo(function MobileHomeBotRows(props: {
     />
   ))
 })
+
+/** Project-grouped Bots list for Mobile Home: global Admirals pinned on top, then collapsible projects. */
+export const MobileHomeBotProjectRows = memo(function MobileHomeBotProjectRows(props: {
+  rows: readonly HomeBotRow[]
+  collapsedProjects: ReadonlySet<string>
+  onToggleProject: (collapseKey: string) => void
+  onOpen: (row: HomeBotRow) => void
+}) {
+  useMobileColorScheme()
+  const t = useMobileTranslation()
+  const virtualRows = useMemo(
+    () =>
+      buildBotSidebarRows(
+        props.rows.map((row) =>
+          row.kind === 'bot'
+            ? { id: row.key, kind: 'bot' as const, bot: row.bot, row }
+            : { id: row.key, kind: 'group' as const, row }
+        ),
+        'project',
+        props.collapsedProjects
+      ).rows,
+    [props.rows, props.collapsedProjects]
+  )
+
+  return virtualRows.map((item, index) => {
+    if (item.kind === 'project-header') {
+      const Chevron = item.collapsed ? ChevronRight : ChevronDown
+      const title = item.label ?? t('bots.project.general', 'General')
+      return (
+        <Pressable
+          key={item.id}
+          accessibilityRole="button"
+          accessibilityState={{ expanded: !item.collapsed }}
+          onPress={() => props.onToggleProject(botProjectCollapseKey(item.projectKey))}
+          style={({ pressed }) => [
+            projectHeaderStyles.header,
+            index > 0 && projectHeaderStyles.headerGap,
+            pressed && projectHeaderStyles.pressed
+          ]}
+        >
+          <Folder size={13} color={colors.textMuted} />
+          <Text numberOfLines={1} style={projectHeaderStyles.title}>
+            {title}
+          </Text>
+          <Chevron size={13} color={colors.textMuted} />
+          <Text style={projectHeaderStyles.count}>{item.count}</Text>
+        </Pressable>
+      )
+    }
+    const prev = virtualRows[index - 1]
+    const showDivider = prev?.kind === 'entry'
+    return (
+      <MobileHomeBotRow
+        key={item.id}
+        row={item.entry.row}
+        divider={showDivider}
+        onOpen={props.onOpen}
+      />
+    )
+  })
+})
+
+const projectHeaderStyles = themedStyleSheet(() => ({
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.xs,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.borderSubtle
+  },
+  headerGap: {
+    marginTop: spacing.sm
+  },
+  title: {
+    flexShrink: 1,
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.textMuted
+  },
+  count: {
+    marginLeft: 'auto',
+    fontSize: 11,
+    color: colors.textMuted
+  },
+  pressed: { opacity: feedback.pressedOpacity }
+}))

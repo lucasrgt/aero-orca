@@ -1,4 +1,5 @@
 import { isHome } from '../../../src/shared/bots/bot-homes'
+import { buildBotSidebarRows } from '../../../src/shared/bots/bot-project-groups'
 import {
   arrangeBotSidebarEntries,
   DEFAULT_BOT_SIDEBAR_VIEW
@@ -140,11 +141,25 @@ export function buildHostBotSections(inputs: HostBotSectionInputs): HostBotSecti
   // The paired computer's Bot options order and filter every computer's bots: Manual keeps this
   // computer's, then each server's, in their saved orders.
   const view = local?.kind === 'listed' ? local.view : DEFAULT_BOT_SIDEBAR_VIEW
-  const arranged = arrangeBotSidebarEntries(
+  const arrangedBase = arrangeBotSidebarEntries(
     drawn.map((entry) => ({ ...entry.entry, drawn: entry })),
     view,
     ({ drawn: entry }) => entry.activity
   ).map(({ drawn: entry }) => entry)
+  const arranged =
+    view.groupBy === 'none'
+      ? arrangedBase
+      : buildBotSidebarRows(
+          arrangedBase.map((entry, index) =>
+            entry.entry.kind === 'bot'
+              ? { id: `b:${index}`, kind: 'bot' as const, bot: entry.entry.bot, drawn: entry }
+              : { id: `g:${index}`, kind: 'group' as const, drawn: entry }
+          ),
+          'project',
+          new Set()
+        )
+          .rows.filter((row) => row.kind === 'entry')
+          .map((row) => row.entry.drawn)
   const searching = inputs.search.trim().length > 0
   const lines = searching
     ? []

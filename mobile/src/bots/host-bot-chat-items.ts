@@ -52,6 +52,31 @@ export function hostBotChatItems(args: {
       }
     }))
   const items: WorkspaceListItem[] = []
+  const onlyHomeChat =
+    view.chats.length === 1 && view.chats[0]!.chat.origin === 'home' ? view.chats[0]! : null
+  if (onlyHomeChat) {
+    for (const branch of onlyHomeChat.lines) {
+      items.push(...lineItems(branch, view.notes.get(branch.id)))
+    }
+    if (onlyHomeChat.paging || onlyHomeChat.steps > 0) {
+      items.push({
+        row: home.row,
+        view: {
+          sectionListKey: `bot-chat-paging:${args.homeIdentity}:${onlyHomeChat.chat.chatId}`,
+          botChatPaging: {
+            stepsKey: keyOf(onlyHomeChat.chat.chatId),
+            steps: onlyHomeChat.steps,
+            paging: onlyHomeChat.paging
+          },
+          ...dim
+        }
+      })
+    }
+    for (const branch of view.stray) {
+      items.push(...lineItems(branch, view.notes.get(branch.id)))
+    }
+    return items
+  }
   for (const chatView of view.chats) {
     const { chat } = chatView
     items.push({

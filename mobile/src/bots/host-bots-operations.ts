@@ -35,6 +35,10 @@ export const phoneBotSchema = z.looseObject({
   tidyUp: BotSchema.shape.tidyUp,
   // The projects whose skills it loads, for Settings › Skills.
   skillProjects: salvagedOptional('skillProjects', z.array(z.string())),
+  // Project grouping & nautical fleet role (Admiral / Territory Captain).
+  project: BotSchema.shape.project,
+  role: BotSchema.shape.role,
+  territory: BotSchema.shape.territory,
   // When its items go stale, so Needs you counts and Stale group as the desktop's do.
   itemsStale: BotSchema.shape.itemsStale,
   // So a wait's row in its chats says it was cancelled.
@@ -56,7 +60,9 @@ export type ListedBot = Pick<
   PhoneBot,
   'id' | 'name' | 'folderWorkspaceId' | 'avatar' | 'paused' | 'chatSessionId'
 > &
-  Partial<Pick<PhoneBot, 'avatarColor' | 'sharedFrom' | 'createdAt'>>
+  Partial<
+    Pick<PhoneBot, 'avatarColor' | 'sharedFrom' | 'createdAt' | 'project' | 'role' | 'territory'>
+  >
 
 /** The bot's saved state as a phone edit returns it. */
 export const phoneBotReply = z.looseObject({ bot: phoneBotSchema })

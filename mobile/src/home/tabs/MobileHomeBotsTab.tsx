@@ -1,5 +1,5 @@
 import { Bot, Plus } from 'lucide-react-native'
-import { useMemo } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { ActivityIndicator, ScrollView, View } from 'react-native'
 import { MobileBotsListEnd } from '../../bots/MobileBotsSectionHeader'
 import { useMobileTranslation } from '../../i18n/use-mobile-translation'
@@ -8,7 +8,7 @@ import { colors, spacing } from '../../theme/mobile-theme'
 import { themedStyleSheet } from '../../theme/themed-styles'
 import type { HomeBotRow, HomeBots, HomeBotsUnavailable } from '../bots/home-bot-rows'
 import { translate } from '../../i18n/mobile-i18n'
-import { MobileHomeBotRows } from '../bots/MobileHomeBotRow'
+import { MobileHomeBotProjectRows } from '../bots/MobileHomeBotRow'
 import type { MobileHomeData } from '../use-mobile-home-data'
 import { MobileHomeTabEmpty } from './MobileHomeTabEmpty'
 import { MobileHomeTabHeader, MobileHomeTabHeaderButton } from './MobileHomeTabHeader'
@@ -38,6 +38,16 @@ export function MobileHomeBotsTab(props: {
       }
     />
   )
+  const [collapsedProjects, setCollapsedProjects] = useState<ReadonlySet<string>>(() => new Set())
+  const toggleProject = useCallback((key: string) => {
+    setCollapsedProjects((current) => {
+      const next = new Set(current)
+      if (!next.delete(key)) {
+        next.add(key)
+      }
+      return next
+    })
+  }, [])
   const canCreate = props.onNewBot !== undefined
   const notice = useMemo(() => homeBotsNotice(data.bots, canCreate), [data.bots, canCreate])
   if (!data.hostCatalogLoaded) {
@@ -68,7 +78,12 @@ export function MobileHomeBotsTab(props: {
             isWideLayout && { maxWidth: contentMaxWidth, width: '100%', alignSelf: 'center' }
           ]}
         >
-          <MobileHomeBotRows rows={rows} onOpen={props.onOpenBot} />
+          <MobileHomeBotProjectRows
+            rows={rows}
+            collapsedProjects={collapsedProjects}
+            onToggleProject={toggleProject}
+            onOpen={props.onOpenBot}
+          />
           {notice.kind === 'waiting' ? (
             <View style={styles.connecting}>
               <ActivityIndicator size="small" color={colors.textSecondary} />

@@ -26,6 +26,7 @@ import type { ConnectorPage } from './connectors/connector-pages'
 import { lookAroundLine, tidyUpLine, whoCanAskLine } from './bot-settings-lines'
 import type { MobileBotAvatarSource } from './host-bot-row-facts'
 import { botAgentLabel } from './mobile-bot-sheet-copy'
+import { botRoleDisplayLabel } from '../../../src/shared/bots/bot-fleet-role'
 import { MobileBotAvatar } from './MobileBotAvatar'
 import { themedStyleSheet } from '../theme/themed-styles'
 
@@ -167,6 +168,17 @@ export function MobileBotSettingsRoot(props: {
             detail
             onPress={() => props.open('agent')}
           />
+          {bot.project ? (
+            <ListRow title={t('bots.project.label', 'Project')} value={bot.project} />
+          ) : null}
+          {bot.role ? (
+            <ListRow
+              title={t('bots.fleet.label', 'Fleet role')}
+              value={botRoleDisplayLabel(bot.role)}
+              subtitle={bot.territory ?? undefined}
+              subtitleLines={2}
+            />
+          ) : null}
           <DrillRow
             label={t('bots.settings.permissions', 'Permissions')}
             value={permission}

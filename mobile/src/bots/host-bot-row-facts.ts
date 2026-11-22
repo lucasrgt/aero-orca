@@ -1,5 +1,6 @@
 import { parseBotAvatar, type BotMascotId } from '../../../src/shared/bot-avatar'
 import type { Bot } from '../../../src/shared/bot-types'
+import type { BotRole } from '../../../src/shared/bots/bot-fleet-role'
 import { botFallback } from '../../../src/shared/bots/bot-avatar-fallback'
 import type { BotRowStatus } from '../../../src/shared/bots/bot-row-status'
 import type { ExecutionHostId } from '../../../src/shared/execution-host/execution-host'
@@ -45,6 +46,9 @@ export type MobileBotRowFacts = {
   askedForAccess?: string
   statusLine: string
   paused: boolean
+  /** Optional fleet role (Admiral or Territory Captain) and its territory scope. */
+  role?: BotRole | null
+  territory?: string | null
   /** A server's bot: its computer, and that computer's word while it is down. */
   host?: { id: ExecutionHostId; label: string; word?: string }
 }

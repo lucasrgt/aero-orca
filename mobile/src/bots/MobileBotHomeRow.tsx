@@ -1,6 +1,7 @@
 import type React from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
-import { ChevronDown, ChevronRight, Lightbulb } from 'lucide-react-native'
+import { Anchor, ChevronDown, ChevronRight, Compass, Lightbulb } from 'lucide-react-native'
+import type { BotRole } from '../../../src/shared/bots/bot-fleet-role'
 import { botGroupRowLine } from '../../../src/shared/bots/bot-sidebar-entries'
 import type { Worktree, WorktreeRowView } from '../worktree/workspace-list/workspace-list-types'
 import { formatTimeAgo } from '../worktree/agent-lineage/agent-row-display'
@@ -60,6 +61,7 @@ export function MobileBotHomeRow({
     <MobileBotRowView
       avatar={<MobileBotRowAvatar avatar={bot.avatar} dot={down ? null : bot.dot} />}
       title={item.displayName}
+      titleBadge={bot.role ? <MobileBotFleetBadge role={bot.role} /> : null}
       unread={item.unread}
       preview={preview}
       asking={asking}
@@ -233,10 +235,24 @@ function MobileBotUpNextCount({ count }: { count: number }) {
   )
 }
 
+/** Subtle nautical glyph rendered beside an Admiral or Territory Captain name. */
+export function MobileBotFleetBadge({ role }: { role: BotRole }) {
+  const t = useMobileTranslation()
+  const label =
+    role === 'admiral' ? t('bots.fleet.admiral', 'Admiral') : t('bots.fleet.captain', 'Captain')
+  const Icon = role === 'admiral' ? Anchor : Compass
+  return (
+    <View accessible accessibilityRole="image" accessibilityLabel={label} style={styles.fleetBadge}>
+      <Icon size={12} color={colors.textMuted} />
+    </View>
+  )
+}
+
 /** The Bots list's row, a bot's or a group's: picture, name, then its newest line and how long ago. */
 export function MobileBotRowView({
   avatar,
   title,
+  titleBadge = null,
   unread,
   preview,
   asking = false,
@@ -252,6 +268,8 @@ export function MobileBotRowView({
 }: {
   avatar: React.ReactNode
   title: string
+  /** Optional subtle badge rendered beside the bot's name (e.g. Admiral/Captain icon). */
+  titleBadge?: React.ReactNode
   unread: boolean
   preview: string
   /** The line says what waits on the owner, in the asking colour. */
@@ -288,9 +306,12 @@ export function MobileBotRowView({
       <View style={styles.avatar}>{avatar}</View>
       <View style={styles.main}>
         <View style={styles.titleRow}>
-          <Text numberOfLines={1} style={[styles.title, unread && styles.unread]}>
-            {title}
-          </Text>
+          <View style={styles.titleIdentity}>
+            <Text numberOfLines={1} style={[styles.title, unread && styles.unread]}>
+              {title}
+            </Text>
+            {titleBadge}
+          </View>
           {titleTrailing}
         </View>
         <View style={styles.activity}>
@@ -337,7 +358,15 @@ const styles = themedStyleSheet(() => ({
   },
   main: { flex: 1, minWidth: 0 },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
-  title: { flex: 1, fontSize: 15, color: colors.textSecondary, fontWeight: '500' },
+  titleIdentity: {
+    flex: 1,
+    minWidth: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5
+  },
+  title: { flexShrink: 1, fontSize: 15, color: colors.textSecondary, fontWeight: '500' },
+  fleetBadge: { flexShrink: 0, opacity: 0.8 },
   unread: { color: colors.textPrimary, fontWeight: '700' },
   fold: {
     minWidth: 44,
