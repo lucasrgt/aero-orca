@@ -4,6 +4,7 @@ import {
   Anchor,
   Check,
   ChevronDown,
+  Columns2,
   Compass,
   Copy,
   Folder,
@@ -49,6 +50,12 @@ import { setBotPurpose } from './bot-purpose-cache'
 import { botSidebarEntryKey } from './bot-sidebar-entry-keys'
 import { useBotProjectSuggestions } from './BotProjectPicker'
 import { BotFleetRoleBadge } from './BotFleetRolePicker'
+import {
+  botSplitDragPayload,
+  clearBotSplitDragData,
+  openBotInActiveWorkspaceSplit,
+  writeBotSplitDragData
+} from './bot-split-drag'
 import { normalizeBotProjectKey } from '../../../../shared/bots/bot-project-groups'
 import { RepoIconGlyph } from '@/components/repo/repo-icon'
 
@@ -119,6 +126,15 @@ export function BotRow({
       dimmed={bot.paused || offline}
       actionsDisabled={offline}
       dragHandle={dragHandle}
+      splitDrag={
+        !dragHandle && !offline
+          ? {
+              onDragStart: (event) =>
+                writeBotSplitDragData(event.dataTransfer, botSplitDragPayload(bot)),
+              onDragEnd: clearBotSplitDragData
+            }
+          : undefined
+      }
       onOpen={open}
       onRename={async (name) => {
         try {
@@ -172,6 +188,13 @@ export function BotRow({
       )}
       menuItems={
         <>
+          <ContextMenuItem
+            disabled={offline}
+            onSelect={() => void openBotInActiveWorkspaceSplit(bot, 'right')}
+          >
+            <Columns2 className="size-3.5" />
+            {t('bots.row.openInSplit', 'Open in split')}
+          </ContextMenuItem>
           <ContextMenuItem onSelect={() => openBotSettings(bot.id)}>
             <Settings className="size-3.5" />
             {t('bots.row.settings', 'Bot settings…')}

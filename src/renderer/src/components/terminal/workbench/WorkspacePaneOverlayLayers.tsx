@@ -4,6 +4,7 @@ import { RetainedBrowserPaneOverlayLayer } from '../../browser-pane/assemble-chr
 import EmulatorPaneOverlayLayer from '../../emulator-pane/EmulatorPaneOverlayLayer'
 import StructuredAgentSessionPaneOverlayLayer from '../../native-chat/pane/routing/StructuredAgentSessionPaneOverlayLayer'
 import AiVaultSessionDropLayer from '../../tab-group/drag/AiVaultSessionDropLayer'
+import BotSplitDropLayer from '../../tab-group/drag/BotSplitDropLayer'
 import type { HiddenTerminalPrewarm } from '../../terminal-pane/controller/terminal-pane-types'
 
 /** Share retained pane hosts across group-tree hosts so retention, parking and browser paint have one lifecycle owner. */
@@ -65,6 +66,7 @@ export function WorkspacePaneOverlayLayers({
         isWorktreeActive={isVisible}
       />
       <AiVaultSessionDropLayer worktreeId={worktreeId} enabled={isVisible} />
+      <BotSplitDropLayer worktreeId={worktreeId} enabled={isVisible} />
     </>
   )
 }

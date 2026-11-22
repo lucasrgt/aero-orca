@@ -82,7 +82,7 @@ export function createTabsCloseActions(
             other.entityId === tab.entityId &&
             other.executionHostId === tab.executionHostId
         )
-      if (tab.contentType === 'agent-session' && !retainedChatView) {
+      if (tab.contentType === 'agent-session' && !retainedChatView && !tab.embeddedBotId) {
         const provisional =
           shouldRetainStructuredAgentSessionLaunchTab(worktreeId, tab.entityId) ||
           hasStructuredAgentSessionLaunchCancellationTombstone(worktreeId, tab.entityId)

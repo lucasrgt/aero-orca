@@ -44,6 +44,11 @@ export type BotSidebarRowProps = {
   actionsDisabled?: boolean
   /** The Bots section's reorder: this row is where a drag starts. */
   dragHandle?: boolean
+  /** Dragging a bot row directly onto an open workspace pane opens its chat in a split. */
+  splitDrag?: {
+    onDragStart: (event: React.DragEvent<HTMLDivElement>) => void
+    onDragEnd: () => void
+  }
   /** Set for a row that folds: whether it is unfolded. */
   expanded?: boolean
   onOpen: (event: { detail: number; target: EventTarget; repeat?: boolean }) => void
@@ -76,6 +81,7 @@ export function BotSidebarRow({
   dimmed = false,
   actionsDisabled = false,
   dragHandle = false,
+  splitDrag,
   onOpen,
   onRename,
   age,
@@ -105,6 +111,9 @@ export function BotSidebarRow({
           data-worktree-card-active={isActive ? 'primary' : undefined}
           aria-expanded={expanded}
           data-project-group-header-drag-handle={dragHandle ? '' : undefined}
+          draggable={splitDrag !== undefined && !renameRequested}
+          onDragStart={splitDrag && !renameRequested ? splitDrag.onDragStart : undefined}
+          onDragEnd={splitDrag?.onDragEnd}
           className={cn(
             WORKTREE_CARD_SURFACE_CLASS_NAME,
             // A two-line workspace card's padding, so bots sit as tight as Projects' rows.

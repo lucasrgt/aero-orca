@@ -148,6 +148,7 @@ const ENTRY_FIELDS = {
   sortOrder: TAB_ORDER,
   isPreview: tab('isPreview'),
   agentSessionAgent: tab('agentSessionAgent'),
+  embeddedBotId: 'unwritten',
   lastFocusedAt: own('view', 'lastFocusedAt')
 } as const
 

@@ -194,6 +194,9 @@ export function prepareWebSessionTabsSnapshotBrowser(
   advanceWebSessionOpenFilesIndex(batchContext, nextOpenFiles, worktreeId)
   const retainedUnifiedTabs = currentUnifiedTabs.filter((tab) => {
     if (tab.contentType === 'agent-session') {
+      if (tab.embeddedBotId) {
+        return true
+      }
       if (
         !claimedAgentSessionIds.has(tab.entityId) &&
         isAgentSessionTabOfAnotherHost(state, tab, snapshotExecutionHostId)

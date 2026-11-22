@@ -18,6 +18,9 @@ export function tabItemLabel(
     return getBrowserTabLabel(item.data, t)
   }
   if (item.type === 'agent-session') {
+    if (item.data.embeddedBotId) {
+      return item.data.customLabel ?? item.data.label
+    }
     return savedName ?? item.data.label
   }
   if (item.type === 'room') {
