@@ -1,8 +1,8 @@
 import React from 'react'
-import { Hourglass, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/class-names'
 import { observeOffscreenAnimation } from '@/lib/window-activity/offscreen-animation-pause'
 import { handleSpinnerAnimationStart } from '@/components/ui/spinner-phase'
+import { PixelSpinner } from '@/components/ui/PixelSpinner'
 
 function observeSpinner(el: HTMLSpanElement): () => void {
   return observeOffscreenAnimation(el)
@@ -28,16 +28,8 @@ export function SpinnerFrame({
   )
 }
 
-// Reduced motion uses an hourglass rather than a stuck spinner. Hide it only when motion is allowed; hidden plus motion-reduce:block left it hidden.
+// Unified 3x3 pixel-ring spinner; falls back to size-3.5 when callers rely on parent SVG sizing (e.g. Button).
 export function LoadingSpinner({ className }: { className?: string }): React.JSX.Element {
-  // Without a caller size the svg keeps its parent's svg sizing (e.g. Button's [&_svg]) and the span wraps it.
-  const sized = className?.split(/\s+/).some((name) => /(^|:)size-/.test(name)) ?? false
-  return (
-    <>
-      <SpinnerFrame className={cn('motion-reduce:hidden', className)}>
-        <Loader2 className={sized ? 'block size-full' : 'block'} />
-      </SpinnerFrame>
-      <Hourglass aria-hidden="true" className={cn('motion-safe:hidden', className)} />
-    </>
-  )
+  const sized = className?.split(/\s+/).some((name) => /(^|:)(size|w|h)-/.test(name)) ?? false
+  return <PixelSpinner className={cn(!sized && 'size-3.5', className)} />
 }
