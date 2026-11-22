@@ -64,11 +64,13 @@ export const BOT_COMMAND_SPECS: CommandSpec[] = [
     summary:
       'Update a bot’s name, project, role, territory, agent, model, permissions, avatar, pause or SOUL.md',
     usage:
-      'orca bot update <bot> [--name <name>] [--project <name> | --clear-project] [--role admiral|captain | --clear-role] [--territory <scope> | --clear-territory] [--agent <agent>] [--model <model> | --clear-model] [--effort <level>] [--permission-mode <mode>] [--avatar <emoji|mascot>] [--avatar-color <color>] [--pause | --resume] [--soul <markdown> | --soul-file <path>] [--tidy-up on|off] [--json]',
+      'orca bot update <bot> [--name <name>] [--project <name> | --clear-project] [--role admiral|captain | --clear-role] [--territory <scope> | --clear-territory] [--skill-project <repoId>]... [--clear-skill-projects] [--agent <agent>] [--model <model> | --clear-model] [--effort <level>] [--permission-mode <mode>] [--avatar <emoji|mascot>] [--avatar-color <color>] [--pause | --resume] [--soul <markdown> | --soul-file <path>] [--tidy-up on|off] [--json]',
     allowedFlags: [
       ...GLOBAL_FLAGS,
       'bot',
       ...BOT_CONFIG_FLAGS,
+      'skill-project',
+      'clear-skill-projects',
       'clear-project',
       'clear-role',
       'clear-territory',
@@ -77,6 +79,7 @@ export const BOT_COMMAND_SPECS: CommandSpec[] = [
       'resume',
       'tidy-up'
     ],
+    repeatableFlags: ['skill-project'],
     positionalArgs: ['bot'],
     notes: BOT_NOTES
   },

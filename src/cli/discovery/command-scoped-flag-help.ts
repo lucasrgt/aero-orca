@@ -37,6 +37,9 @@ const COMMAND_SCOPED_FLAG_HELP: Record<string, Record<string, string>> = {
     'clear-role': '--clear-role           Clear fleet role (revert to standard bot)',
     territory: '--territory <scope>    Set territory scope/paths for a captain bot',
     'clear-territory': '--clear-territory      Clear territory scope',
+    'skill-project':
+      '--skill-project <id>   Link a registered repo ID so the bot loads its project skills (repeatable)',
+    'clear-skill-projects': '--clear-skill-projects Unlink all project skills from this bot',
     agent: '--agent <id>           Switch the bot’s agent backend',
     model: '--model <id>           Set the default model id for the bot’s chats',
     effort:

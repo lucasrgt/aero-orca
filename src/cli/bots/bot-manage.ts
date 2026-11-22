@@ -4,7 +4,7 @@ import { resolve } from 'node:path'
 import type { Bot, BotAgent } from '../../shared/bot-types'
 import type { BotToolProblem, BotTools } from '../../shared/bot-tools'
 import type { CommandHandler, HandlerContext } from '../dispatch/dispatch'
-import { getOptionalStringFlag } from '../arguments/flags'
+import { getOptionalStringFlag, getRepeatedStringFlag } from '../arguments/flags'
 import { printResult } from '../output/command-result-output'
 import { RuntimeClientError } from '../runtime/connection/types'
 import { callBots, findBot, formatBot } from './bot'
@@ -24,8 +24,7 @@ type BotShowPayload = {
   memory: string | null
 }
 
-type BotToolsListPayload = {
-  tools: BotTools
+type BotToolsListPayload = BotTools & {
   problems?: Record<string, BotToolProblem>
 }
 
@@ -48,6 +47,7 @@ function formatBotShow(payload: BotShowPayload, toolsResult: BotToolsListPayload
     ...(bot.project ? [`Project: ${bot.project}`] : []),
     ...(bot.role ? [`Role: ${botRoleDisplayLabel(bot.role)}`] : []),
     ...(bot.territory ? [`Territory: ${bot.territory}`] : []),
+    ...(bot.skillProjects?.length ? [`Skill projects: ${bot.skillProjects.join(', ')}`] : []),
     ...(bot.launch?.model ? [`Model: ${bot.launch.model}`] : []),
     ...(bot.launch?.options?.effort ? [`Effort: ${bot.launch.options.effort}`] : []),
     ...(bot.permissionMode ? [`Permission: ${bot.permissionMode}`] : []),
@@ -62,7 +62,7 @@ function formatBotShow(payload: BotShowPayload, toolsResult: BotToolsListPayload
     ...(bot.tidyUp ? [`Tidy up: ${bot.tidyUp.on ? 'on' : 'off'} (${bot.tidyUp.every})`] : [])
   ]
   if (toolsResult) {
-    lines.push('', 'Tools:', formatBotTools(toolsResult.tools, toolsResult.problems))
+    lines.push('', 'Tools:', formatBotTools(toolsResult, toolsResult.problems))
   }
   if (soul?.trim()) {
     lines.push('', 'SOUL.md:', soul.trim())
@@ -104,7 +104,7 @@ async function handleBotShow({ flags, client, json }: HandlerContext): Promise<v
         ...profile,
         result: {
           ...profile.result,
-          ...(tools ? { tools: tools.result.tools, toolProblems: tools.result.problems ?? {} } : {})
+          ...(tools ? { tools: tools.result, toolProblems: tools.result.problems ?? {} } : {})
         }
       },
       true,
@@ -160,6 +160,16 @@ async function handleBotUpdate({ flags, client, cwd, json }: HandlerContext): Pr
       'Pass either --territory or --clear-territory, not both.'
     )
   }
+  const skillProjects = getRepeatedStringFlag(flags, 'skill-project')
+    .map((id) => id.trim())
+    .filter(Boolean)
+  const clearSkillProjects = flags.has('clear-skill-projects')
+  if (skillProjects.length > 0 && clearSkillProjects) {
+    throw new RuntimeClientError(
+      'invalid_argument',
+      'Pass either --skill-project or --clear-skill-projects, not both.'
+    )
+  }
   const soul = await readSoulFlags(flags, cwd)
   const tidyUpFlag = getOptionalStringFlag(flags, 'tidy-up')
   if (tidyUpFlag !== undefined && tidyUpFlag !== 'on' && tidyUpFlag !== 'off') {
@@ -198,6 +208,11 @@ async function handleBotUpdate({ flags, client, cwd, json }: HandlerContext): Pr
       ? { territory: territory.trim() || null }
       : clearTerritory
         ? { territory: null }
+        : {}),
+    ...(skillProjects.length > 0
+      ? { skillProjects }
+      : clearSkillProjects
+        ? { skillProjects: [] }
         : {}),
     ...(pause ? { paused: true } : resume ? { paused: false } : {}),
     ...(soul !== undefined ? { soul } : {}),
