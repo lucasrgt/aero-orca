@@ -12,6 +12,7 @@ import {
   startLocalSandbox,
   stopLocalSandbox
 } from '../../../local-sandbox/local-sandbox-service'
+import { listLocalScreens } from '../../../local-sandbox/local-screen-discovery'
 
 export type LocalSandboxHandlerDeps = {
   getUserDataPath: () => string
@@ -32,6 +33,10 @@ export function registerLocalSandboxHandlers({
 }: LocalSandboxHandlerDeps): void {
   ipcMain.handle('localSandboxes:checkDocker', async () => await checkLocalSandboxDocker())
   ipcMain.handle('localSandboxes:list', async () => await listLocalSandboxes(getUserDataPath()))
+  ipcMain.handle(
+    'localSandboxes:listScreens',
+    async () => await listLocalScreens(getUserDataPath())
+  )
   ipcMain.handle(
     'localSandboxes:create',
     async (_event, args: LocalSandboxCreateRequest) =>

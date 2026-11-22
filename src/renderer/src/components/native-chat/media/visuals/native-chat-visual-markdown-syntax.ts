@@ -14,7 +14,8 @@ import type { Processor, PluggableList } from 'unified'
 import {
   NATIVE_CHAT_VISUAL_DIRECTIVE_MAX_LINE_LENGTH,
   NATIVE_CHAT_VISUAL_MAX_PER_MESSAGE,
-  parseNativeChatVisualDirectiveLine
+  parseNativeChatVisualDirectiveLine,
+  type NativeChatScreenDirective
 } from '../../../../../../shared/native-chat/visuals/native-chat-visual-directive'
 import { nativeChatBotDirectiveCardOf } from '../../../../../../shared/native-chat/bot-cards/native-chat-bot-card-kind'
 
@@ -28,19 +29,32 @@ const NONCE_PROPERTY = 'dataOrcaVisual'
 const FILE_PROPERTY = 'dataOrcaVisualFile'
 const TITLE_PROPERTY = 'dataOrcaVisualTitle'
 const HOOK_PROPERTY = 'dataOrcaVisualHook'
+const SCREEN_PROPERTY = 'dataOrcaScreen'
+const SCREEN_URL_PROPERTY = 'dataOrcaScreenUrl'
+const SCREEN_SANDBOX_PROPERTY = 'dataOrcaScreenSandbox'
+const SCREEN_TITLE_PROPERTY = 'dataOrcaScreenTitle'
+const SCREEN_REASON_PROPERTY = 'dataOrcaScreenReason'
 export const NATIVE_CHAT_VISUAL_PLACEHOLDER_PROPERTIES = [
   NONCE_PROPERTY,
   FILE_PROPERTY,
   TITLE_PROPERTY,
-  HOOK_PROPERTY
+  HOOK_PROPERTY,
+  SCREEN_PROPERTY,
+  SCREEN_URL_PROPERTY,
+  SCREEN_SANDBOX_PROPERTY,
+  SCREEN_TITLE_PROPERTY,
+  SCREEN_REASON_PROPERTY
 ] as const
 
-function parseDirectiveLine(
-  line: string
-): { file: string; title: string | null; hookId: null } | { hookId: string } | null {
+type ParsedDirective =
+  | { kind: 'visual'; file: string; title: string | null }
+  | { kind: 'webhook'; hookId: string }
+  | { kind: 'screen'; screen: NativeChatScreenDirective }
+
+function parseDirectiveLine(line: string): ParsedDirective | null {
   const visual = parseNativeChatVisualDirectiveLine(line)
   if (visual) {
-    return { ...visual, hookId: null }
+    return { kind: 'visual', ...visual }
   }
   const card = nativeChatBotDirectiveCardOf(line)
   if (!card) {
@@ -48,7 +62,9 @@ function parseDirectiveLine(
   }
   switch (card.kind) {
     case 'webhook':
-      return { hookId: card.value.hookId }
+      return { kind: 'webhook', hookId: card.value.hookId }
+    case 'screen':
+      return { kind: 'screen', screen: card.value }
   }
 }
 
@@ -58,6 +74,8 @@ export type NativeChatVisualNode = Node & {
   title: string | null
   /** Set for a webhook card line, whose file and title stay empty. */
   hookId: string | null
+  /** Set for a local PC screen handoff card line. */
+  screen: NativeChatScreenDirective | null
   /** The line as written, for a directive shown as text instead. */
   source: string
   data?: { hName?: string; hProperties?: Record<string, string> }
@@ -108,7 +126,14 @@ const visualFromMarkdown: FromMarkdownExtension = {
   enter: {
     [TOKEN_TYPE](token) {
       this.enter(
-        { type: 'nativeChatVisual', file: '', title: null, hookId: null, source: '' },
+        {
+          type: 'nativeChatVisual',
+          file: '',
+          title: null,
+          hookId: null,
+          screen: null,
+          source: ''
+        },
         token
       )
     }
@@ -119,11 +144,13 @@ const visualFromMarkdown: FromMarkdownExtension = {
       const source = this.sliceSerialize(token)
       const directive = parseDirectiveLine(source)
       if (node?.type === 'nativeChatVisual' && directive) {
-        if (directive.hookId === null) {
+        if (directive.kind === 'visual') {
           node.file = directive.file
           node.title = directive.title
-        } else {
+        } else if (directive.kind === 'webhook') {
           node.hookId = directive.hookId
+        } else {
+          node.screen = directive.screen
         }
         node.source = source
       }
@@ -155,18 +182,30 @@ function placeVisuals(
         return literalParagraph(child)
       }
       mounted.count += 1
-      child.data = {
-        hName: 'div',
-        hProperties: {
-          [NONCE_PROPERTY]: nonce,
-          ...(child.hookId
-            ? { [HOOK_PROPERTY]: child.hookId }
-            : {
-                [FILE_PROPERTY]: child.file,
-                ...(child.title ? { [TITLE_PROPERTY]: child.title } : {})
-              })
+      const hProperties: Record<string, string> = { [NONCE_PROPERTY]: nonce }
+      if (child.hookId) {
+        hProperties[HOOK_PROPERTY] = child.hookId
+      } else if (child.screen) {
+        hProperties[SCREEN_PROPERTY] = '1'
+        if (child.screen.url) {
+          hProperties[SCREEN_URL_PROPERTY] = child.screen.url
+        }
+        if (child.screen.sandbox) {
+          hProperties[SCREEN_SANDBOX_PROPERTY] = child.screen.sandbox
+        }
+        if (child.screen.title) {
+          hProperties[SCREEN_TITLE_PROPERTY] = child.screen.title
+        }
+        if (child.screen.reason) {
+          hProperties[SCREEN_REASON_PROPERTY] = child.screen.reason
+        }
+      } else {
+        hProperties[FILE_PROPERTY] = child.file
+        if (child.title) {
+          hProperties[TITLE_PROPERTY] = child.title
         }
       }
+      child.data = { hName: 'div', hProperties }
       return child
     }
     if (hasChildren(child)) {

@@ -7536,5 +7536,7 @@
       "needsWindow": "Couldn’t update. Open Orca on {{desktop}}.",
       "failed": "Couldn’t update the agent list."
     }
-  }
+  },
+  "chat.botCards.screen.title": "PC screen",
+  "chat.botCards.screen.desktopOnly": "Open in desktop Orca"
 }

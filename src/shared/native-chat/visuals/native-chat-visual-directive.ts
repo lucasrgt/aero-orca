@@ -3,13 +3,29 @@
 // (no quote/backslash/control characters). file is required; title optional; reject duplicate keys, ignore unknown keys for newer agents.
 
 import { WEBHOOK_HOOK_ID_PATTERN } from '../../connector-webhook-contract'
+import {
+  NATIVE_CHAT_SCREEN_DIRECTIVE_MARKER,
+  buildNativeChatScreenDirective,
+  type NativeChatScreenDirective
+} from './native-chat-screen-directive'
+
+export {
+  NATIVE_CHAT_SCREEN_DIRECTIVE_MARKER,
+  NATIVE_CHAT_SCREEN_REASON_MAX_LENGTH,
+  NATIVE_CHAT_SCREEN_SANDBOX_MAX_LENGTH,
+  NATIVE_CHAT_SCREEN_URL_MAX_LENGTH,
+  formatNativeChatScreenDirective,
+  isLocalScreenUrl,
+  type NativeChatScreenDirective
+} from './native-chat-screen-directive'
 
 export const NATIVE_CHAT_VISUAL_DIRECTIVE_MARKER = '::orca-visual{'
 // ::orca-webhook{hook="wh_…"}: the webhook card. Only the hook id is in the line; the card reads the rest from the host.
 export const NATIVE_CHAT_WEBHOOK_DIRECTIVE_MARKER = '::orca-webhook{'
 const DIRECTIVE_MARKERS = [
   NATIVE_CHAT_VISUAL_DIRECTIVE_MARKER,
-  NATIVE_CHAT_WEBHOOK_DIRECTIVE_MARKER
+  NATIVE_CHAT_WEBHOOK_DIRECTIVE_MARKER,
+  NATIVE_CHAT_SCREEN_DIRECTIVE_MARKER
 ]
 
 /** Longest line the grammar considers. Bounds parsing and the streaming-tail check. */
@@ -140,10 +156,20 @@ export function parseNativeChatWebhookDirectiveLine(
   return hookId !== undefined && WEBHOOK_HOOK_ID_PATTERN.test(hookId) ? { hookId } : null
 }
 
+/** The local PC screen preview card a whole line names, or null when the line is anything else. */
+export function parseNativeChatScreenDirectiveLine(
+  rawLine: string
+): NativeChatScreenDirective | null {
+  return buildNativeChatScreenDirective(
+    directiveAttributes(rawLine, NATIVE_CHAT_SCREEN_DIRECTIVE_MARKER)
+  )
+}
+
 function isDirectiveLine(line: string): boolean {
   return (
     parseNativeChatVisualDirectiveLine(line) !== null ||
-    parseNativeChatWebhookDirectiveLine(line) !== null
+    parseNativeChatWebhookDirectiveLine(line) !== null ||
+    parseNativeChatScreenDirectiveLine(line) !== null
   )
 }
 

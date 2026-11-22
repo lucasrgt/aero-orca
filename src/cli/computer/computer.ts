@@ -14,6 +14,7 @@ import {
   getRequiredStringFlag
 } from '../arguments/flags'
 import { queryComputerTreeText } from './computer-tree-query'
+import { runComputerScreen } from './computer-screen'
 import { runComputerWait } from './computer-wait-command'
 import { RuntimeClientError } from '../runtime/connection/types'
 import {
@@ -41,6 +42,7 @@ import {
 import { computerTypeTextTargetUnsupportedMessage } from '../../shared/computer/computer-use-type-text-target'
 
 export const COMPUTER_HANDLERS: Record<string, CommandHandler> = {
+  'computer screen': runComputerScreen,
   'computer capabilities': async ({ client, json }) => {
     const result = await client.call<ComputerProviderCapabilities>('computer.capabilities', {})
     printResult(result, json, formatComputerCapabilities)

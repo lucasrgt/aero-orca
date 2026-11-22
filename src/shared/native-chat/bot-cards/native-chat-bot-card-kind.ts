@@ -1,7 +1,10 @@
 // The one table of bot chat cards. Status-line fields, message fields and chat directives each map
 // to a kind here, and every kind records whether the phone draws it or shows the host's line, so a
 // new card can't reach one platform silently.
-import { parseNativeChatWebhookDirectiveLine } from '../visuals/native-chat-visual-directive'
+import {
+  parseNativeChatScreenDirectiveLine,
+  parseNativeChatWebhookDirectiveLine
+} from '../visuals/native-chat-visual-directive'
 import type {
   NativeChatBotCardFieldValues,
   NativeChatBotCardFields,
@@ -57,6 +60,10 @@ const DIRECTIVE_CARDS = {
   webhook: (line: string) => {
     const value = parseNativeChatWebhookDirectiveLine(line)
     return value ? ({ kind: 'webhook', value } as const) : null
+  },
+  screen: (line: string) => {
+    const value = parseNativeChatScreenDirectiveLine(line)
+    return value ? ({ kind: 'screen', value } as const) : null
   }
 } satisfies Record<string, (line: string) => { kind: string; value: object } | null>
 

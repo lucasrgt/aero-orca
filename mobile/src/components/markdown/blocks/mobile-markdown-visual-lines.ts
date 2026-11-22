@@ -1,4 +1,5 @@
 import {
+  NATIVE_CHAT_SCREEN_DIRECTIVE_MARKER,
   NATIVE_CHAT_VISUAL_DIRECTIVE_MARKER,
   NATIVE_CHAT_VISUAL_MAX_PER_MESSAGE,
   NATIVE_CHAT_WEBHOOK_DIRECTIVE_MARKER,
@@ -36,9 +37,11 @@ export function protectMobileMarkdownVisualLines(raw: string): MobileMarkdownVis
   if (
     content.includes(PLACEHOLDER_PREFIX) ||
     content.includes(CARD_PREFIX) ||
-    ![NATIVE_CHAT_VISUAL_DIRECTIVE_MARKER, NATIVE_CHAT_WEBHOOK_DIRECTIVE_MARKER].some((marker) =>
-      content.includes(marker)
-    )
+    ![
+      NATIVE_CHAT_VISUAL_DIRECTIVE_MARKER,
+      NATIVE_CHAT_WEBHOOK_DIRECTIVE_MARKER,
+      NATIVE_CHAT_SCREEN_DIRECTIVE_MARKER
+    ].some((marker) => content.includes(marker))
   ) {
     return { text: content, directives: [], cards: [] }
   }

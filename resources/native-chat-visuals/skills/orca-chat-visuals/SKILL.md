@@ -47,3 +47,13 @@ After the file exists, put this on its own line in your reply, outside any code 
 ::orca-visual{file="latency-by-region-7c1e.html" title="Latency by region"}
 
 `file` is the bare file name, never a path; `title` is optional. At most 8 per reply.
+
+## Showing a virtual PC screen (only when needed)
+
+When you are driving a virtual Linux desktop (such as `pczinho` or an Orca local sandbox) and **only when the user actually needs to interact with the screen** — for example to sign into an account, complete 2FA/CAPTCHA, approve an OAuth/MCP consent page, or take over visually — put a standalone directive line in your reply, outside any code block:
+
+::orca-screen{url="http://127.0.0.1:6080/vnc.html?autoconnect=1&resize=scale&bell=off&path=websockify%3Ftoken%3Dmain" title="pczinho" reason="Log in to Cloudflare to continue"}
+
+- You can also run `orca computer screen --reason "..."` to discover running local sandboxes or `pczinho` and get the exact `::orca-screen{...}` line.
+- `url` must be a loopback `http(s)://127.0.0.1:<port>/...` or `localhost:<port>` URL. You may omit `url` and pass `sandbox="<name>"` (or just `reason="..."`) to let Orca resolve the chat's local sandbox or running screen automatically.
+- **Never emit `::orca-screen{...}` on routine turns** where no user action on the PC screen is needed.

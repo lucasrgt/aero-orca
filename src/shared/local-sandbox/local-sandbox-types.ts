@@ -24,6 +24,19 @@ export type LocalSandboxSummary = LocalSandboxRecord & {
   screenUrl: string
 }
 
+export type LocalScreenKind = 'sandbox' | 'docker'
+
+export type LocalScreenEntry = {
+  id: string
+  name: string
+  kind: LocalScreenKind
+  containerName: string
+  status: LocalSandboxStatus
+  screenUrl: string
+  environmentId?: string
+  geometry?: string
+}
+
 export type LocalSandboxDockerCheck = {
   available: boolean
   version?: string

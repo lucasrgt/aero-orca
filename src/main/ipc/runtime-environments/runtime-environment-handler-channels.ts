@@ -34,6 +34,7 @@ export const RUNTIME_ENVIRONMENT_HANDLER_CHANNELS = [
   'runtimeEnvironments:allowOrcadMoveLeavingBehind',
   'localSandboxes:checkDocker',
   'localSandboxes:list',
+  'localSandboxes:listScreens',
   'localSandboxes:create',
   'localSandboxes:start',
   'localSandboxes:stop',

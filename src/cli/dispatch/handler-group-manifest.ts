@@ -186,6 +186,7 @@ export const HANDLER_GROUPS: readonly HandlerGroup[] = [
   {
     name: 'computer',
     keys: [
+      'computer screen',
       'computer capabilities',
       'computer list-apps',
       'computer permissions',

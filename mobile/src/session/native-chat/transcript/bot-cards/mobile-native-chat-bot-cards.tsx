@@ -18,6 +18,7 @@ import { MobileBotImportDoneCard } from './MobileBotImportDoneCard'
 import { MobileBotImportPlanCard } from './MobileBotImportPlanCard'
 import { MobileBotMemoryUpdatedRow } from './MobileBotMemoryUpdatedRow'
 import { MobileBotRequestCard } from './MobileBotRequestCard'
+import { MobileBotScreenCard } from './MobileBotScreenCard'
 import { MobileBotToolAddedCard } from './MobileBotToolAddedCard'
 import { MobileBotWebhookCard } from './MobileBotWebhookCard'
 import { MobileComposioSetupCard } from './MobileComposioSetupCard'
@@ -72,6 +73,9 @@ const MOBILE_BOT_CARDS: NativeChatPhoneBotCardRenderers<
   ),
   webhook: (directive, { fontScale }) => (
     <MobileBotWebhookCard directive={directive} fontScale={fontScale} />
+  ),
+  screen: (directive, { fontScale }) => (
+    <MobileBotScreenCard directive={directive} fontScale={fontScale} />
   )
 }
 

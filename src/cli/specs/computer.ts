@@ -20,6 +20,18 @@ const COMPUTER_ACTION_FLAGS = [...COMPUTER_OBSERVE_FLAGS, 'full-tree']
 
 export const COMPUTER_COMMAND_SPECS: CommandSpec[] = [
   {
+    path: ['computer', 'screen'],
+    summary:
+      'Discover local virtual PC screens (pczinho/sandboxes) and emit an inline ::orca-screen directive',
+    usage:
+      'orca computer screen [--list] [--sandbox <name|id>] [--url <loopback-url>] [--title <text>] [--reason <text>] [--json]',
+    allowedFlags: [...GLOBAL_FLAGS, 'list', 'sandbox', 'url', 'title', 'reason'],
+    notes: [
+      'Use only when the user needs to interact with a virtual PC screen (login, 2FA, CAPTCHA, OAuth/MCP consent, or visual takeover).',
+      'Include the printed ::orca-screen{...} line on its own line in your reply so Orca renders a clickable live screen preview in chat.'
+    ]
+  },
+  {
     path: ['computer', 'capabilities'],
     summary: 'Show computer-use provider capabilities',
     usage: 'orca computer capabilities [--json]',

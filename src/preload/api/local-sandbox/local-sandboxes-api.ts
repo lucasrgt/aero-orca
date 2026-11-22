@@ -6,12 +6,14 @@ import {
   type LocalSandboxCreateRequest,
   type LocalSandboxCreateResult,
   type LocalSandboxDockerCheck,
-  type LocalSandboxSummary
+  type LocalSandboxSummary,
+  type LocalScreenEntry
 } from '../../../shared/local-sandbox/local-sandbox-types'
 
 export type LocalSandboxesPreloadApi = {
   checkDocker: () => Promise<LocalSandboxDockerCheck>
   list: () => Promise<LocalSandboxSummary[]>
+  listScreens: () => Promise<LocalScreenEntry[]>
   create: (args: LocalSandboxCreateRequest) => Promise<LocalSandboxCreateResult>
   start: (args: { id: string }) => Promise<LocalSandboxActionResult>
   stop: (args: { id: string }) => Promise<LocalSandboxActionResult>
@@ -22,6 +24,7 @@ export type LocalSandboxesPreloadApi = {
 export const localSandboxesApi: LocalSandboxesPreloadApi = {
   checkDocker: () => ipcRenderer.invoke('localSandboxes:checkDocker'),
   list: () => ipcRenderer.invoke('localSandboxes:list'),
+  listScreens: () => ipcRenderer.invoke('localSandboxes:listScreens'),
   create: (args) => ipcRenderer.invoke('localSandboxes:create', args),
   start: (args) => ipcRenderer.invoke('localSandboxes:start', args),
   stop: (args) => ipcRenderer.invoke('localSandboxes:stop', args),

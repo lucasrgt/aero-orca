@@ -94,6 +94,6 @@ export function nativeChatVisualsSection(skill: NativeChatVisualsSkillLocation):
   return [
     '## Inline visuals',
     '',
-    `Orca can show a chart, diagram, table, report or mockup inline in this chat as an HTML page. When a visual would help, read ${file} first and follow it.`
+    `Orca can show a chart, diagram, table, report or mockup inline in this chat as an HTML page, and can also show a clickable live PC screen preview (::orca-screen{...}) only when the user needs to interact with a virtual desktop (login, 2FA, CAPTCHA, MCP/OAuth consent). When either would help, read ${file} first and follow it.`
   ].join('\n')
 }

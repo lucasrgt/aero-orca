@@ -9,6 +9,10 @@ function fallbackText(card: NativeChatDirectiveBotCard): string {
   switch (card.kind) {
     case 'webhook':
       return webhookCardFallbackText(null)
+    case 'screen':
+      return card.value.reason
+        ? `${card.value.title ?? card.value.sandbox ?? 'PC screen'}: ${card.value.reason}`
+        : (card.value.title ?? card.value.sandbox ?? 'PC screen (open in desktop Orca)')
   }
 }
 

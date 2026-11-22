@@ -25428,5 +25428,14 @@
   },
   "agentCliUpdate": {
     "thisComputer": "Este computador"
-  }
+  },
+  "components.native-chat.screen.clickToOpen": "Clique para abrir e controlar a tela do PC",
+  "components.native-chat.screen.controlHere": "Controlar aqui",
+  "components.native-chat.screen.defaultTitle": "Tela do PC",
+  "components.native-chat.screen.loading": "Conectando à tela do PC…",
+  "components.native-chat.screen.openExternal": "Abrir no navegador externo",
+  "components.native-chat.screen.openScreen": "Abrir tela",
+  "components.native-chat.screen.previewOnly": "Preview",
+  "components.native-chat.screen.retry": "Tentar novamente",
+  "components.native-chat.screen.unavailable": "Nenhuma tela de PC local em execução. Inicie o pczinho ou um sandbox local e tente novamente."
 }

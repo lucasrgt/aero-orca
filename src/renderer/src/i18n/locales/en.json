@@ -29985,5 +29985,14 @@
     "botHeader": {
       "openScreen": "Open sandbox screen"
     }
-  }
+  },
+  "components.native-chat.screen.clickToOpen": "Click to open and control PC screen",
+  "components.native-chat.screen.controlHere": "Control here",
+  "components.native-chat.screen.defaultTitle": "PC screen",
+  "components.native-chat.screen.loading": "Connecting to PC screen…",
+  "components.native-chat.screen.openExternal": "Open in external browser",
+  "components.native-chat.screen.openScreen": "Open screen",
+  "components.native-chat.screen.previewOnly": "Preview",
+  "components.native-chat.screen.retry": "Retry",
+  "components.native-chat.screen.unavailable": "No running local PC screen found. Start pczinho or a local sandbox and retry."
 }
