@@ -1,6 +1,14 @@
 // The ::orca-screen{...} card: an inline live PC screen preview that opens directly in Orca on click.
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { ExternalLink, Eye, Maximize2, Monitor, MousePointerClick, RefreshCw } from 'lucide-react'
+import {
+  ExternalLink,
+  Eye,
+  Maximize2,
+  Monitor,
+  MousePointerClick,
+  RefreshCw,
+  Smartphone
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { useTranslate } from '@/i18n/use-translate'
@@ -19,7 +27,10 @@ type ScreenResolutionState =
   | { status: 'ready'; url: string; label: string; containerName: string | null }
   | { status: 'unavailable' }
 
-function buildPreviewFrameUrl(screenUrl: string, interactive: boolean): string {
+function buildPreviewFrameUrl(screenUrl: string, interactive: boolean, directApp: boolean): string {
+  if (directApp) {
+    return screenUrl
+  }
   try {
     const parsed = new URL(screenUrl)
     if (!parsed.searchParams.has('autoconnect')) {
@@ -72,7 +83,9 @@ export function NativeChatScreenCard({
   const t = useTranslate()
   const dragPassthrough = useWebviewDragPassthroughActive()
   const environmentId = owner.target.kind === 'environment' ? owner.target.environmentId : null
-  const [interactive, setInteractive] = useState(false)
+  const isDirectApp = Boolean(directive.url && !directive.sandbox)
+  const [interactive, setInteractive] = useState(isDirectApp)
+  const [viewport, setViewport] = useState<'desktop' | 'mobile'>('desktop')
   const [reloadNonce, setReloadNonce] = useState(0)
   const [resolved, setResolved] = useState<ScreenResolutionState>(() =>
     directive.url && isLocalScreenUrl(directive.url)
@@ -168,8 +181,11 @@ export function NativeChatScreenCard({
   }, [directive, environmentId])
 
   const previewUrl = useMemo(
-    () => (resolved.status === 'ready' ? buildPreviewFrameUrl(resolved.url, interactive) : null),
-    [interactive, resolved]
+    () =>
+      resolved.status === 'ready'
+        ? buildPreviewFrameUrl(resolved.url, interactive, isDirectApp)
+        : null,
+    [interactive, isDirectApp, resolved]
   )
 
   const openInOrca = useCallback((): void => {
@@ -205,6 +221,13 @@ export function NativeChatScreenCard({
     'Click to open and control PC screen'
   )
 
+  const desktopViewportLabel = t('components.native-chat.screen.desktopViewport', 'Desktop view')
+  const mobileViewportLabel = t(
+    'components.native-chat.screen.mobileViewport',
+    'Mobile view (390px)'
+  )
+  const reloadPreviewLabel = t('components.native-chat.screen.reloadPreview', 'Reload preview')
+
   return (
     <div className="my-3 min-w-0 max-w-full overflow-hidden rounded-lg border border-chat-code-border bg-chat-code-surface select-none last:mb-0">
       <div className="flex min-h-8 items-center justify-between gap-2 px-3 py-1">
@@ -217,15 +240,51 @@ export function NativeChatScreenCard({
         </span>
         {resolved.status === 'ready' ? (
           <div className="flex shrink-0 items-center gap-1">
-            <Button
-              type="button"
-              variant="ghost"
-              size="xs"
-              onClick={() => setInteractive((value) => !value)}
-            >
-              {interactive ? <Eye className="size-3" /> : <MousePointerClick className="size-3" />}
-              {interactive ? previewOnlyLabel : controlHereLabel}
-            </Button>
+            {isDirectApp ? (
+              <>
+                <Button
+                  type="button"
+                  variant={viewport === 'desktop' ? 'secondary' : 'ghost'}
+                  size="icon-xs"
+                  aria-label={desktopViewportLabel}
+                  onClick={() => setViewport('desktop')}
+                >
+                  <Monitor className="size-3" />
+                </Button>
+                <Button
+                  type="button"
+                  variant={viewport === 'mobile' ? 'secondary' : 'ghost'}
+                  size="icon-xs"
+                  aria-label={mobileViewportLabel}
+                  onClick={() => setViewport('mobile')}
+                >
+                  <Smartphone className="size-3" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-xs"
+                  aria-label={reloadPreviewLabel}
+                  onClick={() => setReloadNonce((n) => n + 1)}
+                >
+                  <RefreshCw className="size-3" />
+                </Button>
+              </>
+            ) : (
+              <Button
+                type="button"
+                variant="ghost"
+                size="xs"
+                onClick={() => setInteractive((value) => !value)}
+              >
+                {interactive ? (
+                  <Eye className="size-3" />
+                ) : (
+                  <MousePointerClick className="size-3" />
+                )}
+                {interactive ? previewOnlyLabel : controlHereLabel}
+              </Button>
+            )}
             <Button type="button" variant="secondary" size="xs" onClick={openInOrca}>
               <Maximize2 className="size-3" />
               {openScreenLabel}
@@ -271,12 +330,22 @@ export function NativeChatScreenCard({
 
       <div className="relative border-t border-chat-code-border bg-black/90">
         {resolved.status === 'ready' && previewUrl ? (
-          <div className="relative aspect-video w-full max-h-[320px] overflow-hidden">
+          <div
+            className={
+              isDirectApp
+                ? 'relative flex h-[540px] w-full justify-center overflow-hidden bg-background'
+                : 'relative aspect-video w-full max-h-[320px] overflow-hidden'
+            }
+          >
             <iframe
               key={`${previewUrl}:${String(reloadNonce)}`}
               src={previewUrl}
               title={title}
-              className="h-full w-full border-0"
+              className={
+                isDirectApp && viewport === 'mobile'
+                  ? 'h-full w-[390px] max-w-full border-x border-border'
+                  : 'h-full w-full border-0'
+              }
               style={dragPassthrough || !interactive ? { pointerEvents: 'none' } : undefined}
               referrerPolicy="no-referrer"
             />
