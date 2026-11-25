@@ -28696,7 +28696,7 @@
       "retryFailed": "无法重试。请稍后再试",
       "failed": "无法完成设置",
       "tryAgain": "重试",
-      "subtitle": "你的新 bot · 由你的 {{agent}} 驱动",
+      "subtitle": "你的新 bot — 由你的 {{agent}} 驱动",
       "reading": "正在了解你的工作环境…",
       "read": "了解你的工作环境"
     },
@@ -30229,7 +30229,7 @@
       "botHeader": "Bot",
       "moveToProject": "移至项目",
       "moreAgents": "还有 {{count}} 个智能体",
-      "heading": "工作区 · {{total}}"
+      "heading": "工作区（{{total}}）"
     },
     "connector": {
       "howToAsk": "提问方式",
