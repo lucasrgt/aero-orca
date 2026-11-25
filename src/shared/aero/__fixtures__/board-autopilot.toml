@@ -1,0 +1,119 @@
+name = "autopilot"
+mode = "monolith"
+pipeline = ""
+
+[[column]]
+id = "backlog"
+title = "Backlog"
+pipeline = ""
+
+[[column]]
+id = "done"
+title = "Done"
+pipeline = ""
+
+[[card]]
+id = "f1-live-quota-meter"
+title = "F1 — Live quota meter (session/weekly + reset + forecast tooltip)"
+desc = "Spec: .aerofortress/specs/autonomy-quota-and-remote.md section F1."
+priority = "high"
+category = ""
+subtasks = []
+attachments = []
+knowledge = []
+pipeline = ""
+column = "backlog"
+session = ""
+phase = ""
+blocked_by = ["autonomy/f6-telegram-decision-desk"]
+blocks = []
+touched = ""
+
+[[card]]
+id = "add-an-npm-test-script-that-runs-eaa56a"
+title = "Add an npm test script that runs the Rust tests"
+desc = """
+[src: gh/example-owner/example-repo#58]
+Run the Rust suite with one command.
+"""
+priority = ""
+category = ""
+subtasks = [{ title = "Document it in the README", done = true }]
+attachments = []
+knowledge = []
+pipeline = ""
+column = "done"
+session = ""
+phase = ""
+blocked_by = []
+blocks = []
+touched = "2026-11-06T13:26:11.560077500+00:00"
+split_hash = "4960d280c0d71ce5"
+
+[card.readiness]
+verdict = "ready"
+score = 8
+checks = [true, true, true, true, true, true, true, true]
+missing_questions = []
+risk = "low"
+estimate_min = 20
+triaged_at = "2026-10-20T17:24:43.827288900+00:00"
+text_hash = "61715c0e4d086bce"
+
+[card.outcome]
+status = "pr-open"
+summary = "Done in an attended session."
+pr = "https://github.com/example-owner/example-repo/pull/58"
+branch = "autopilot/add-an-npm-test-script-that-runs-eaa56a"
+evidence = ["cargo test --test npm_test_script: 4 passed; 0 failed"]
+cost_usd = 0.22632030000000003
+tokens = 40820
+followups = []
+questions = []
+at = "2026-11-06T12:56:55.868911+00:00"
+fully_proven = false
+verified_sha = "926cd4ad76da7fc1005e206fcb3ded44feea8bb6"
+base_sha = "4f7adfceab91f7381e131ff9901ba997e9502b9b"
+
+[card.outcome.criteria]
+pass = 0
+fail = 1
+
+[[card.outcome.criteria_proof]]
+index = 1
+text = "Given package.json has a scripts block without a test entry, when the change is applied, then scripts.test runs cargo test"
+test_path = "src-tauri/tests/npm_test_script.rs"
+test_name = "package_json_test_script_runs_cargo_test_in_src_tauri"
+status = "unproven"
+reason = "checks.test is not configured, so no test run can back the binding"
+
+[card.outcome.merge]
+state = "merged"
+reason = ""
+pr_number = 58
+strategy = "merge"
+merge_commit = "347c13cbe949fa53d26da9cae44b54177479ef82"
+at = "2026-11-06T13:26:11.560077500+00:00"
+
+[card.outcome.evaluation]
+action = "merge"
+at = "2026-11-06T13:26:01.846153800+00:00"
+via = "app"
+
+[card.spec]
+story = "As a developer, I want one npm command that runs the Rust test suite."
+refined_at = "2026-11-06T12:51:06.977685900+00:00"
+text_hash = "df4493b01dd55551"
+
+[[card.spec.acceptance]]
+given = "package.json has a scripts block without a test entry"
+when = "the change is applied"
+then = "scripts.test runs cargo test"
+
+[[card.clarifications]]
+id = "q9baca1c5"
+question = "Should this card fix failing Rust tests?"
+answer = ""
+asked_at = "2026-11-06T12:51:06.977685900+00:00"
+answered_at = ""
+via = ""

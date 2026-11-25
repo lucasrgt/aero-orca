@@ -1,0 +1,15 @@
+schema = 1
+id = "NYA-01KYASTB1H12GS04SVR3CNF2M9"
+title = "NYA enforcement cannot depend on boot-time prompt memory"
+lesson = "The host must inject scar recall at an interception point on every task."
+scope = ["**"]
+tags = ["aerofortress-migration", "domain:arch"]
+created_at = "2026-07-24T19:32:13Z"
+
+[[occurrences]]
+occurred_at = "2026-07-24T19:32:13Z"
+source = "aerofortress-item:66e169ad-58a0-49e2-87dc-4f1e15541682"
+reported_by = "harness:observation"
+corrected_by = "git:dev@example.com"
+recorded_by = "migration:aerofortress"
+commit = "cd0fd26"

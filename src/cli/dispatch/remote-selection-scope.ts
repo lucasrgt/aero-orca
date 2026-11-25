@@ -16,6 +16,7 @@ export function ignoresRemoteSelection(commandPath: readonly string[]): boolean 
     commandPath[0] === 'mcp' ||
     commandPath[0] === 'vm' ||
     commandPath[0] === 'agent-context' ||
+    commandPath[0] === 'aero' ||
     commandPath[0] === 'profile' ||
     // Authoring works on local files; the handler refuses explicit remote flags.
     (commandPath[0] === 'plugin' &&
