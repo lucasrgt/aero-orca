@@ -1,0 +1,23 @@
+level = "merge"
+sources = ["kanban", "github"]
+board = "autopilot"
+github_label = "agent-ready"
+trusted_authors = ["@Octo-Cat"]
+base_branch = "main"
+max_parallel = 1
+daily_runs = 30
+weekly_reserve_pct = 0
+
+[checks]
+build = "npm ci && npx tsc --noEmit"
+test = ""
+e2e = ""
+doctor = ""
+
+[merge]
+strategy = "Squash"
+require_ci = true
+protected_paths = [".github/**", "**/migrations/**"]
+
+[deploy]
+command = ""

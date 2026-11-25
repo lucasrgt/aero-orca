@@ -282,6 +282,11 @@ export const HANDLER_GROUPS: readonly HandlerGroup[] = [
     load: async () => (await import('../session-search/search.js')).SEARCH_HANDLERS
   },
   {
+    name: 'aero',
+    keys: ['aero inspect'],
+    load: async () => (await import('../aero/aero-inspect.js')).AERO_HANDLERS
+  },
+  {
     name: 'ports',
     keys: ['ports'],
     load: async () => (await import('../workspace-ports/ports.js')).PORTS_HANDLERS
