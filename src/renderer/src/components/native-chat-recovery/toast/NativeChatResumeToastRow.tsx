@@ -15,7 +15,8 @@ function rowActions(row: ResumeToastRow, remote: boolean, t: Translate): ResumeF
     return []
   }
   if (row.openOnly) {
-    return ['open']
+    // A terminal worker whose resume was refused is settled already: its coordinator heard it was lost.
+    return row.candidate.surface === 'terminal' ? [] : ['open']
   }
   const guided: ResumeFailureAction[] = row.failure
     ? (() => {
@@ -25,10 +26,12 @@ function rowActions(row: ResumeToastRow, remote: boolean, t: Translate): ResumeF
         )
       })()
     : ['retry', 'open']
+  const shown =
+    row.candidate.surface === 'terminal' ? guided.filter((action) => action !== 'open') : guided
   // A server's chats can only be hidden by closing; this machine's can always be dismissed.
   return remote
-    ? guided.filter((action) => action !== 'dismiss')
-    : [...guided.filter((action) => action !== 'dismiss'), 'dismiss']
+    ? shown.filter((action) => action !== 'dismiss')
+    : [...shown.filter((action) => action !== 'dismiss'), 'dismiss']
 }
 
 function actionLabel(action: ResumeFailureAction, row: ResumeToastRow, t: Translate): string {

@@ -8,6 +8,7 @@ import type { ExecutionHostId } from '../../../../../shared/execution-host/execu
 import RunTargetCombobox from './RunTargetCombobox'
 import { ConnectHostButton, NeedsSetupHostIcon, SetLocationButton } from './RunTargetRowActions'
 import type { EphemeralVmRecipeOption, RunTargetHostOption } from './run-target-options'
+import type { WslHostDistro } from '../../../../../shared/remote-runtime/wsl-hosts/wsl-host-types'
 
 export default function WorkspaceRunTargetCombobox({
   hostOptions,
@@ -30,6 +31,7 @@ export default function WorkspaceRunTargetCombobox({
   onAddRemoteServer?: () => void
   onAddSshHost?: () => void
   onAddLocalSandbox?: () => void
+  onAddWslDistro?: (distro: WslHostDistro) => void
 }): React.JSX.Element {
   const [connectingHosts, setConnectingHosts] = useState<ReadonlySet<ExecutionHostId>>(
     () => new Set()

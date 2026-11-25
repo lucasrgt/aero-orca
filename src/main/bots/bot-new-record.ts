@@ -30,6 +30,7 @@ export function newBotRecord(
     ...(input.project?.trim() ? { project: input.project.trim() } : {}),
     ...(input.role ? { role: input.role } : {}),
     ...(input.territory?.trim() ? { territory: input.territory.trim() } : {}),
+    ...(input.avatarOutfit ? { avatarOutfit: input.avatarOutfit } : {}),
     paused: false,
     notifications: { needsPermission: true, taskComplete: true, couldNotFinish: true },
     members: [],

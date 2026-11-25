@@ -5,34 +5,58 @@ import {
   botProjectCollapseKey,
   buildBotSidebarRows
 } from '../../../../src/shared/bots/bot-project-groups'
-import { botsOfflineWord } from '../../bots/host-bot-listing'
+import { botHomeWorktreeId } from '../../bots/host-bots-read'
+import { mobileBotRowLimitText } from '../../bots/mobile-bot-row-line'
+import { useMobileBotUsageLimitStop } from '../../bots/use-mobile-bot-usage-limit-stop'
+import { useSharedNowSnapshot } from '../../hooks/use-now'
+import { LOCAL_EXECUTION_HOST_ID } from '../../../../src/shared/execution-host/execution-host'
 import { mobileBotAvatarSource } from '../../bots/host-bot-row-facts'
 import { MobileBotFaceStack } from '../../bots/MobileBotFaceStack'
 import {
-  MobileBotFleetBadge,
-  MobileBotNeedsYouCount,
   MobileBotRowAvatar,
   MobileBotRowStatus,
   MobileBotRowView
 } from '../../bots/MobileBotHomeRow'
+import { MobileBotFleetBadge, MobileBotNeedsYouCount } from '../../bots/MobileBotRowTitleMarks'
 import { useMobileTranslation } from '../../i18n/use-mobile-translation'
-import { HostContextPill } from '../../worktree/row-presentation/HostContextPill'
 import { colors, feedback, spacing } from '../../theme/mobile-theme'
 import { themedStyleSheet } from '../../theme/themed-styles'
 import { useMobileColorScheme } from '../../theme/use-mobile-color-scheme'
 import type { HomeBotRow } from './home-bot-rows'
 
-/** A bot or room on Home: the computer's Bots row, always naming where it runs. */
+const keepNow = (now: number): number => now
+const noClock = (): number => 0
+
+/** A bot or room on Home: the computer's Bots row. */
 export const MobileHomeBotRow = memo(function MobileHomeBotRow(props: {
   row: HomeBotRow
   divider: boolean
   /** It sits on Feed's grouped panel, which its status ring matches. */
   grouped?: boolean
+  /** Another row in its list has the same name on another computer, so its line names its own. */
+  nameComputer?: boolean
   onOpen: (row: HomeBotRow) => void
 }) {
   useMobileColorScheme()
   const { row } = props
   const surface = props.grouped ? colors.bgPanel : undefined
+  // A kept row (no dot) isn't live, and a server's sessions aren't on its paired computer's feed.
+  const live =
+    row.kind === 'bot' && row.dot !== null && row.executionHost === LOCAL_EXECUTION_HOST_ID
+  // Only a live row's stop can end, so only it redraws on the clock.
+  const now = useSharedNowSnapshot(60_000, live ? keepNow : noClock)
+  const homeId = row.kind === 'bot' ? botHomeWorktreeId(row.bot) : null
+  const workspaceIds = useMemo(() => (homeId ? [homeId] : []), [homeId])
+  const stop = useMobileBotUsageLimitStop(live ? row.pairedHostId : null, workspaceIds, now)
+  const limitText =
+    row.kind === 'bot'
+      ? mobileBotRowLimitText(
+          stop,
+          row.line,
+          { dot: row.dot, chatSessionId: row.bot.chatSessionId },
+          now
+        )
+      : null
   return (
     <MobileBotRowView
       avatar={
@@ -40,11 +64,12 @@ export const MobileHomeBotRow = memo(function MobileHomeBotRow(props: {
           <MobileBotRowAvatar
             avatar={mobileBotAvatarSource(row.bot)}
             dot={row.dot}
+            stopped={limitText !== null}
             surface={surface}
           />
         ) : (
           <>
-            <MobileBotFaceStack faces={row.faces} />
+            <MobileBotFaceStack faces={row.faces} ringColor={surface} />
             <MobileBotRowStatus dot={row.dot} surface={surface} />
           </>
         )
@@ -54,14 +79,12 @@ export const MobileHomeBotRow = memo(function MobileHomeBotRow(props: {
         row.kind === 'bot' && row.bot.role ? <MobileBotFleetBadge role={row.bot.role} /> : null
       }
       unread={row.unread}
-      preview={row.preview}
-      previewLeading={
-        <HostContextPill
-          hostId={row.executionHost}
-          label={row.hostLabel}
-          healthLabel={row.offline ? botsOfflineWord() : undefined}
-        />
+      preview={
+        props.nameComputer
+          ? [row.hostLabel, limitText ?? row.preview].filter(Boolean).join(' · ')
+          : (limitText ?? row.preview)
       }
+      asking={limitText === null && row.kind === 'bot' && row.asking}
       age={row.age}
       dimmed={row.offline === true || (row.kind === 'bot' && row.bot.paused)}
       divider={props.divider}
@@ -75,6 +98,8 @@ export const MobileHomeBotRow = memo(function MobileHomeBotRow(props: {
 export const MobileHomeBotRows = memo(function MobileHomeBotRows(props: {
   rows: readonly HomeBotRow[]
   grouped?: boolean
+  /** Keys of the rows whose line names their computer. */
+  nameComputer?: ReadonlySet<string>
   onOpen: (row: HomeBotRow) => void
 }) {
   useMobileColorScheme()
@@ -84,6 +109,7 @@ export const MobileHomeBotRows = memo(function MobileHomeBotRows(props: {
       row={row}
       divider={index > 0}
       grouped={props.grouped}
+      nameComputer={props.nameComputer?.has(row.key)}
       onOpen={props.onOpen}
     />
   ))
@@ -220,3 +246,19 @@ const projectHeaderStyles = themedStyleSheet(() => ({
   },
   pressed: { opacity: feedback.pressedOpacity }
 }))
+
+/** The rows' computers, in the order their first rows come. */
+export function homeBotRowsByComputer(
+  rows: readonly HomeBotRow[]
+): { placeKey: string; label: string; rows: HomeBotRow[] }[] {
+  const byPlace = new Map<string, { placeKey: string; label: string; rows: HomeBotRow[] }>()
+  for (const row of rows) {
+    const place = byPlace.get(row.placeKey)
+    if (place) {
+      place.rows.push(row)
+    } else {
+      byPlace.set(row.placeKey, { placeKey: row.placeKey, label: row.hostLabel, rows: [row] })
+    }
+  }
+  return [...byPlace.values()]
+}

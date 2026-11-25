@@ -11,7 +11,8 @@ import {
 } from '../runtime/orchestration/terminal-authority/structured-sessions/structured-worker-authority'
 import { BOT_ORCA_CLI } from './bot-preamble'
 import { BOT_WORK_NOTE_TIMEOUT_MS } from './bot-work-record'
-import { readWorkers, readWorkspace, type BotWorkRuntime } from './bot-work-runtime'
+import { workspaceReader, type BotWorkRuntime } from './bot-work-runtime'
+import { readWorkers } from './bot-work-workers-read'
 
 const WARM_SLOT_DISPATCH_LIMIT = 12
 
@@ -86,10 +87,11 @@ async function readWarmSlots(
   if (live.length === 0) {
     return []
   }
+  const readWorkspace = workspaceReader(runtime)
   return Promise.all(
     live.map(async (worker): Promise<WarmSlotWorker> => {
       const [workspace, contextPercent] = await Promise.all([
-        readWorkspace(runtime, worker).catch(() => null),
+        readWorkspace(worker).catch(() => null),
         readWorkerContextPercent(runtime, worker.dispatchId)
       ])
       const ws = workspace && workspace !== 'gone' ? workspace : null

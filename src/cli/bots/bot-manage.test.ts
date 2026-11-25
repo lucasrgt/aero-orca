@@ -50,7 +50,7 @@ describe('orca bot manage commands', () => {
         }
       }
       if (method === 'bots.tools.list') {
-        return { tools: { agent: 'claude', own: [], inherited: [] }, problems: {} }
+        return { agent: 'claude', own: [], inherited: [], problems: {} }
       }
       return {}
     })

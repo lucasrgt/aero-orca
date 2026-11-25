@@ -1,6 +1,8 @@
 import type { StructuredAgentSessionTurnContext } from '../native-chat/agent-session-wire/structured-agent-session-turn-context'
 import type { BotHomeFiles } from './bot-preamble'
 import type { BotLaunchedRules } from './bot-turn-rules-update'
+import type { AgentJournalMessageItem } from '../../shared/agent-session/journal/agent-session-journal-types'
+import type { BotRecentChatsSection } from './bot-recent-chats'
 
 export type BotTurnContext = StructuredAgentSessionTurnContext & {
   /** The session's agent started; `delivered` when its instructions carried these files. */
@@ -22,3 +24,18 @@ export type BotFirstRun = {
   /** A turn there ended that the owner started. */
   ownerTurnEnded: (botId: string, sessionId: string) => void
 }
+
+export type Held = string | null | undefined
+
+/** Which worker a turn's conversation handed its code work to (or a Captain's warm slot). */
+export type BotTurnWorkNote = (
+  sessionId: string,
+  message: AgentJournalMessageItem,
+  botId: string
+) => Promise<string | null>
+
+/** What the bot's other chats did lately, as this turn's message may hear of it. */
+export type BotTurnRecentChats = (
+  botId: string,
+  sessionId: string
+) => Promise<BotRecentChatsSection | null>

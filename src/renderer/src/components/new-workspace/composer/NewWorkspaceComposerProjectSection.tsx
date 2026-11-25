@@ -50,6 +50,8 @@ type NewWorkspaceComposerProjectSectionProps = Pick<
   handleAddSshHost: () => void
   handleAddRemoteServer: () => void
   handleAddLocalSandbox?: () => void
+  /** A distro picked under Add host › WSL distro; the Add WSL distro dialog sets it up. */
+  handleAddWslDistro?: (distro: string) => void
   handleConnectRunTargetHost: (option: NeedsSetupProjectHostOption) => Promise<void>
   handleSetLocation: (option: NeedsSetupProjectHostOption) => void
   sshStatusLabel: string
@@ -83,6 +85,7 @@ export function NewWorkspaceComposerProjectSection({
   handleAddSshHost,
   handleAddRemoteServer,
   handleAddLocalSandbox,
+  handleAddWslDistro,
   handleConnectRunTargetHost,
   handleSetLocation,
   ephemeralVmRecipeError,
@@ -229,6 +232,9 @@ export function NewWorkspaceComposerProjectSection({
                 handleAddLocalSandbox && window.api?.runtimeEnvironments?.localSandboxes
                   ? handleAddLocalSandbox
                   : undefined
+              }
+              onAddWslDistro={
+                handleAddWslDistro ? (distro) => handleAddWslDistro(distro.name) : undefined
               }
               onConnectHost={handleConnectRunTargetHost}
               onSetLocation={handleSetLocation}

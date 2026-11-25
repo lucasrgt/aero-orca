@@ -3,28 +3,23 @@ import { useContext, useState } from 'react'
 import {
   Activity,
   Anchor,
-  BookOpen,
   Brain,
   Compass,
   Eye,
   Folder,
   Laptop,
   Moon,
-  Plug,
   Server,
   Share2,
   Shield,
   Smile,
-  Trash2,
-  Users,
-  Wrench
+  Trash2
 } from 'lucide-react'
 import { AgentIcon } from '@/components/agent/icons/AgentIcon'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { useTranslate } from '@/i18n/use-translate'
-import { useAccessRequests } from '@/lib/bot-access-requests'
 import { useAppStore } from '@/store'
 import { nativeChatPermissionModeLabel } from '@/components/native-chat/session/options/controls/native-chat-permission-mode-labels'
 import {
@@ -32,29 +27,21 @@ import {
   chatAsksNoApprovals,
   savedChatPermissionMode
 } from '../../../../../shared/agent-launch/permissions/agent-chat-permission-support'
-import { botMembersFrom, type Bot } from '../../../../../shared/bot-types'
+import type { Bot } from '../../../../../shared/bot-types'
 import { botRoleDisplayLabel } from '../../../../../shared/bots/bot-fleet-role'
 import { formatBotLaunchSummary } from '../../../../../shared/bots/bot-launch'
 import { botLookAround, lookAroundSupported } from '../../../../../shared/bots/bot-look-around'
 import { botTidyUp } from '../../../../../shared/bots/bot-tidy-up'
 import type { BotUpdateParams } from '../../../../../shared/rpc-contract/bots-params'
+import { folderWorkspaceKey } from '../../../../../shared/workspace/identity/workspace-scope'
 import type { BotHome } from '../../settings/bots/bot-home-files'
 import { useBotMemoryTopicCount } from '../../settings/bots/use-bot-memory-topics'
 import { useBotNotificationToggles } from '../../settings/bots/use-bot-notification-toggles'
-import { botSkillSourceNames, useBotOwnSkills } from '../../settings/bots/use-bot-skill-projects'
 import { useBotPictureSetting } from '../../settings/bots/use-bot-picture-setting'
 import { BotNameInlineEdit } from '../BotNameInlineEdit'
 import { BotPictureButton } from '../BotPictureButton'
-import { ACCOUNT_CONNECTORS, useBotConnectorState } from '../bot-connectors'
 import { botAgentLabel } from '../bot-presentation'
-import {
-  countValue,
-  lookAroundValue,
-  memoryValue,
-  tidyUpValue,
-  whoCanAskValue
-} from '../bot-settings-row-states'
-import { useBotTools } from '../bot-tool-checks'
+import { lookAroundValue, memoryValue, tidyUpValue } from '../bot-settings-row-states'
 import { useDeleteBot } from '../use-delete-bot'
 import { BotShareFlow } from '../sharing/BotShareFlow'
 import { BotSharedFromLine } from './BotSharedFromLine'
@@ -63,27 +50,13 @@ import { useBotComputerName } from './BotComputerPage'
 import type { BotSettingsPage } from './bot-settings-place'
 import { SettingsControlsOffContext, SettingsInsetGroup, SettingsInsetRow } from './BotSettingsRows'
 import { BotItemsSettingsGroup } from './BotItemsSettingsGroup'
+import { BotAccessSettingsGroup } from './BotAccessSettingsGroup'
 
 type Update = (updates: BotUpdateParams['updates']) => Promise<Bot | null>
 
 function BotSettingsSwitch(props: React.ComponentProps<typeof Switch>): React.JSX.Element {
   // Extend the pointer target into the row padding around the compact track.
   return <Switch {...props} size="compact" className="after:absolute after:-inset-2" />
-}
-
-function useAccessValues(bot: Bot): { connectors: string; whoCanAsk: string } {
-  const state = useBotConnectorState(bot)
-  const requests = useAccessRequests().filter(
-    (request) => request.botId === bot.id && request.hostId === bot.hostId
-  ).length
-  const people = ACCOUNT_CONNECTORS.filter((connector) => connector.id !== 'google').reduce(
-    (sum, connector) => sum + botMembersFrom(bot.members, connector.id).length,
-    0
-  )
-  return {
-    connectors: countValue(state.catalog.filter(state.added).length),
-    whoCanAsk: whoCanAskValue(people, requests)
-  }
 }
 
 function permissionLine(bot: Bot, t: ReturnType<typeof useTranslate>): string {
@@ -176,68 +149,31 @@ function SoulAndMemoryGroup({
   )
 }
 
-function AccessGroup({
-  bot,
-  open
-}: {
-  bot: Bot
-  open: (page: BotSettingsPage) => void
-}): React.JSX.Element {
-  const t = useTranslate()
-  const values = useAccessValues(bot)
-  const { view } = useBotTools(bot, 'finished')
-  const repos = useAppStore((state) => state.repos)
-  const own = useBotOwnSkills(bot)
-  const skills = countValue(
-    botSkillSourceNames(
-      own,
-      (bot.skillProjects ?? []).flatMap(
-        (id) => repos.find((repo) => repo.id === id)?.displayName ?? []
-      )
-    ).length
-  )
-  return (
-    <SettingsInsetGroup title={t('bots.settingsView.access', 'Access')}>
-      <SettingsInsetRow
-        icon={<Plug />}
-        title={t('settings.bots.connectors', 'Connectors')}
-        value={values.connectors}
-        page="connectors"
-        onOpen={() => open('connectors')}
-      />
-      <SettingsInsetRow
-        icon={<Users />}
-        title={t('bots.settingsView.whoCanAsk', 'Who can ask')}
-        value={values.whoCanAsk}
-        page="who-can-ask"
-        onOpen={() => open('who-can-ask')}
-      />
-      <SettingsInsetRow
-        icon={<Wrench />}
-        title={t('settings.bots.tools.title', 'Tools')}
-        value={
-          view.status === 'ready'
-            ? countValue(view.tools.own.length + view.tools.inherited.length)
-            : null
-        }
-        page="tools"
-        onOpen={() => open('tools')}
-      />
-      <SettingsInsetRow
-        icon={<BookOpen />}
-        title={t('settings.bots.skills.title', 'Skills')}
-        value={skills}
-        page="skills"
-        onOpen={() => open('skills')}
-      />
-    </SettingsInsetGroup>
-  )
-}
-
 function NotificationsGroup({ bot, update }: { bot: Bot; update: Update }): React.JSX.Element {
   const t = useTranslate()
+  const workspaceId = folderWorkspaceKey(bot.folderWorkspaceId)
+  const notificationsMuted = useAppStore(
+    (s) => s.notificationsMutedByWorktree?.[workspaceId] === true
+  )
+  const toggleWorktreeNotificationsMuted = useAppStore((s) => s.toggleWorktreeNotificationsMuted)
+  const muteLabel = t('settings.bots.muteNotifications', 'Mute notifications')
   return (
     <SettingsInsetGroup title={t('settings.bots.notifications', 'Notifications')}>
+      <SettingsInsetRow
+        title={muteLabel}
+        detail={t(
+          'settings.bots.muteNotificationsDescription',
+          'Stop sending system notifications. Unread indicators still appear.'
+        )}
+        wrapDetail
+        end={
+          <BotSettingsSwitch
+            checked={notificationsMuted}
+            aria-label={muteLabel}
+            onCheckedChange={() => toggleWorktreeNotificationsMuted(workspaceId)}
+          />
+        }
+      />
       {useBotNotificationToggles(bot).map((toggle) => (
         <SettingsInsetRow
           key={toggle.key}
@@ -383,7 +319,7 @@ export function BotSettingsRoot({
       ) : null}
       <BotItemsSettingsGroup bot={bot} update={update} />
       {home ? <SoulAndMemoryGroup home={home} open={open} /> : null}
-      <AccessGroup bot={bot} open={open} />
+      <BotAccessSettingsGroup bot={bot} open={open} />
       <BotSharingGroup bot={bot} open={open} />
       <NotificationsGroup bot={bot} update={update} />
       <div>

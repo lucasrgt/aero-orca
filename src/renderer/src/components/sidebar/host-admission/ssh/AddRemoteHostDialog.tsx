@@ -29,6 +29,8 @@ type AddRemoteHostDialogProps = {
   mode: AddRemoteHostMode | null
   onOpenChange: (mode: AddRemoteHostMode | null) => void
   onSandboxCreated?: (environmentId: string) => void
+  /** Mode 'wsl': the distro picked before the dialog opened. */
+  wslDistro?: string
 }
 
 type SshDialogView = 'form' | 'config-picker'
@@ -36,7 +38,8 @@ type SshDialogView = 'form' | 'config-picker'
 export function AddRemoteHostDialog({
   mode,
   onOpenChange,
-  onSandboxCreated
+  onSandboxCreated,
+  wslDistro
 }: AddRemoteHostDialogProps): React.JSX.Element {
   const t = useTranslate()
   const open = mode !== null
@@ -361,6 +364,8 @@ export function AddRemoteHostDialog({
           />
         ) : renderMode === 'wsl' ? (
           <AddWslHostDialogBody
+            key={wslDistro}
+            initialDistro={wslDistro}
             adding={isSaving}
             onAddingChange={setIsSaving}
             onAdded={() => {
