@@ -1,17 +1,16 @@
 // A running bot chat hears of outside memory changes and receipts its own committed writes.
 import { join } from 'node:path'
-import type { AgentJournalMessageItem } from '../../shared/agent-session/journal/agent-session-journal-types'
 import { botMemoryChange, isEmptyBotMemoryChange } from '../../shared/bot-memory-lines'
 import {
   type BotMemoryTopics,
   botMemoryTopicsKey,
-  botMemoryTopicsUpdateText,
-  botMemoryUpdateText,
   botMemoryKnown,
   botTurnFingerprint as fingerprint,
   readBotMemoryTopics
 } from './bot-turn-memory-update'
-import type { BotRecentChatsSection } from './bot-recent-chats'
+import { ownMemoryEdit } from './bot-turn-own-memory-edit'
+import { botHomeFilesUpdate, botTurnUpdateText } from './bot-turn-update-text'
+import { type BotTurnNoteRead, withNoteGiven } from './bot-active-work'
 import {
   type BotTurnLinkedSkills,
   linkedProjectsKey,
@@ -19,7 +18,13 @@ import {
   NO_BOT_TURN_LINKED_SKILLS,
   relinkedSkills
 } from './bot-turn-linked-skills'
-import type { BotTurnContext, BotFirstRun } from './bot-turn-context-types'
+import type {
+  BotTurnContext,
+  BotFirstRun,
+  BotTurnRecentChats,
+  BotTurnWorkNote,
+  Held
+} from './bot-turn-context-types'
 import type { StructuredAgentSessionTurnContextPlan as TurnPlan } from '../native-chat/agent-session-wire/structured-agent-session-turn-context'
 import { botLaunchedInstructions, withBotRulesUpdate } from './bot-turn-rules-update'
 import { type BotTurnGiven as Given, launchedBotTurnGiven } from './bot-turn-given'
@@ -31,7 +36,7 @@ import {
   turnOpenedAt,
   turnRows
 } from './bot-turn-rows'
-import { botContextNoteBody, type BotContextChange } from '../../shared/bots/bot-context-note'
+import { botContextNoteBody } from '../../shared/bots/bot-context-note'
 import { readBotHomeFiles } from './bot-preamble'
 import type { BotHomeFilesystem } from './bot-home'
 import { type BotMemoryRecord, createBotMemoryRecord, tagBotMemoryFile } from './bot-memory-record'
@@ -41,14 +46,7 @@ import { writeBotTurnMemoryReceipt } from './bot-turn-memory-receipt'
 
 export { BOT_MEMORY_UPDATED_NOTE } from '../../shared/bots/bot-memory-updated-note'
 
-// Workflow only: how the bot should weigh the update, never how it should sound.
-const COPY = {
-  soul: "[Your SOUL.md was updated; this replaces your earlier standing instructions. They rank below the user's current request.]"
-}
-
 export type { BotTurnContext, BotFirstRun } from './bot-turn-context-types'
-
-type Held = string | null | undefined
 
 const NO_FIRST_RUN: BotFirstRun = { rules: () => null, ownerTurnEnded: () => {} }
 
@@ -59,26 +57,17 @@ export function createBotTurnContext(
   firstRun: BotFirstRun = NO_FIRST_RUN,
   /** Any conversation's rows, so a turn end hears of outside turns still running beside it. */
   chats = NO_BOT_CHAT_JOURNAL,
-  /** Which worker a turn's conversation handed its code work to (or a Captain's warm slot). */
-  workNote: (
-    sessionId: string,
-    message: AgentJournalMessageItem,
-    botId: string
-  ) => Promise<string | null> = async () => null,
+  workNote: BotTurnWorkNote = async () => null,
   /** Each bot's MEMORY.md as Orca last recorded it, which Forget also updates. */
   record: Pick<
     BotMemoryRecord,
     'started' | 'version' | 'changedBesides' | 'after' | 'noted' | 'history'
   > = createBotMemoryRecord(fs),
   linkedSkills: BotTurnLinkedSkills = NO_BOT_TURN_LINKED_SKILLS,
-  /** What the bot's other chats did lately, as this turn's message may hear of it. */
-  recentChats: (
-    botId: string,
-    sessionId: string,
-    message: AgentJournalMessageItem
-  ) => Promise<BotRecentChatsSection | null> = async () => null,
-  /** Every fifth turn of an owner chat, whoever started it: questions the owner left unanswered. */
-  unansweredQuestionNote: (sessionId: string) => Promise<string | null> = async () => null,
+  recentChats: BotTurnRecentChats = async () => null,
+  /** Every fifth turn of an owner chat, whoever started it: questions the owner left unanswered; and
+   *  In progress items nothing runs for, each said once until it changes. */
+  unansweredQuestionNote: BotTurnNoteRead = async () => null,
   /** Current metadata, so a rename also reaches an already-running chat. */
   currentBotName: (botId: string) => string | null = () => null
 ): BotTurnContext {
@@ -144,7 +133,7 @@ export function createBotTurnContext(
         relinked(sessionId, stored),
         fs.readText(join(stored.folder, 'MEMORY.md')),
         readTopics(stored.folder),
-        unansweredQuestionNote(sessionId).catch(() => null)
+        unansweredQuestionNote(sessionId, stored.botId).catch(() => null)
       ])
       update(sessionId, {
         memoryAtStart: fingerprint(memory),
@@ -154,8 +143,10 @@ export function createBotTurnContext(
       })
       const rules = firstRun.rules(stored.botId, sessionId)
       const skillsNow = skillsUpdate(entry)
-      const text = [rules, skillsNow?.text, unanswered].filter(Boolean)
-      const taken = () => (skillsNow ? update(sessionId, { skills: skillsNow.skills }) : undefined)
+      const text = [rules, skillsNow?.text, unanswered?.text].filter(Boolean)
+      const taken = withNoteGiven(unanswered, () =>
+        skillsNow ? update(sessionId, { skills: skillsNow.skills }) : undefined
+      )
       const plan = text.length === 0 ? null : { text: text.join('\n\n'), given: taken }
       return withOrcaRules(sessionId, entry, held, plan)
     },
@@ -170,11 +161,14 @@ export function createBotTurnContext(
         readBotHomeFiles(fs, stored.folder),
         workNote(sessionId, message, stored.botId).catch(() => null),
         readTopics(stored.folder),
-        recentChats(stored.botId, sessionId, message).catch(() => null),
-        unansweredQuestionNote(sessionId).catch(() => null)
+        recentChats(stored.botId, sessionId).catch(() => null),
+        unansweredQuestionNote(sessionId, stored.botId).catch(() => null)
       ])
-      const soul = fingerprint(files.soul)
-      const memory = fingerprint(files.memory)
+      const { soul, memory, soulNow, memoryNow, topicsNow, changed } = botHomeFilesUpdate(
+        entry,
+        files,
+        topics
+      )
       const memoryRecord = record.version(entry.botId)
       update(sessionId, {
         memoryAtStart: memory,
@@ -184,27 +178,25 @@ export function createBotTurnContext(
       })
       const skillsNow = skillsUpdate(entry)
       const rules = firstRun.rules(entry.botId, sessionId)
-      const memoryNow =
-        memory !== entry.memory ? botMemoryUpdateText(entry.memoryText, files.memory) : null
-      const topicsNow = entry.topics ? botMemoryTopicsUpdateText(entry.topics, topics) : null
       const others = recent && recent.key !== entry.recentChats ? recent.text : null
-      const changed: BotContextChange[] = [
-        ...(soul !== entry.soul ? ['soul' as const] : []),
-        ...(memoryNow || topicsNow ? ['memory' as const] : [])
-      ]
       if (changed.length === 0 && !work && !skillsNow && !rules && !others && !unanswered) {
         return withOrcaRules(sessionId, entry, held, null)
       }
-      const soulNow =
-        soul !== entry.soul ? `${COPY.soul}\n\n${files.soul?.trim() || '(empty)'}` : null
       return withOrcaRules(sessionId, entry, held, {
-        text: [rules, soulNow, memoryNow, topicsNow, skillsNow?.text, others, work, unanswered]
-          .filter(Boolean)
-          .join('\n\n'),
+        text: botTurnUpdateText([
+          rules,
+          soulNow,
+          memoryNow,
+          topicsNow,
+          skillsNow?.text,
+          others,
+          work,
+          unanswered?.text
+        ]),
         ...(changed.length > 0
           ? { note: botContextNoteBody({ botId: entry.botId, changed }) }
           : {}),
-        given: () =>
+        given: withNoteGiven(unanswered, () =>
           update(sessionId, {
             soul,
             memory,
@@ -214,6 +206,7 @@ export function createBotTurnContext(
             ...(recent ? { recentChats: recent.key } : {}),
             ...(skillsNow ? { skills: skillsNow.skills } : {})
           })
+        )
       })
     },
     handedOver: (sessionId) =>
@@ -297,29 +290,24 @@ export function createBotTurnContext(
             const botWrote = (name: 'SOUL.md' | 'MEMORY.md'): boolean =>
               since !== null && turn.some((item) => writesHomeFile(item.body, name))
             const memory = fingerprint(tagged.text)
-            // Only a file the turn changed has anything to take; an unchanged one is already had.
-            const changed =
-              memoryAtStart !== null &&
-              memory !== memoryAtStart &&
-              // Not when facts were put back or kept out: its next turn is sent them.
-              isEmptyBotMemoryChange(tagged.kept) &&
-              edited
-            const ranAlone = changed && (await alone())
-            const now = given.get(sessionId) ?? entry
-            const ownMemory =
-              ranAlone &&
-              now.memory !== null &&
-              // The file at the turn's start was what the agent had.
-              memoryAtStart === now.memory &&
-              // This chat's own record changes (its Forget, its turn ends) are not another writer's.
-              !record.changedBesides(entry.botId, sessionId, now.memoryRecord)
+            const ownMemory = await ownMemoryEdit({
+              memoryAtStart,
+              memory,
+              kept: tagged.kept,
+              edited,
+              alone,
+              current: () => given.get(sessionId) ?? entry,
+              record,
+              botId: entry.botId,
+              sessionId
+            })
             update(sessionId, {
               scannedThrough: scanned,
               ...(botWrote('SOUL.md') ? { soul: fingerprint(soul) } : {}),
               ...(ownMemory
                 ? {
                     memory,
-                    memoryText: botMemoryKnown(now.memoryText, tagged.text),
+                    memoryText: botMemoryKnown(ownMemory.memoryText, tagged.text),
                     memoryRecord: record.version(entry.botId)
                   }
                 : {})

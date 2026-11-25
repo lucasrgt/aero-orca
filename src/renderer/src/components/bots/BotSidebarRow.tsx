@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Bell, BellOff, Pencil } from 'lucide-react'
+import { Bell, BellMinus, BellOff, BellRing, Pencil } from 'lucide-react'
 import {
   ContextMenu,
   ContextMenuContent,
@@ -9,6 +9,7 @@ import {
 import { HoverCardContent } from '@/components/ui/hover-card'
 import { ActivityThreadHoverCardRoot } from '@/components/activity/thread-preview/activity-thread-hover-card-root'
 import { WORKTREE_CARD_SURFACE_CLASS_NAME } from '@/components/sidebar/workspace-card/surface/worktree-card-surface'
+import { WorktreeCardNotificationsMutedBadge } from '@/components/sidebar/workspace-card/identity/WorktreeCardNotificationsMutedBadge'
 import { WorktreeTitleInlineRename } from '@/components/sidebar/workspace-card/identity/WorktreeTitleInlineRename'
 import type { WorktreeStatus } from '../../../../shared/worktree/row-display/worktree-status-rollup'
 import { useTranslate } from '@/i18n/use-translate'
@@ -61,7 +62,7 @@ export type BotSidebarRowProps = {
    *  it shows the row's working state; otherwise the row's end shows it. */
   trailing?: React.ReactNode
   /** What the hover card shows, rendered only while it is open. */
-  hoverDetails: () => React.ReactNode
+  hoverDetails: (keyboardFocus: boolean) => React.ReactNode
   /** Rename and Mark Read/Unread lead the menu; these follow. */
   menuItems: React.ReactNode
   menuFooter: React.ReactNode
@@ -95,6 +96,7 @@ export function BotSidebarRow({
   const setWorkspaceUnreadByUser = useAppStore((s) => s.setWorkspaceUnreadByUser)
   const [renameRequested, setRenameRequested] = useState(false)
   const [hoverOpen, setHoverOpen] = useState(false)
+  const [keyboardFocus, setKeyboardFocus] = useState(false)
   const toggleUnread = (): void => setWorkspaceUnreadByUser(workspaceId, !isUnread, hostId)
   // Working shows once, at the row's end, where every working row shows it.
   const badgeStatus = status === 'working' ? null : status
@@ -151,7 +153,11 @@ export function BotSidebarRow({
             onOpenChange={setHoverOpen}
             closeDelay={120}
             trigger={
-              <div className="flex min-w-0 flex-1 gap-1 self-stretch">
+              <div
+                className="flex min-w-0 flex-1 gap-1 self-stretch"
+                onFocus={(event) => setKeyboardFocus(event.target.matches(':focus-visible'))}
+                onBlur={() => setKeyboardFocus(false)}
+              >
                 <div className="flex min-w-0 flex-1 flex-col justify-center">
                   <div className="flex min-w-0 items-center gap-1.5">
                     <WorktreeTitleInlineRename
@@ -167,8 +173,9 @@ export function BotSidebarRow({
                       onBeginEditingConsumed={() => setRenameRequested(false)}
                     />
                     {nameBadge}
+                    <WorktreeCardNotificationsMutedBadge worktreeId={workspaceId} />
                     {age ? (
-                      <span className="ml-auto shrink-0 text-xs leading-4 text-muted-foreground tabular-nums">
+                      <span className="ml-auto shrink-0 text-3xs leading-none text-muted-foreground tabular-nums">
                         {age}
                       </span>
                     ) : null}
@@ -187,7 +194,7 @@ export function BotSidebarRow({
               // Portal clicks still bubble to the row through React.
               onClick={(event) => event.stopPropagation()}
             >
-              {hoverOpen ? hoverDetails() : null}
+              {hoverOpen ? hoverDetails(keyboardFocus) : null}
             </HoverCardContent>
           </ActivityThreadHoverCardRoot>
         </div>
@@ -202,9 +209,30 @@ export function BotSidebarRow({
           {isUnread ? <BellOff className="size-3.5" /> : <Bell className="size-3.5" />}
           {isUnread ? t('bots.row.markRead', 'Mark Read') : t('bots.row.markUnread', 'Mark Unread')}
         </ContextMenuItem>
+        <BotNotificationMuteMenuItem workspaceId={workspaceId} />
         {menuFooter}
       </ContextMenuContent>
     </ContextMenu>
+  )
+}
+
+/** Mounted only while the context menu is open, so closed rows never subscribe to the mute map. */
+function BotNotificationMuteMenuItem({ workspaceId }: { workspaceId: string }): React.JSX.Element {
+  const t = useTranslate()
+  const notificationsMuted = useAppStore(
+    (s) => s.notificationsMutedByWorktree?.[workspaceId] === true
+  )
+  const toggleWorktreeNotificationsMuted = useAppStore((s) => s.toggleWorktreeNotificationsMuted)
+  return (
+    <ContextMenuItem onSelect={() => toggleWorktreeNotificationsMuted(workspaceId)}>
+      {notificationsMuted ? <BellRing className="size-3.5" /> : <BellMinus className="size-3.5" />}
+      {notificationsMuted
+        ? t(
+            'auto.components.sidebar.WorktreeContextMenu.unmuteNotifications',
+            'Unmute Notifications'
+          )
+        : t('auto.components.sidebar.WorktreeContextMenu.muteNotifications', 'Mute Notifications')}
+    </ContextMenuItem>
   )
 }
 

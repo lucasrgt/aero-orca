@@ -9,6 +9,9 @@ const BOT_ITEM_TITLE_HELP = "--title <text>         The item's title"
 const AGENT_ID_FLAG_HELP =
   "--id <id>              The agent's orca_session_id: ID; also accepted positionally"
 
+const SKILLS_FORCE_FLAG_HELP =
+  '--force                Replace skipped copies where possible, moving each to ~/.agents/.orca-skill-backups first.'
+
 const COMMAND_SCOPED_FLAG_HELP: Record<string, Record<string, string>> = {
   'bot create': {
     project: '--project <name>       Group this bot under a project name in the sidebar',
@@ -139,7 +142,8 @@ const COMMAND_SCOPED_FLAG_HELP: Record<string, Record<string, string>> = {
     name: '--name <display name>  Plugin name shown in Orca'
   },
   'environment update': {
-    force: '--force                Restart over running terminals instead of deferring the update'
+    force: '--force                Restart over running terminals instead of deferring the update',
+    yes: '--yes                  With --force, accept that uncounted terminals the server runs itself end'
   },
   'environment recover': {
     'accept-changed-state':
@@ -167,7 +171,11 @@ const COMMAND_SCOPED_FLAG_HELP: Record<string, Record<string, string>> = {
     host: "--host <host>          Which host's copy to show: local, ssh:<target-id>, runtime:<id>, or a host name"
   },
   'skills install': {
-    agent: '--agent <names>        Comma-separated install targets; default is detected agents'
+    agent: '--agent <names>        Comma-separated install targets; default is detected agents',
+    force: SKILLS_FORCE_FLAG_HELP
+  },
+  'skills update': {
+    force: SKILLS_FORCE_FLAG_HELP
   },
   'orchestration check': {
     format: '--format               Also render the returned rows as local text'

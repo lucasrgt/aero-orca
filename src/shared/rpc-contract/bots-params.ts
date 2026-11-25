@@ -17,10 +17,11 @@ import {
   BotSlackAppSchema,
   type Bot
 } from '../bot-types'
-import { isSettableBotAvatar, MAX_BOT_AVATAR_BYTES } from '../bot-avatar'
+import { SettableBotAvatar } from './bot-avatar-params'
 import { BotAvatarColorSchema } from '../bots/bot-avatar-color'
 import { BotProjectSchema } from '../bots/bot-project-groups'
 import { BotRoleSchema, BotTerritorySchema } from '../bots/bot-fleet-role'
+import { BotStoredOutfitSchema } from '../bots/bot-avatar-outfit'
 import { HANDED_WORKSPACES_MAX, HandedWorkspaceSchema } from '../bots/bot-made-for-workspaces'
 import { BotProposalSchema, BotProposalSeedSchema } from '../bots/bot-proposal'
 import { BotTakeOverSchema } from '../bots/bot-take-over'
@@ -37,14 +38,10 @@ export const BOT_ERROR_CODES = [
   'bot_not_found',
   'bot_folder_not_owned',
   'bot_avatar_invalid',
+  'bot_avatar_changed',
+  'bot_avatar_home_unreadable',
   BOT_OFFER_ALREADY_ANSWERED
 ] as const
-
-/** A mascot, an emoji or null; an upload is set with bots.avatar.upload. */
-const SettableBotAvatar = z
-  .string()
-  .nullable()
-  .refine(isSettableBotAvatar, 'Set an uploaded picture with bots.avatar.upload')
 
 const HandedWorkspaces = z.array(HandedWorkspaceSchema).min(1).max(HANDED_WORKSPACES_MAX)
 
@@ -59,6 +56,8 @@ export const BotCreate = z.object({
   avatar: SettableBotAvatar.optional(),
   /** Absent, the mascot's own sky blue. */
   avatarColor: BotAvatarColorSchema.optional(),
+  /** Absent, the mascot wears nothing. Any well-formed id, so a newer client's outfit is kept for it. */
+  avatarOutfit: BotStoredOutfitSchema.optional(),
   /** Optional project name used to group bots by project in the sidebar. */
   project: BotProjectSchema.nullable().optional(),
   /** Optional fleet role (admiral or captain). */
@@ -85,13 +84,19 @@ export const BotCreate = z.object({
       skills: z.array(z.string().min(1).max(64)).max(32)
     })
     .optional(),
+  /** With `fromTemplate`: the template's name as the client showed it, in its own language. A bot
+   *  still named that gets the folder the template's English name makes; older hosts ignore it. */
+  templateNameShown: BotNameSchema.optional(),
   /** A shared link the owner reviewed: the bot is made from exactly that version, or nothing is made.
    *  `toolIds` are the tools the owner ticked. */
   fromShare: z
     .object({
       /** The review the owner opened; main holds what it showed. */
       reviewId: z.uuid(),
-      toolIds: z.array(z.string().min(1).max(64)).max(32)
+      toolIds: z.array(z.string().min(1).max(64)).max(32),
+      /** Set by a client that sends the shared mascot's look as it shows it, none included; from an
+       *  older client the host takes the package's. */
+      lookSent: z.literal(true).optional()
     })
     .optional(),
   /** A bot in another app to bring over: its first turn imports it instead of the usual setup. */
@@ -128,8 +133,13 @@ export const BotUpdate = z.object({
       name: BotNameSchema.optional(),
       agent: z.enum(BOT_AGENTS).optional(),
       avatar: SettableBotAvatar.optional(),
+      /** The mascot revision visible when its color or outfit was picked. */
+      lookAtEpoch: z.uuid().optional(),
+      lookAtRevision: z.number().int().nonnegative().optional(),
       /** null puts back the mascot's own sky blue. */
       avatarColor: BotAvatarColorSchema.nullable().optional(),
+      /** null takes the outfit off; any well-formed id is kept, as on create. */
+      avatarOutfit: BotStoredOutfitSchema.nullable().optional(),
       paused: z.boolean().optional(),
       sidebarOrder: z.number().int().nonnegative().optional(),
       /** null clears the override. */
@@ -201,17 +211,6 @@ export const BotDelete = z.object({
   /** The home folder, soul and memory included, is kept unless this is set. */
   deleteFolder: OptionalBoolean
 })
-
-/** A square PNG, base64, that becomes the bot's picture. */
-export const BotAvatarUpload = z.object({
-  botId: requiredString('Missing bot id'),
-  png: z
-    .string()
-    .min(1)
-    .max(Math.ceil(MAX_BOT_AVATAR_BYTES / 3) * 4)
-})
-
-export const BotAvatarRead = z.object({ botId: requiredString('Missing bot id') })
 
 /** Full bot profile: record, home folder path, SOUL.md and MEMORY.md. */
 export const BotShow = z.object({ botId: requiredString('Missing bot id') })
@@ -306,14 +305,16 @@ export const BotTakeOverParams = BotChat.extend({
 
 export type BotCreateParams = z.infer<typeof BotCreate>
 export type BotUpdateParams = z.infer<typeof BotUpdate>
-/** What the host itself may change: an update, or the Google toggle, which only google.bot.set sets. */
+/** What the host itself may change: an update, the Google toggle, which only google.bot.set sets,
+ *  or the host MCP list, which only bots.tools.setHostMcpServers sets. */
 export type BotHostUpdates = BotUpdateParams['updates'] &
-  Pick<Bot, 'google' | 'acceptedOffers' | 'handedPairedWorkspaces' | 'itemsSeen'> & {
+  Pick<Bot, 'google' | 'googleAccounts' | 'hostMcpServers'> &
+  Pick<Bot, 'acceptedOffers' | 'handedPairedWorkspaces' | 'itemsSeen'> & {
     /** Host-only: a wait of this bot's was cancelled. */
     cancelledWait?: BotCancelledWait
   }
 export type BotDeleteParams = z.infer<typeof BotDelete>
-export type BotAvatarUploadParams = z.infer<typeof BotAvatarUpload>
+export { BotAvatarRead, BotAvatarUpload, type BotAvatarUploadParams } from './bot-avatar-params'
 export type BotSessionStartParams = z.infer<typeof BotSessionStart>
 /** A run that couldn't start, sent again from its card in that chat. */
 export const BotRunSendAgainParams = BotChat.extend({

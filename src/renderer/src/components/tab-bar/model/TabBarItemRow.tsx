@@ -88,7 +88,6 @@ function TabBarItemRow({
   const chatNaming = useStructuredChatTabNaming(
     item.type === 'agent-session' ? item.data : undefined
   )
-  const conversationName = chatNaming.name
   const namingFailure = useStructuredChatTabNamingFailure(
     item.type === 'agent-session' ? item.data : undefined
   )
@@ -103,6 +102,9 @@ function TabBarItemRow({
   const bot = workspaceBot ?? embeddedBot
   const isBotChat = item.type === 'agent-session' && isBotHomeTab(item.data, workspaceBot)
   const homeRule = useBotHomeRuleApplies(workspaceBot)
+  // Why: Orca names a bot's main chat "Home" in its record; that name reads in the UI language.
+  const conversationName =
+    isBotChat && chatNaming.name === 'Home' ? t('bots.tabs.homeTitle', 'Home') : chatNaming.name
   const ruledHome = useAppStore(
     (state) =>
       state.workspaceSessionReady &&
