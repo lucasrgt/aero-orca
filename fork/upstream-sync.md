@@ -37,7 +37,7 @@ git config rerere.enabled true        # replay conflict resolutions you already 
      gh workflow list -R lucasrgt/aero-orca --all --json id,state --jq '.[] | select(.state=="active") | .id'        | xargs -r -n1 gh workflow disable -R lucasrgt/aero-orca
      ```
    - Then cancel anything they already started: `gh run list --status queued` and `--status in_progress`, followed by `gh run cancel <id>`.
-   - Verification stays local, through steps 4–6. Let the pre-commit hook run, and never `--no-verify`.
+   - Verification stays local, through steps 4–6 and the gate in [local-ci.md](./local-ci.md). Let the pre-commit hook run, and never `--no-verify`.
 
 ## Taking an upstream PR before it merges
 
