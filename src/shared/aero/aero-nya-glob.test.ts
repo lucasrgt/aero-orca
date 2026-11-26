@@ -82,6 +82,31 @@ describe('compileAeroNyaGlob', () => {
   )
 })
 
+describe('matching cost', () => {
+  it('rejects an adversarial scope fast, because an entire miss ends every * loop', () => {
+    const glob = compileAeroNyaGlob(`${'*e'.repeat(12)}*Z`)!
+    const started = performance.now()
+    expect(matchesAeroNyaGlob(glob, `src/${'e'.repeat(40)}.ts`)).toBe(false)
+    expect(performance.now() - started).toBeLessThan(1000)
+  })
+})
+
+describe('Windows separators of the glob crate', () => {
+  it('reads a backslash as a separator for ** and as equal to / in a literal on win32', () => {
+    const glob = compileAeroNyaGlob('src\\**\\*.rs', 'win32')
+    expect(glob).toBeDefined()
+    expect(matchesAeroNyaGlob(glob!, 'src/a/b.rs')).toBe(true)
+    expect(matchesAeroNyaGlob(glob!, 'src/b.rs')).toBe(true)
+    expect(matchesAeroNyaGlob(glob!, 'lib/b.rs')).toBe(false)
+    expect(matchesAeroNyaScope(['src\\**\\*.rs'], ['src\\a\\b.rs'], 'win32')).toBe(true)
+  })
+
+  it('keeps a backslash an ordinary character elsewhere, so the same scope is invalid there', () => {
+    expect(compileAeroNyaGlob('src\\**\\*.rs', 'linux')).toBeUndefined()
+    expect(matchesAeroNyaGlob(compileAeroNyaGlob('a\\b', 'linux')!, 'a/b')).toBe(false)
+  })
+})
+
 describe('matchesAeroNyaScope', () => {
   it('matches a scar scope against any expected path, reading backslashes as slashes', () => {
     const scope = ['src-tauri/src/**', 'src/App.tsx']

@@ -10,9 +10,16 @@ type GlobToken =
 
 type CharSpecifier = { from: string; to: string }
 
-export type AeroNyaGlob = { tokens: GlobToken[] }
+/** `windows` is the crate's `cfg!(windows)`: `\` is then a path separator and equals `/` in a literal. */
+export type AeroNyaGlob = { tokens: GlobToken[]; windows: boolean }
 
-const SEPARATOR = '/'
+function isSeparator(char: string, windows: boolean): boolean {
+  return char === '/' || (windows && char === '\\')
+}
+
+function isWindows(platform: string): boolean {
+  return platform === 'win32'
+}
 
 function parseCharSpecifiers(chars: readonly string[]): CharSpecifier[] {
   const specifiers: CharSpecifier[] = []
@@ -59,7 +66,11 @@ function parseCharClass(
 }
 
 /** Compiles a pattern; undefined is the crate's `PatternError` (a scope that can never be valid). */
-export function compileAeroNyaGlob(pattern: string): AeroNyaGlob | undefined {
+export function compileAeroNyaGlob(
+  pattern: string,
+  platform: string = process.platform
+): AeroNyaGlob | undefined {
+  const windows = isWindows(platform)
   const chars = Array.from(pattern)
   const tokens: GlobToken[] = []
   let index = 0
@@ -89,11 +100,11 @@ export function compileAeroNyaGlob(pattern: string): AeroNyaGlob | undefined {
         continue
       }
       // `**` must be a whole component: at the start or after `/`, and before `/` or at the end.
-      if (start !== 0 && chars[start - 1] !== SEPARATOR) {
+      if (start !== 0 && !isSeparator(chars[start - 1], windows)) {
         return undefined
       }
       if (index < chars.length) {
-        if (chars[index] !== SEPARATOR) {
+        if (!isSeparator(chars[index], windows)) {
           return undefined
         }
         index += 1
@@ -106,67 +117,80 @@ export function compileAeroNyaGlob(pattern: string): AeroNyaGlob | undefined {
       index += 1
     }
   }
-  return { tokens }
+  return { tokens, windows }
 }
 
 function inSpecifiers(specifiers: readonly CharSpecifier[], char: string): boolean {
   return specifiers.some((specifier) => char >= specifier.from && char <= specifier.to)
 }
 
-function matchesFrom(
-  tokens: readonly GlobToken[],
-  file: readonly string[],
-  startPosition: number,
-  startFollowsSeparator: boolean,
-  startToken: number
-): boolean {
+// The crate's MatchResult: a sub-pattern miss lets the caller try another split, while an entire
+// miss (the path ran out before a literal or class token) ends every enclosing `*` loop at once.
+type MatchResult = 'match' | 'sub-pattern-misses' | 'entire-pattern-misses'
+
+type Matcher = { glob: AeroNyaGlob; file: readonly string[] }
+
+function tokenMatches(token: GlobToken, char: string, windows: boolean): boolean {
+  if (token.kind === 'any-char') {
+    return true
+  }
+  if (token.kind === 'within') {
+    return inSpecifiers(token.specifiers, char) !== token.negated
+  }
+  if (token.kind !== 'char') {
+    return false
+  }
+  return token.value === char || (isSeparator(token.value, windows) && isSeparator(char, windows))
+}
+
+function matchesFrom(matcher: Matcher, startPosition: number, startToken: number): MatchResult {
+  const { glob, file } = matcher
   let position = startPosition
-  let followsSeparator = startFollowsSeparator
-  for (let tokenIndex = startToken; tokenIndex < tokens.length; tokenIndex += 1) {
-    const token = tokens[tokenIndex]
+  for (let tokenIndex = startToken; tokenIndex < glob.tokens.length; tokenIndex += 1) {
+    const token = glob.tokens[tokenIndex]
     if (token.kind === 'any-sequence' || token.kind === 'any-recursive') {
-      if (matchesFrom(tokens, file, position, followsSeparator, tokenIndex + 1)) {
-        return true
+      const empty = matchesFrom(matcher, position, tokenIndex + 1)
+      if (empty !== 'sub-pattern-misses') {
+        return empty
       }
       while (position < file.length) {
-        const char = file[position]
+        const separator = isSeparator(file[position], glob.windows)
         position += 1
-        followsSeparator = char === SEPARATOR
-        if (token.kind === 'any-recursive' && !followsSeparator) {
+        if (token.kind === 'any-recursive' && !separator) {
           continue
         }
-        if (matchesFrom(tokens, file, position, followsSeparator, tokenIndex + 1)) {
-          return true
+        const rest = matchesFrom(matcher, position, tokenIndex + 1)
+        if (rest !== 'sub-pattern-misses') {
+          return rest
         }
       }
       continue
     }
     if (position >= file.length) {
-      return false
+      return 'entire-pattern-misses'
     }
     const char = file[position]
     position += 1
-    const matched =
-      token.kind === 'any-char' ||
-      (token.kind === 'char' && token.value === char) ||
-      (token.kind === 'within' && inSpecifiers(token.specifiers, char) !== token.negated)
-    if (!matched) {
-      return false
+    if (!tokenMatches(token, char, glob.windows)) {
+      return 'sub-pattern-misses'
     }
-    followsSeparator = char === SEPARATOR
   }
-  return position >= file.length
+  return position >= file.length ? 'match' : 'sub-pattern-misses'
 }
 
 export function matchesAeroNyaGlob(glob: AeroNyaGlob, path: string): boolean {
-  return matchesFrom(glob.tokens, Array.from(path), 0, true, 0)
+  return matchesFrom({ glob, file: Array.from(path) }, 0, 0) === 'match'
 }
 
 /** not-you-again's `scoped`: any scope of the scar matches any of the paths (`\` read as `/`). */
-export function matchesAeroNyaScope(scope: readonly string[], paths: readonly string[]): boolean {
+export function matchesAeroNyaScope(
+  scope: readonly string[],
+  paths: readonly string[],
+  platform: string = process.platform
+): boolean {
   const normalized = paths.map((path) => path.replaceAll('\\', '/'))
   return scope.some((pattern) => {
-    const glob = compileAeroNyaGlob(pattern)
+    const glob = compileAeroNyaGlob(pattern, platform)
     return glob !== undefined && normalized.some((path) => matchesAeroNyaGlob(glob, path))
   })
 }

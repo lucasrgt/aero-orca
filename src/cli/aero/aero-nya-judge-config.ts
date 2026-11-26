@@ -6,11 +6,13 @@ import {
   parseAeroNyaJudgeConfig,
   type AeroNyaJudgeConfig
 } from '../../shared/aero/aero-nya'
-import { readGuardedFile } from '../../main/aero/aero-workspace-files'
-import { runAeroNyaGit } from './aero-nya-git'
+import { probeDirectory, readGuardedFile } from '../../main/aero/aero-workspace-files'
+import { assertJudgeCommandIsPersonal } from './aero-nya-judge-trust'
 
 export type AeroNyaJudgeSettings = { timeoutSeconds: number; judge: AeroNyaJudgeConfig }
 
+// setTimeout fires at once for anything past 2^31-1 ms, which would time every judge out instantly.
+const MAX_TIMEOUT_SECONDS = Math.floor(2_147_483_647 / 1000)
 const SETUP_HINT = 'run `nya setup --judge codex|claude|hermes`'
 
 /** dirs::config_dir(), where not-you-again keeps the judge shared by every repo of the user. */
@@ -54,29 +56,9 @@ async function readUserJudgeConfig(): Promise<AeroNyaJudgeConfig | undefined> {
   return entry?.isFile() ? parseJudgeConfig(await readFile(path, 'utf8'), path) : undefined
 }
 
-/**
- * The repo's `.nya/config.local.toml` is gitignored by design. One a repo commits arrived with a
- * clone, not from the developer, so it may not name a command to run.
- */
-async function assertLocalConfigIsPersonal(
-  root: string,
-  config: AeroNyaJudgeConfig
-): Promise<void> {
-  if (config.command.length === 0) {
-    return
-  }
-  const tracked = await runAeroNyaGit(root, ['ls-files', '--', '.nya/config.local.toml'], {
-    trim: true
-  })
-  if (tracked !== '') {
-    throw new Error(
-      '.nya/config.local.toml is committed to the repository and names a judge command; refusing to run a command a clone supplied. Untrack it or use a built-in judge'
-    )
-  }
-}
-
 async function readLocalJudgeConfig(root: string): Promise<AeroNyaJudgeConfig | undefined> {
-  const read = await readGuardedFile(root, join(root, '.nya', 'config.local.toml'))
+  const file = join(root, '.nya', 'config.local.toml')
+  const read = await readGuardedFile(root, file)
   if (read.status === 'missing') {
     return undefined
   }
@@ -84,12 +66,19 @@ async function readLocalJudgeConfig(root: string): Promise<AeroNyaJudgeConfig | 
     throw new Error(`.nya/config.local.toml ${read.reason}`)
   }
   const config = parseJudgeConfig(read.text, '.nya/config.local.toml')
-  await assertLocalConfigIsPersonal(root, config)
+  if (config.command.length > 0) {
+    await assertJudgeCommandIsPersonal(root, file)
+  }
   return config
 }
 
 /** The check timeout of `.nya/config.toml` and the judge: the repo's local file, else the user's. */
 export async function readAeroNyaJudgeSettings(root: string): Promise<AeroNyaJudgeSettings> {
+  // A `.nya` that is a link could stand for any tracked directory of the clone.
+  const store = await probeDirectory(root, join(root, '.nya'))
+  if (store.status === 'skipped') {
+    throw new Error(`.nya ${store.reason}`)
+  }
   const read = await readGuardedFile(root, join(root, '.nya', 'config.toml'))
   if (read.status !== 'read') {
     throw new Error(
@@ -102,6 +91,11 @@ export async function readAeroNyaJudgeSettings(root: string): Promise<AeroNyaJud
   }
   if (config.value.schema !== 1) {
     throw new Error(`unsupported config schema ${config.value.schema}`)
+  }
+  if (config.value.timeoutSeconds > MAX_TIMEOUT_SECONDS) {
+    throw new Error(
+      `invalid .nya/config.toml: [check] timeout_seconds must be at most ${MAX_TIMEOUT_SECONDS}`
+    )
   }
   const judge = (await readLocalJudgeConfig(root)) ?? (await readUserJudgeConfig())
   if (judge === undefined) {

@@ -1,23 +1,33 @@
+import { lstat, readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import {
   buildAeroNyaNewFilePatch,
   parseAeroNyaNameStatus
 } from '../../shared/aero/aero-nya-diff-chunks'
-import { readGuardedFile } from '../../main/aero/aero-workspace-files'
 import { runAeroNyaGit } from './aero-nya-git'
 
 // NYA's own store is never part of what is audited.
 const EXCLUDE_NYA = ':(exclude).nya/**'
 const QUOTE_PATH_OFF = ['-c', 'core.quotePath=false']
-// Decoding invalid UTF-8 yields this character; Aero reads such a file as empty.
-const INVALID_UTF8_MARKER = String.fromCodePoint(0xfffd)
+const STRICT_UTF8 = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true })
 
 export type AeroNyaDiff = { body: string; paths: string[] }
 
-/** An untracked file's text; unreadable, binary, oversized and symlinked files count as empty. */
+/**
+ * An untracked file's text, whatever its size (Aero reads it whole). Like Aero, a file that is not
+ * valid UTF-8 or cannot be read counts as empty. Unlike Aero it never follows a symlink, so an
+ * untracked link cannot pull a file from outside the repo into the judge's prompt.
+ */
 async function readUntrackedText(root: string, path: string): Promise<string> {
-  const read = await readGuardedFile(root, join(root, ...path.split('/'))).catch(() => null)
-  return read?.status === 'read' && !read.text.includes(INVALID_UTF8_MARKER) ? read.text : ''
+  const file = join(root, ...path.split('/'))
+  try {
+    if (!(await lstat(file)).isFile()) {
+      return ''
+    }
+    return STRICT_UTF8.decode(await readFile(file))
+  } catch {
+    return ''
+  }
 }
 
 /**

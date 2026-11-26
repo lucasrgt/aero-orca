@@ -3,6 +3,7 @@ import { lstat, mkdir, open, readFile, unlink } from 'node:fs/promises'
 import { hostname } from 'node:os'
 import { join } from 'node:path'
 import { probeDirectory } from '../../main/aero/aero-workspace-files'
+import { prepareAeroNyaLockDirectory } from './aero-nya-lock-directory'
 
 const ACQUIRE_TIMEOUT_MS = 5000
 /** A holder that is provably alive (same host) or unverifiable (another host) is trusted this long. */
@@ -20,29 +21,27 @@ type LockContent = { hostname: string; pid: number; at: number; token: string }
 
 export type AeroKnowledgeLockOptions = { timeoutMs?: number }
 
-/** Which directory holds the lock and under which names; `create` is whether a missing directory is made. */
+/** Which directory holds the lock (`prepare` makes it fit to use and returns it) and under which names. */
 type AeroLockTarget = {
-  directory: string
+  prepare: (root: string) => Promise<string>
   lockFile: string
   breakFile: string
   subject: string
-  create: boolean
 }
 
 const KNOWLEDGE_LOCK: AeroLockTarget = {
-  directory: '.aerofortress',
+  prepare: ensureKnowledgeLockDirectory,
   lockFile: '.knowledge.lock',
   breakFile: '.knowledge.lock.break',
-  subject: 'the knowledge network',
-  create: true
+  subject: 'the knowledge network'
 }
 
+// Under the git dir, never the work tree: a lock file there would show up as an untracked file.
 const NYA_SCARS_LOCK: AeroLockTarget = {
-  directory: '.nya',
-  lockFile: '.scars.lock',
-  breakFile: '.scars.lock.break',
-  subject: 'the NYA scars',
-  create: false
+  prepare: prepareAeroNyaLockDirectory,
+  lockFile: 'scars.lock',
+  breakFile: 'scars.lock.break',
+  subject: 'the NYA scars'
 }
 
 function errorCode(error: unknown): string | undefined {
@@ -116,14 +115,9 @@ async function isStale(
   return age > limitMs
 }
 
-async function ensureLockDirectory(root: string, target: AeroLockTarget): Promise<string> {
-  const directory = join(root, target.directory)
+async function ensureKnowledgeLockDirectory(root: string): Promise<string> {
+  const directory = join(root, '.aerofortress')
   let probed = await probeDirectory(root, directory)
-  if (probed.status === 'missing' && !target.create) {
-    throw new Error(
-      `${target.directory} does not exist; this repository is not initialized (run nya init)`
-    )
-  }
   if (probed.status === 'missing') {
     await mkdir(directory).catch((error: unknown) => {
       if (errorCode(error) !== 'EEXIST') {
@@ -134,7 +128,7 @@ async function ensureLockDirectory(root: string, target: AeroLockTarget): Promis
   }
   if (probed.status !== 'ok') {
     throw new Error(
-      `${target.directory} cannot be written to: ${probed.status === 'skipped' ? probed.reason : 'missing'}`
+      `.aerofortress cannot be written to: ${probed.status === 'skipped' ? probed.reason : 'missing'}`
     )
   }
   return directory
@@ -233,7 +227,7 @@ async function withAeroLock<T>(
   task: () => Promise<T>,
   options: AeroKnowledgeLockOptions
 ): Promise<T> {
-  const directory = await ensureLockDirectory(root, target)
+  const directory = await target.prepare(root)
   const path = join(directory, target.lockFile)
   const breakPath = join(directory, target.breakFile)
   const token = randomBytes(8).toString('hex')
@@ -270,7 +264,7 @@ export function withAeroKnowledgeLock<T>(
   return withAeroLock(root, KNOWLEDGE_LOCK, task, options)
 }
 
-/** Serialises writers of `.nya/scars` (`.nya/.scars.lock`); the `.nya` directory must already exist. */
+/** Serialises writers of `.nya/scars` (`aero-nya/scars.lock` in the git dir); `.nya` must already exist. */
 export function withAeroNyaScarsLock<T>(
   root: string,
   task: () => Promise<T>,

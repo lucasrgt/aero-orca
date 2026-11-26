@@ -166,6 +166,9 @@ describe('parseAeroNyaReviewPermalink', () => {
     'https://github.com/o/r/pull/12#discussion_rx',
     'https://github.com/o/r/pull/12/files#discussion_r1',
     'https://-oops/o/r/pull/12#discussion_r1',
+    'https://evil.example/o/r/pull/12#discussion_r1',
+    'https://github.com.evil.example/o/r/pull/12#discussion_r1',
+    'https://github.example.com/o/r/pull/12#discussion_r1',
     'https://github.com/o/../pull/12#discussion_r1'
   ])('rejects %s', (url) => {
     expect(() => parseAeroNyaReviewPermalink(url)).toThrow()

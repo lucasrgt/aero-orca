@@ -1,15 +1,8 @@
+import { z } from 'zod'
 import type { AeroNyaScar } from './aero-nya'
 import { matchesAeroNyaScope } from './aero-nya-glob'
 import { aeroNyaScarToJson } from './aero-nya-scar-format'
 import { changedAeroNyaChunk } from './aero-nya-diff-chunks'
-
-export type AeroNyaFinding = {
-  scar_id: string
-  path: string
-  line: number
-  evidence: string
-  reason: string
-}
 
 export type AeroNyaJudgeSchema = Record<string, unknown>
 
@@ -53,22 +46,18 @@ export const AERO_NYA_FINDINGS_SCHEMA: AeroNyaJudgeSchema = {
 
 const U32_MAX = 4_294_967_295
 
-function isFinding(value: unknown): value is AeroNyaFinding {
-  if (typeof value !== 'object' || value === null) {
-    return false
-  }
-  const finding = value as Record<string, unknown>
-  return (
-    typeof finding.scar_id === 'string' &&
-    typeof finding.path === 'string' &&
-    typeof finding.evidence === 'string' &&
-    typeof finding.reason === 'string' &&
-    typeof finding.line === 'number' &&
-    Number.isInteger(finding.line) &&
-    finding.line >= 0 &&
-    finding.line <= U32_MAX
-  )
-}
+// A plain object strips keys it does not know, so nothing a judge adds beyond these five survives.
+const AeroNyaFindingSchema = z.object({
+  scar_id: z.string(),
+  path: z.string(),
+  line: z.number().int().min(0).max(U32_MAX),
+  evidence: z.string(),
+  reason: z.string()
+})
+
+export type AeroNyaFinding = z.infer<typeof AeroNyaFindingSchema>
+
+const AeroNyaVerdictSchema = z.object({ findings: z.array(AeroNyaFindingSchema) })
 
 /** The judge's whole stdout as a verdict; anything but `{"findings":[...]}` is an error, never a pass. */
 export function parseAeroNyaVerdict(output: string): AeroNyaFinding[] {
@@ -78,11 +67,11 @@ export function parseAeroNyaVerdict(output: string): AeroNyaFinding[] {
   } catch {
     throw new Error('judge returned malformed verdict JSON')
   }
-  const findings = (parsed as { findings?: unknown } | null)?.findings
-  if (!Array.isArray(findings) || !findings.every(isFinding)) {
+  const verdict = AeroNyaVerdictSchema.safeParse(parsed)
+  if (!verdict.success) {
     throw new Error('judge returned malformed verdict JSON')
   }
-  return findings
+  return verdict.data.findings
 }
 
 /** Rejects a verdict that cites an unknown scar or path, or evidence absent from that path's patch. */
@@ -110,7 +99,7 @@ export function validateAeroNyaFindings(
       throw new Error('judge evidence does not occur in the cited path')
     }
   }
-  return [...findings]
+  return findings.map(findingInSerdeOrder)
 }
 
 export function sameAeroNyaFinding(a: AeroNyaFinding, b: AeroNyaFinding): boolean {

@@ -48,6 +48,10 @@ export async function checkAeroNya(
   options: AeroNyaOperationOptions = {}
 ): Promise<AeroNyaCheckResult> {
   const { body, paths } = await collectAeroNyaDiff(root, request.base)
+  // An empty diff passes before the scars are read, so an uninitialized repo still passes like Aero.
+  if (body.trim() === '') {
+    return { passed: true, scars_checked: 0, findings: [] }
+  }
   const stored = await readAeroNyaScars(root)
   return auditAeroNyaDiff({
     scars: stored.map(({ scar }) => scar),

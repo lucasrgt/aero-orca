@@ -64,9 +64,10 @@ export const AERO_COMMAND_SPECS: CommandSpec[] = [
     ],
     repeatableFlags: ['scope', 'tag'],
     notes: [
-      'Writes one file under .nya/scars of the git repo that holds --path, atomically and under a lock (.nya/.scars.lock); the repo must already have .nya/scars. Never record hypotheses, generic best practices or preferences.',
+      'Writes one file under .nya/scars of the git repo that holds --path, atomically (flushed to disk before the rename) and under a lock kept in the git dir of the repo, so no lock file shows up in the work tree; the repo must already have .nya/scars. Never record hypotheses, generic best practices or preferences.',
       'A new scar needs --title, --lesson and at least one --scope glob (** only when truly repository-wide). --scar <id>, or a --title that matches an existing scar, appends an occurrence instead. Actors are namespaced (git:you@example.com); the git user.email and HEAD are recorded when not given.',
-      '--github-review reads a #discussion_r permalink through your own gh CLI and is exclusive with --source and --reported-by.'
+      '--github-review reads a #discussion_r permalink of github.com through your own gh CLI (another host is refused so gh never sends its token there; AeroFortress also accepts enterprise hosts) and is exclusive with --source and --reported-by.',
+      'Limit: the lock only orders the writers of this CLI and the MCP server. AeroFortress writes scars without taking it, so a write racing one of its own can still lose an occurrence.'
     ],
     examples: [
       'orca aero nya remember --title "Guessed the org in a URL" --lesson "Read the remote with git remote -v, never from memory." --scope "**" --tag docs'
@@ -80,6 +81,9 @@ export const AERO_COMMAND_SPECS: CommandSpec[] = [
     notes: [
       'Audits git diff <base> (default HEAD: staged and unstaged work) plus untracked files, excluding .nya, against the scars whose scope covers each changed path. Exits 1 when a recurrence is confirmed.',
       'The judge is the one of .nya/config.local.toml or the user nya config (claude, codex or hermes, run read-only with no tools, in an empty directory, the arguments never through a shell), bounded by [check] timeout_seconds of .nya/config.toml. A judge failure is an error, never a pass.',
+      'A judge command (a custom judge) is only accepted from .nya/config.local.toml when git reports that file as untracked and ignored and .nya is a real directory, so a clone cannot choose what runs; a built-in judge name has no such condition. [check] timeout_seconds must be at most 2147483.',
+      'Untracked files are read whole, whatever their size; one that is not valid UTF-8 counts as empty, as in AeroFortress, and a symlink is never followed.',
+      'Limits: a diff is data the judge reads, so text inside it can still talk the judge into returning no findings (AeroFortress has the same limit); a clean check is evidence, not proof. The CSM_STORAGE_ROOT variable of AeroFortress is not supported.',
       'Not supported yet: nya collect, spec, replay, init and setup.'
     ],
     examples: ['orca aero nya check', 'orca aero nya check --base origin/main --json']

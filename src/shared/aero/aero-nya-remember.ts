@@ -1,3 +1,4 @@
+import { z } from 'zod'
 import type { AeroNyaScar } from './aero-nya'
 import { compileAeroNyaGlob } from './aero-nya-glob'
 
@@ -116,18 +117,17 @@ function buildOccurrence(
   context: AeroNyaRememberContext
 ): AeroNyaOccurrence {
   const { review } = context
-  const occurrence: AeroNyaOccurrence = {
-    occurred_at: review?.createdAt ?? secondsTimestamp(context.now),
+  const fields = {
     source: review?.htmlUrl ?? request.source,
     reported_by: review ? `github:${review.login}` : request.reportedBy,
     corrected_by: request.correctedBy ?? context.actor,
     recorded_by: request.recordedBy ?? context.actor,
-    recorded_for: undefined,
     commit: context.commit
   }
-  return Object.fromEntries(
-    Object.entries(occurrence).filter(([, value]) => value !== undefined)
-  ) as AeroNyaOccurrence
+  return {
+    occurred_at: review?.createdAt ?? secondsTimestamp(context.now),
+    ...Object.fromEntries(Object.entries(fields).filter(([, value]) => value !== undefined))
+  }
 }
 
 function nonBlank(value: string | undefined, name: string): string {
@@ -173,7 +173,8 @@ export function rememberAeroNyaScar(
   return { scar, created: found === undefined }
 }
 
-const HOST_PATTERN = /^[A-Za-z0-9][A-Za-z0-9.-]*$/
+// `gh` sends its token to whatever host it is told to, so only github.com is ever named.
+const REVIEW_HOST = 'github.com'
 const REPO_PART_PATTERN = /^(?!\.{1,2}$)[A-Za-z0-9._-]+$/
 
 /** `gh api` arguments for a `https://<host>/<owner>/<repo>/pull/<n>#discussion_r<id>` permalink. */
@@ -194,7 +195,7 @@ export function parseAeroNyaReviewPermalink(url: string): { hostname: string; en
     kind === 'pull' &&
     /^\d+$/.test(pull) &&
     /^\d+$/.test(id) &&
-    HOST_PATTERN.test(hostname) &&
+    hostname === REVIEW_HOST &&
     REPO_PART_PATTERN.test(owner) &&
     REPO_PART_PATTERN.test(repo)
   if (!valid) {
@@ -202,6 +203,12 @@ export function parseAeroNyaReviewPermalink(url: string): { hostname: string; en
   }
   return { hostname, endpoint: `repos/${owner}/${repo}/pulls/comments/${id}` }
 }
+
+const ReviewCommentSchema = z.object({
+  html_url: z.string(),
+  created_at: z.string(),
+  user: z.object({ login: z.string() })
+})
 
 /** The review comment fields an occurrence needs, from the JSON `gh api` printed. */
 export function readAeroNyaReviewComment(json: string, permalink: string): AeroNyaReviewComment {
@@ -211,14 +218,13 @@ export function readAeroNyaReviewComment(json: string, permalink: string): AeroN
   } catch {
     throw new Error('GitHub returned an invalid review comment')
   }
-  const comment = value as { html_url?: unknown; created_at?: unknown; user?: { login?: unknown } }
-  const { html_url: htmlUrl, created_at: createdAt } = comment
-  const login = comment.user?.login
-  if (typeof htmlUrl !== 'string' || typeof createdAt !== 'string' || typeof login !== 'string') {
+  const parsed = ReviewCommentSchema.safeParse(value)
+  if (!parsed.success) {
     throw new Error('GitHub returned an invalid review comment')
   }
+  const { html_url: htmlUrl, created_at: createdAt, user } = parsed.data
   if (htmlUrl !== permalink) {
     throw new Error('GitHub returned a different review comment permalink')
   }
-  return { htmlUrl, createdAt, login }
+  return { htmlUrl, createdAt, login: user.login }
 }

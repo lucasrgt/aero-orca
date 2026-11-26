@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { compileAeroNyaGlob } from './aero-nya-glob'
 import { aeroFailure, type AeroParseResult } from './aero-parse-result'
 import { parseAeroTomlDocument } from './aero-toml-document'
 import { aeroU32, aeroU64 } from './aero-toml-integers'
@@ -55,6 +56,12 @@ function validateScar(scar: AeroNyaScar): string[] {
   }
   if (scar.occurrences.length === 0) {
     issues.push('has no occurrences')
+  }
+  // Like not-you-again's `validate`, so a scope no glob can compile fails the read, never thins it.
+  for (const scope of scar.scope) {
+    if (compileAeroNyaGlob(scope) === undefined) {
+      issues.push(`invalid scope in ${scar.id}: ${scope}`)
+    }
   }
   const actors = scar.occurrences.flatMap((occurrence) => [
     occurrence.reported_by,

@@ -42,6 +42,11 @@ describe('parseAeroNyaScar', () => {
       ok: false,
       issues: ['actor must be namespaced: observation']
     })
+    const badScope = fixture('nya-scar.toml').replace('scope = ["**"]', 'scope = ["a**"]')
+    expect(parseAeroNyaScar(badScope)).toEqual({
+      ok: false,
+      issues: ['invalid scope in NYA-01KYASTB1H12GS04SVR3CNF2M9: a**']
+    })
     const unknown = fixture('nya-scar.toml').replace('schema = 1', 'schema = 1\nseverity = "high"')
     expect(parseAeroNyaScar(unknown).ok).toBe(false)
   })

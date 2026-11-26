@@ -153,8 +153,10 @@ describe('nya_remember', () => {
     const created = files.find((name) => !name.startsWith(ENGLISH_ONLY_SCAR.id))
     const parsed = parseAeroNyaScar(await readFile(join(scarsDirectory(), created ?? ''), 'utf8'))
     expect(parsed.ok && parsed.value.occurrences).toHaveLength(6)
-    const left = await readdir(join(root, '.nya'))
-    expect(left.filter((name) => name.startsWith('.scars.lock'))).toEqual([])
+    expect(await readdir(join(root, '.nya'))).not.toContain('.scars.lock')
+    expect(await runAeroNyaGit(root, ['status', '--porcelain'], { trim: true })).toBe(
+      `?? .nya/scars/${created ?? ''}`
+    )
   })
 
   it('does not create .nya in a repo that has none', async () => {
@@ -195,6 +197,17 @@ describe('nya_remember', () => {
     await writeFile(join(scarsDirectory(), 'broken.toml'), 'schema = 1\nseverity = "high"\n')
     await expect(tools.call('nya_recall', { task: 'x' })).rejects.toThrow(
       /invalid scar .*broken\.toml/
+    )
+  })
+
+  it('refuses a scar whose scope is not a valid glob instead of silently reading fewer scars', async () => {
+    const original = await readFile(join(scarsDirectory(), `${ENGLISH_ONLY_SCAR.id}.toml`), 'utf8')
+    await writeFile(
+      join(scarsDirectory(), 'bad-scope.toml'),
+      original.replace(ENGLISH_ONLY_SCAR.id, 'NYA-BADSCOPE').replace('"src/**"', '"a**"')
+    )
+    await expect(tools.call('nya_recall', { task: 'x' })).rejects.toThrow(
+      /invalid scar .*bad-scope\.toml.*invalid scope in NYA-BADSCOPE/
     )
   })
 })

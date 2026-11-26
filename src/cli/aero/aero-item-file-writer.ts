@@ -1,6 +1,6 @@
 import { randomBytes } from 'node:crypto'
 import { realpath as realpathCallback } from 'node:fs'
-import { lstat, mkdir, rename, unlink, writeFile } from 'node:fs/promises'
+import { lstat, mkdir, open, rename, unlink } from 'node:fs/promises'
 import { basename, join } from 'node:path'
 import { probeDirectory, probeFile } from '../../main/aero/aero-workspace-files'
 
@@ -74,6 +74,17 @@ function assertPlainFileName(fileName: string): void {
   }
 }
 
+/** Creates `path` (never over a file) and flushes it to disk, so a crash cannot leave a renamed empty file. */
+async function writeDurableFile(path: string, text: string): Promise<void> {
+  const handle = await open(path, 'wx')
+  try {
+    await handle.writeFile(text, 'utf8')
+    await handle.sync()
+  } finally {
+    await handle.close()
+  }
+}
+
 /** What is at the target: nothing, a regular file, or something a write must never replace. */
 async function inspectTarget(target: string): Promise<'absent' | 'file' | 'other'> {
   try {
@@ -108,7 +119,7 @@ export async function writeAeroGuardedFile(
   }
   const temp = join(directory, `.${fileName}.tmp-${randomBytes(8).toString('hex')}`)
   try {
-    await writeFile(temp, text, { encoding: 'utf8', flag: 'wx' })
+    await writeDurableFile(temp, text)
     await retryWhileBusy(() => rename(temp, target))
   } catch (error) {
     await unlink(temp).catch(() => {})

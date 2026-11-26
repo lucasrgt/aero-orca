@@ -39,10 +39,13 @@ describe('parseAeroNyaVerdict', () => {
     expect(parseAeroNyaVerdict('{"findings":[]}')).toEqual([])
   })
 
-  it('tolerates extra keys, as serde does without deny_unknown_fields', () => {
-    expect(
-      parseAeroNyaVerdict(JSON.stringify({ findings: [{ ...FINDING, extra: 1 }], note: 'x' }))
-    ).toHaveLength(1)
+  it('tolerates extra keys as serde does, without letting them reach the verify prompt', () => {
+    const [read] = parseAeroNyaVerdict(
+      JSON.stringify({ findings: [{ ...FINDING, extra: 'INJECTED' }], note: 'x' })
+    )
+    expect(read).toEqual(FINDING)
+    expect(buildAeroNyaVerifyPrompt(SCAR, read, DIFF)).not.toContain('INJECTED')
+    expect(validateAeroNyaFindings([read], [SCAR], ['src/App.tsx'], DIFF)).toEqual([FINDING])
   })
 
   it.each([

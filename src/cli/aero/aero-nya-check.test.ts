@@ -1,4 +1,5 @@
-import { mkdir, rm, symlink, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, rename, rm, stat, symlink, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import type { AeroNyaJudge } from '../../shared/aero/aero-nya-check-audit'
@@ -163,5 +164,79 @@ describe('readAeroNyaJudgeSettings', () => {
     await expect(readAeroNyaJudgeSettings(root)).rejects.toThrow(
       'refusing to run a command a clone supplied'
     )
+  })
+})
+
+describe('the judge command of a repo that is not the developer', () => {
+  const command = 'schema = 1\njudge = "custom"\ncommand = ["node", "judge.js"]\n'
+  const localConfig = (text: string, name = 'config.local.toml') =>
+    writeFile(join(root, '.nya', name), text)
+
+  it('refuses a committed config whose name differs only in case, where the filesystem opens it', async () => {
+    await localConfig(command, 'Config.Local.toml')
+    await runAeroNyaGit(root, ['add', '-f', '.nya/Config.Local.toml'])
+    const opensLowercase = await stat(join(root, '.nya', 'config.local.toml')).then(
+      () => true,
+      () => false
+    )
+    if (!opensLowercase) {
+      return
+    }
+    await expect(readAeroNyaJudgeSettings(root)).rejects.toThrow(
+      'refusing to run a command a clone supplied'
+    )
+  })
+
+  it('refuses a .nya that is a link to another tracked directory', async () => {
+    await rename(join(root, '.nya'), join(root, 'tools-store'))
+    try {
+      await symlink(join(root, 'tools-store'), join(root, '.nya'), 'junction')
+    } catch {
+      return
+    }
+    await expect(readAeroNyaJudgeSettings(root)).rejects.toThrow(/\.nya .*symbolic link/)
+  })
+
+  it('refuses a command in a local config that git does not ignore', async () => {
+    await localConfig(command)
+    await writeFile(join(root, '.nya', '.gitignore'), 'index-v1.sqlite3\n')
+    await expect(readAeroNyaJudgeSettings(root)).rejects.toThrow('git does not ignore it')
+  })
+
+  it('still allows a built-in judge from a config git does not ignore', async () => {
+    await localConfig('schema = 1\njudge = "claude"\n')
+    await writeFile(join(root, '.nya', '.gitignore'), 'index-v1.sqlite3\n')
+    expect((await readAeroNyaJudgeSettings(root)).judge.judge).toBe('claude')
+  })
+
+  it('rejects a timeout Node would fire at once', async () => {
+    await localConfig('schema = 1\njudge = "claude"\n')
+    await writeFile(
+      join(root, '.nya', 'config.toml'),
+      'schema = 1\n\n[check]\ntimeout_seconds = 2147484\n'
+    )
+    await expect(readAeroNyaJudgeSettings(root)).rejects.toThrow('timeout_seconds must be at most')
+  })
+})
+
+describe('untracked files and an uninitialized repo', () => {
+  it('reads a file past 4 MB whole and an invalid UTF-8 file as empty, like Aero', async () => {
+    await writeFile(join(root, 'big.txt'), `${'x'.repeat(5 * 1024 * 1024)}\nTAIL-MARKER\n`)
+    await writeFile(join(root, 'binary.bin'), Buffer.from([0xff, 0xfe, 0x00, 0xc3, 0x28]))
+    const { body, paths } = await collectAeroNyaDiff(root, undefined)
+    expect(paths.sort()).toEqual(['big.txt', 'binary.bin'])
+    expect(body).toContain('+TAIL-MARKER')
+    expect(body).toContain('diff --git a/binary.bin b/binary.bin')
+    expect(body).toContain('@@ -0,0 +1,0 @@')
+  })
+
+  it('passes an empty diff without reading the scars of a repo that has none', async () => {
+    const bare = await mkdtemp(join(tmpdir(), 'aero-nya-bare-'))
+    cleanup.push(bare)
+    await runAeroNyaGit(bare, ['init', '-q'])
+    await runAeroNyaGit(bare, ['config', 'user.email', 'dev@example.com'])
+    await runAeroNyaGit(bare, ['config', 'user.name', 'Dev'])
+    await runAeroNyaGit(bare, ['commit', '-q', '--allow-empty', '-m', 'initial'])
+    expect(await checkAeroNya(bare, {})).toEqual({ passed: true, scars_checked: 0, findings: [] })
   })
 })

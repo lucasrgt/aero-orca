@@ -17,10 +17,7 @@ export async function createAeroNyaTestRepository(scars: AeroNyaScar[] = []): Pr
   await runAeroNyaGit(root, ['config', 'commit.gpgsign', 'false'])
   await mkdir(join(root, '.nya', 'scars'), { recursive: true })
   await writeFile(join(root, '.nya', 'config.toml'), NYA_CONFIG)
-  await writeFile(
-    join(root, '.nya', '.gitignore'),
-    'config.local.toml\nindex-v1.sqlite3\n.scars.lock*\n'
-  )
+  await writeFile(join(root, '.nya', '.gitignore'), 'config.local.toml\nindex-v1.sqlite3\n')
   for (const scar of scars) {
     await writeFile(join(root, '.nya', 'scars', `${scar.id}.toml`), renderAeroNyaScarToml(scar))
   }
