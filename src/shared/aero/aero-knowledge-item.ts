@@ -21,6 +21,8 @@ export const AeroKnowledgeItemSchema = z.object({
   id: z.string().min(1),
   slug: z.string().min(1),
   type: z.enum(AERO_ITEM_TYPES),
+  // The `type` as written on disk: Aero keeps it and normalizes only when a store sets a type.
+  rawType: z.string(),
   title: z.string().min(1),
   tags: z.array(z.string()),
   // Kept as written: Aero only warns about unknown values and scores them as unknown.
@@ -45,7 +47,7 @@ export type AeroKnowledgeItem = z.infer<typeof AeroKnowledgeItemSchema>
 /** network.rs `norm_slug`. */
 export function normalizeAeroSlug(raw: string): string {
   const slug = [...raw.trim().toLowerCase()]
-    .map((char) => (/[\p{L}\p{N}/_-]/u.test(char) ? char : '-'))
+    .map((char) => (/[\p{Alphabetic}\p{N}/_-]/u.test(char) ? char : '-'))
     .join('')
     .replace(/^[-/]+|[-/]+$/g, '')
   return slug.length > 0 ? slug : 'geral'
@@ -110,6 +112,7 @@ export function parseAeroKnowledgeItem(
     id: fields.get('id') ?? '',
     slug: normalizeAeroSlug(fields.get('slug') ?? 'geral'),
     type: normalizeAeroItemType(fields.get('type') ?? 'fact'),
+    rawType: fields.get('type') ?? 'fact',
     title,
     tags,
     provenance: fields.get('provenance') ?? 'importado',

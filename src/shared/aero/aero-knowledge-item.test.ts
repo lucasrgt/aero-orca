@@ -119,6 +119,10 @@ describe('normalizeAeroSlug', () => {
     expect(normalizeAeroSlug('a b!c')).toBe('a-b-c')
     expect(normalizeAeroSlug('///')).toBe('geral')
   })
+  it('keeps alphabetic marks, as Rust is_alphanumeric does', () => {
+    // U+093E is a Devanagari vowel sign (category Mc): Alphabetic, but not a letter (L).
+    expect(normalizeAeroSlug('का')).toBe('का')
+  })
 })
 
 describe('collectAeroReplacedIds', () => {

@@ -5,7 +5,6 @@ export type AeroItemRecord = Pick<
   AeroKnowledgeItem,
   | 'id'
   | 'slug'
-  | 'type'
   | 'title'
   | 'tags'
   | 'provenance'
@@ -16,15 +15,19 @@ export type AeroItemRecord = Pick<
   | 'validated'
   | 'links'
   | 'body'
->
+> & {
+  /** Free text: a type Aero does not know stays as written until a store normalizes it. */
+  type: string
+}
 
 const FILE_TITLE_MAX_CHARS = 48
 
-export function toAeroItemRecord(item: AeroItemRecord): AeroItemRecord {
+/** The record to rewrite: a parsed item keeps its raw `type`, not the normalized one it is ranked by. */
+export function toAeroItemRecord(item: AeroItemRecord | AeroKnowledgeItem): AeroItemRecord {
   return {
     id: item.id,
     slug: item.slug,
-    type: item.type,
+    type: 'rawType' in item ? item.rawType : item.type,
     title: item.title,
     tags: item.tags,
     provenance: item.provenance,

@@ -1,10 +1,10 @@
 import { randomBytes } from 'node:crypto'
 import { lstat, mkdir, rename, unlink, writeFile } from 'node:fs/promises'
-import { join } from 'node:path'
+import { basename, join } from 'node:path'
 import { probeDirectory, probeFile } from '../../main/aero/aero-workspace-files'
 
-const RENAME_TRIES = 3
-const RENAME_RETRY_MS = 50
+const RETRY_TRIES = 3
+const RETRY_DELAY_MS = 50
 const ITEMS_FOLDERS = ['.aerofortress', 'items']
 
 function errorCode(error: unknown): string | undefined {
@@ -40,18 +40,31 @@ async function ensureItemFolder(root: string, folders: readonly string[]): Promi
   return directory
 }
 
-async function renameWithRetry(from: string, to: string): Promise<void> {
+/** Windows refuses to touch a file an antivirus or indexer holds open, for a moment. */
+async function retryWhileBusy(action: () => Promise<void>): Promise<void> {
   for (let attempt = 1; ; attempt += 1) {
     try {
-      await rename(from, to)
+      await action()
       return
     } catch (error) {
-      // Windows refuses a rename onto a file an antivirus or indexer holds open, for a moment.
-      if (errorCode(error) !== 'EPERM' || attempt >= RENAME_TRIES) {
+      const code = errorCode(error)
+      if ((code !== 'EPERM' && code !== 'EBUSY') || attempt >= RETRY_TRIES) {
         throw error
       }
-      await new Promise((resolve) => setTimeout(resolve, RENAME_RETRY_MS))
+      await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS))
     }
+  }
+}
+
+/** A file name is one plain path segment: no separator, no `..`, no NUL. */
+function assertPlainFileName(fileName: string): void {
+  if (
+    fileName.length === 0 ||
+    fileName !== basename(fileName) ||
+    /[\\/\0]/.test(fileName) ||
+    fileName.includes('..')
+  ) {
+    throw new Error('refusing an item file name that is not a plain file name')
   }
 }
 
@@ -79,6 +92,7 @@ export async function writeAeroItemFile(
   text: string,
   mode: 'create' | 'replace'
 ): Promise<string> {
+  assertPlainFileName(fileName)
   const directory = await ensureItemFolder(root, folders)
   const target = join(directory, fileName)
   const existing = await inspectTarget(target)
@@ -88,7 +102,7 @@ export async function writeAeroItemFile(
   const temp = join(directory, `.${fileName}.tmp-${randomBytes(8).toString('hex')}`)
   try {
     await writeFile(temp, text, { encoding: 'utf8', flag: 'wx' })
-    await renameWithRetry(temp, target)
+    await retryWhileBusy(() => rename(temp, target))
   } catch (error) {
     await unlink(temp).catch(() => {})
     throw error
@@ -96,9 +110,41 @@ export async function writeAeroItemFile(
   return target
 }
 
-/** Removes an item file the reader found, after checking it is still a regular file under the repo. */
-export async function removeAeroItemFile(root: string, file: string): Promise<void> {
-  if ((await probeFile(root, file)).status === 'ok') {
-    await unlink(file)
+/** Whether two paths are one file; a case-insensitive filesystem makes `Arch` and `arch` the same. */
+async function isSameFile(a: string, b: string): Promise<boolean> {
+  const [first, second] = await Promise.all([
+    lstat(a, { bigint: true }).catch(() => null),
+    lstat(b, { bigint: true }).catch(() => null)
+  ])
+  return first !== null && second !== null && first.dev === second.dev && first.ino === second.ino
+}
+
+/**
+ * Removes the item files the reader found at `files`, except `keep` (the file just written) and
+ * any path that is the same file as it. Each is checked to still be a regular file under the repo;
+ * a removal that keeps failing is reported, never thrown, since the write already succeeded.
+ */
+export async function removeOtherAeroItemFiles(
+  root: string,
+  files: readonly string[],
+  keep: string
+): Promise<string[]> {
+  const warnings: string[] = []
+  for (const file of files) {
+    if (file === keep || (await isSameFile(file, keep))) {
+      continue
+    }
+    try {
+      if ((await probeFile(root, file)).status === 'ok') {
+        await retryWhileBusy(() => unlink(file))
+      }
+    } catch (error) {
+      if (errorCode(error) !== 'ENOENT') {
+        warnings.push(
+          `could not remove the old copy ${file} (${errorCode(error) ?? 'error'}); remove it by hand`
+        )
+      }
+    }
   }
+  return warnings
 }

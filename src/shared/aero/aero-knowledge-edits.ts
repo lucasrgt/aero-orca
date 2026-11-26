@@ -5,14 +5,12 @@ import {
   toAeroSingleLine,
   type AeroItemRecord
 } from './aero-item-serializer'
-import {
-  AERO_DECAYS,
-  AERO_PROVENANCES,
-  normalizeAeroItemType,
-  normalizeAeroSlug
-} from './aero-knowledge-item'
+import { normalizeAeroItemType, normalizeAeroSlug } from './aero-knowledge-item'
 
+/** The kinds Aero's relation graph understands; others are stored as written, like Aero does. */
 export const AERO_LINK_KINDS = ['depends_on', 'references', 'replaces', 'duplicates'] as const
+
+const SAFE_ITEM_ID = /^[A-Za-z0-9-]+$/
 
 export type AeroStoreInput = {
   slug: string
@@ -30,9 +28,15 @@ function oneLine(value: string): string {
   return toAeroSingleLine(value).trim()
 }
 
-function checkVocabulary(label: string, value: string, allowed: readonly string[]): void {
-  if (!allowed.includes(value)) {
-    throw new Error(`${label} must be one of: ${allowed.join(', ')}`)
+/**
+ * An id lands in the file name of the rewritten item, and it comes from a file on disk: only
+ * letters, digits and hyphens may name a path.
+ */
+export function assertSafeAeroItemId(id: string): void {
+  if (!SAFE_ITEM_ID.test(id)) {
+    throw new Error(
+      `item id "${toAeroSingleLine(id).slice(0, 80)}" is not a valid id ([A-Za-z0-9-]+); refusing to write it`
+    )
   }
 }
 
@@ -40,17 +44,14 @@ function checkedFields(input: AeroStoreInput) {
   if (input.title.trim().length === 0) {
     throw new Error('title must not be empty')
   }
-  checkVocabulary('provenance', input.provenance, AERO_PROVENANCES)
-  if (input.decay !== undefined) {
-    checkVocabulary('decay', input.decay, AERO_DECAYS)
-  }
+  // Aero accepts any provenance or decay and only warns when it reads one it does not know.
   return {
     slug: normalizeAeroSlug(input.slug),
     type: normalizeAeroItemType(input.type),
     title: input.title,
     body: input.body,
     tags: input.tags.map((tag) => oneLine(tag.replaceAll(',', ' '))),
-    provenance: input.provenance,
+    provenance: oneLine(input.provenance),
     evidence: input.evidence === undefined ? null : oneLine(input.evidence)
   }
 }
@@ -61,7 +62,7 @@ export function createAeroItemRecord(input: AeroStoreInput, id: string, now: Dat
   return {
     id,
     ...checkedFields(input),
-    decay: input.decay ?? 'stable',
+    decay: input.decay === undefined ? 'stable' : oneLine(input.decay),
     created: stamp,
     updated: stamp,
     validated: stamp,
@@ -78,11 +79,12 @@ export function updateAeroItemRecord(
   input: AeroStoreInput,
   now: Date
 ): AeroItemRecord {
+  assertSafeAeroItemId(existing.id)
   const stamp = formatAeroTimestamp(now)
   return {
     ...existing,
     ...checkedFields(input),
-    decay: input.decay ?? existing.decay,
+    decay: input.decay === undefined ? existing.decay : oneLine(input.decay),
     updated: stamp,
     validated: stamp
   }
@@ -100,9 +102,12 @@ export function linkAeroItemRecord(
   to: string,
   now: Date
 ): AeroItemRecord {
-  checkVocabulary('kind', kind, AERO_LINK_KINDS)
   if (to.trim().length === 0 || /[,\r\n]/.test(to)) {
     throw new Error('to must be an item id')
+  }
+  // Any kind is stored as written, but these characters would corrupt the one-line `links` value.
+  if (kind.trim().length === 0 || /[,:\r\n]/.test(kind)) {
+    throw new Error('kind must be one word without commas, colons or line breaks')
   }
   if (existing.links.some((link) => link.kind === kind && link.to === to)) {
     return existing

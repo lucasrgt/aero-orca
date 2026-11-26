@@ -19,8 +19,9 @@ import {
   toAeroItemRecord,
   type AeroItemRecord
 } from '../../shared/aero/aero-item-serializer'
-import { removeAeroItemFile, writeAeroItemFile } from './aero-item-file-writer'
+import { removeOtherAeroItemFiles, writeAeroItemFile } from './aero-item-file-writer'
 import { createAeroKnowledgeCorpusReader } from './aero-knowledge-corpus'
+import { withAeroKnowledgeLock } from './aero-knowledge-lock'
 
 type ToolArgs = Record<string, unknown>
 
@@ -91,10 +92,17 @@ function missingItem(id: string): Error {
 export function createAeroKnowledgeTools(root: string): AeroKnowledgeTools {
   const corpus = createAeroKnowledgeCorpusReader(root)
   let writes: Promise<unknown> = Promise.resolve()
+  // One write at a time in this process, and one process at a time on the repo (the lock file).
   const exclusive = <T>(task: () => Promise<T>): Promise<T> => {
-    const run = writes.then(task, task)
+    const locked = () => withAeroKnowledgeLock(root, task)
+    const run = writes.then(locked, locked)
     writes = run.catch(() => {})
     return run
+  }
+  /** Inside the lock another process may have written since the cache was filled: parse again. */
+  const freshIndex = async () => {
+    corpus.invalidate()
+    return (await corpus.read()).index
   }
   const rewrite = async (item: AeroKnowledgeItem, record: AeroItemRecord): Promise<void> => {
     const { folders, fileName } = locateStoredItem(item)
@@ -105,7 +113,7 @@ export function createAeroKnowledgeTools(root: string): AeroKnowledgeTools {
   const store = async (args: ToolArgs): Promise<string> => {
     const input = storeInput(args)
     const id = stringArg(args, 'id')
-    const { index } = await corpus.read()
+    const index = await freshIndex()
     const now = new Date()
     const existing = id === undefined ? undefined : index.byId.get(id)
     if (id !== undefined && !existing) {
@@ -115,28 +123,37 @@ export function createAeroKnowledgeTools(root: string): AeroKnowledgeTools {
       ? updateAeroItemRecord(toAeroItemRecord(existing), input, now)
       : createAeroItemRecord(input, randomUUID(), now)
     const { folders, fileName } = aeroItemStoragePath(record)
-    await writeAeroItemFile(
+    const written = await writeAeroItemFile(
       root,
       folders,
       fileName,
       renderAeroKnowledgeItem(record),
       existing ? 'replace' : 'create'
     )
-    if (existing) {
-      const previous = join(root, ...existing.path.split('/'))
-      if (previous !== join(root, '.aerofortress', 'items', ...folders, fileName)) {
-        await removeAeroItemFile(root, previous)
-      }
-    }
+    // Every other file carrying the id goes: the old location, and any duplicate a crash left.
+    const warnings = existing
+      ? await removeOtherAeroItemFiles(
+          root,
+          (index.pathsById.get(existing.id) ?? [existing.path]).map((path) =>
+            join(root, ...path.split('/'))
+          ),
+          written
+        )
+      : []
     corpus.invalidate()
-    return JSON.stringify({ ok: true, id: record.id, workspace: basename(root) })
+    return JSON.stringify({
+      ok: true,
+      id: record.id,
+      workspace: basename(root),
+      ...(warnings.length > 0 ? { warnings } : {})
+    })
   }
 
   const link = async (args: ToolArgs): Promise<string> => {
     const from = requiredString(args, 'from')
     const to = requiredString(args, 'to')
     const kind = requiredString(args, 'kind')
-    const item = (await corpus.read()).index.byId.get(from)
+    const item = (await freshIndex()).byId.get(from)
     if (!item) {
       throw missingItem(from)
     }
@@ -149,7 +166,7 @@ export function createAeroKnowledgeTools(root: string): AeroKnowledgeTools {
 
   const validate = async (args: ToolArgs): Promise<string> => {
     const id = requiredString(args, 'id')
-    const item = (await corpus.read()).index.byId.get(id)
+    const item = (await freshIndex()).byId.get(id)
     if (!item) {
       throw missingItem(id)
     }
