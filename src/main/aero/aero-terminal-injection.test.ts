@@ -19,7 +19,7 @@ vi.mock('./aero-agent-injection', () => ({
   })
 }))
 vi.mock('../claude/cli-capabilities/claude-cli-flag-support', () => ({
-  CLAUDE_CACHED_FLAG_CHECK_BUDGET_MS: 250,
+  CLAUDE_CLI_FLAG_PROBE_BUDGET_MS: 1_500,
   CLAUDE_PLUGIN_DIR_FLAG: { option: '--plugin-dir', firstVersion: '2.0.25' },
   claudeCliFlagSupport: { check: async () => state.pluginDirs }
 }))

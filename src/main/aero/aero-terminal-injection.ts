@@ -14,7 +14,7 @@ import {
 } from '../../shared/agent-launch/startup/tui-agent-startup-shell'
 import { mcpServerWorkspaceKeyOf } from '../../shared/mcp-servers/mcp-servers'
 import {
-  CLAUDE_CACHED_FLAG_CHECK_BUDGET_MS,
+  CLAUDE_CLI_FLAG_PROBE_BUDGET_MS,
   CLAUDE_PLUGIN_DIR_FLAG,
   claudeCliFlagSupport
 } from '../claude/cli-capabilities/claude-cli-flag-support'
@@ -87,8 +87,9 @@ const slashed = (path: string): string => path.replaceAll('\\', '/')
 
 /**
  * The args Claude takes for one run. `--plugin-dir` only for a Claude proven new enough (an older one
- * exits on the unknown option, as does one whose managed settings refuse sideloading), `--mcp-config`
- * only when managed settings allow it and no server is already named `knowledge`.
+ * exits on the unknown option), `--mcp-config` only when managed settings allow it and no server is
+ * already named `knowledge`. A sideloading refusal by managed settings is learned only from native
+ * chat exits, so a terminal can still meet it first (upstream's agent-view plugin has the same gap).
  */
 async function claudeInjectionArgs(
   input: AeroTerminalInjectionInput,
@@ -121,7 +122,8 @@ async function claudeInjectionArgs(
     (await claudeCliFlagSupport.check(
       CLAUDE_PLUGIN_DIR_FLAG,
       { command: resolved, cwd: cwd || homedir(), env },
-      CLAUDE_CACHED_FLAG_CHECK_BUDGET_MS
+      // The native-chat budget: the 250 ms cached-check budget misses the first terminal per worktree.
+      CLAUDE_CLI_FLAG_PROBE_BUDGET_MS
     )) === 'supported'
   const serverFree =
     !(await claudeRefusesMcpConfig(launch, executable)) &&
