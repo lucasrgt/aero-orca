@@ -16,6 +16,7 @@ export const ROOT_HELP_TEXT_PRIMARY = [
   '',
   'AeroFortress:',
   '  aero inspect              Report the AeroFortress artifacts found in a repo',
+  "  aero mcp                  Serve a repo's AeroFortress knowledge network as an MCP server",
   '',
   'References:',
   "  reference list            List a workspace's linked reviews and issues",

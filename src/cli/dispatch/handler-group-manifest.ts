@@ -287,6 +287,11 @@ export const HANDLER_GROUPS: readonly HandlerGroup[] = [
     load: async () => (await import('../aero/aero-inspect.js')).AERO_HANDLERS
   },
   {
+    name: 'aero-mcp',
+    keys: ['aero mcp'],
+    load: async () => (await import('../aero/aero-mcp.js')).AERO_MCP_HANDLERS
+  },
+  {
     name: 'ports',
     keys: ['ports'],
     load: async () => (await import('../workspace-ports/ports.js')).PORTS_HANDLERS
