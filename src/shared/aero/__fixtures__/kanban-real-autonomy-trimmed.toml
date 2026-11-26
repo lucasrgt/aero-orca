@@ -1,0 +1,96 @@
+name = "autonomy"
+mode = "monolith"
+pipeline = ""
+
+[[column]]
+id = "backlog"
+title = "Backlog"
+pipeline = ""
+
+[[column]]
+id = "doing"
+title = "Doing"
+pipeline = ""
+
+[[column]]
+id = "review"
+title = "Review"
+pipeline = ""
+
+[[column]]
+id = "done"
+title = "Done"
+pipeline = ""
+
+[[column]]
+id = "blocked"
+title = "Blocked"
+pipeline = ""
+
+[[card]]
+id = "f5-voice"
+title = "F5 — Voice: V0 Claude Desktop voice+MCP · V1 Telegram voice notes · V2 real-time desktop"
+desc = "Tracked in GitHub issue #33 (https://github.com/owner/repo/issues/33). Spec §F5. Zero cost → local whisper.cpp STT + Piper/SAPI TTS; a Haiku narrator summarizes the turn in human language; voice decisions via F6. V0 = validate Claude Desktop voice mode with the MCP link (decision f778fc6a). V1 depends on F6."
+priority = ""
+category = ""
+subtasks = []
+attachments = []
+knowledge = []
+pipeline = ""
+column = "backlog"
+session = ""
+phase = ""
+blocked_by = ["f6-telegram-decision-desk"]
+blocks = []
+touched = ""
+
+[[card]]
+id = "f1-live-quota-meter"
+title = "F1 — Live quota meter (session/weekly + reset + forecast tooltip)"
+desc = "Spec: .aerofortress/specs/autonomy-quota-and-remote.md §F1. Persist Usage per provider + a sample series; global quota_usage event; 5-min poll (Codex account/rateLimits/read; Claude spike on /api/oauth/usage, falling back to the last rate_limit_event); fixed titlebar chip; forecast tooltip (burn rate vs reset; weekly vs ideal pace). Foundation for F2/F3."
+priority = "high"
+category = ""
+subtasks = []
+attachments = []
+knowledge = []
+pipeline = ""
+column = "done"
+session = ""
+phase = ""
+blocked_by = []
+blocks = []
+touched = ""
+
+[[card]]
+id = "f6-telegram-decision-desk"
+title = "F6 — Telegram decision desk (ask/quota/gates with numbered options + free text)"
+desc = "Spec §F6. Pending items become `decision` inbox items; Telegram shows options 1/2/3 as inline buttons, accepts typing the number or replying with free text (Other); the answer takes the SAME path as the app (answer_ask/quota_act/approvals::decide); /pending; paired chat only."
+priority = ""
+category = ""
+subtasks = []
+attachments = []
+knowledge = []
+pipeline = ""
+column = "done"
+session = ""
+phase = ""
+blocked_by = []
+blocks = []
+touched = ""
+
+[[card]]
+id = "ideas-backlog"
+title = "Ideas: daily quota report · quota-aware model routing · 'while you were away' digest · global snackbar · night watch + windows"
+desc = "Suggested backlog (spec §Idea backlog). Split into dedicated cards when one becomes a priority."
+priority = ""
+category = ""
+subtasks = []
+attachments = []
+knowledge = []
+pipeline = ""
+column = "backlog"
+session = ""
+phase = ""
+blocked_by = []
+blocks = []
+touched = ""

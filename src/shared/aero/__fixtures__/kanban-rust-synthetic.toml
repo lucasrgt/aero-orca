@@ -1,0 +1,901 @@
+name = "synthetic"
+mode = "flexible"
+pipeline = "ship"
+
+[[column]]
+id = "backlog"
+title = "Backlog"
+pipeline = ""
+
+[[column]]
+id = "done"
+title = "Done"
+pipeline = "review"
+
+[[card]]
+id = "odd-0"
+title = "plain"
+desc = "plain"
+priority = ""
+category = "plain"
+subtasks = []
+attachments = []
+knowledge = ["plain", "x"]
+pipeline = ""
+column = "backlog"
+session = ""
+phase = ""
+blocked_by = []
+blocks = []
+touched = "2026-11-26T12:00:00.123456789+00:00"
+
+[[card]]
+id = "odd-1"
+title = "has \"quotes\" inside"
+desc = "has \"quotes\" inside"
+priority = ""
+category = "has \"quotes\" inside"
+subtasks = []
+attachments = []
+knowledge = ["has \"quotes\" inside", "x"]
+pipeline = ""
+column = "backlog"
+session = ""
+phase = ""
+blocked_by = []
+blocks = []
+touched = "2026-11-26T12:00:00.123456789+00:00"
+
+[[card]]
+id = "odd-2"
+title = 'back\slash and "quote"'
+desc = 'back\slash and "quote"'
+priority = ""
+category = 'back\slash and "quote"'
+subtasks = []
+attachments = []
+knowledge = ['back\slash and "quote"', "x"]
+pipeline = ""
+column = "backlog"
+session = ""
+phase = ""
+blocked_by = []
+blocks = []
+touched = "2026-11-26T12:00:00.123456789+00:00"
+
+[[card]]
+id = "odd-3"
+title = "it's single"
+desc = "it's single"
+priority = ""
+category = "it's single"
+subtasks = []
+attachments = []
+knowledge = ["it's single", "x"]
+pipeline = ""
+column = "backlog"
+session = ""
+phase = ""
+blocked_by = []
+blocks = []
+touched = "2026-11-26T12:00:00.123456789+00:00"
+
+[[card]]
+id = "odd-4"
+title = '''it's "both" and \'''
+desc = '''it's "both" and \'''
+priority = ""
+category = '''it's "both" and \'''
+subtasks = []
+attachments = []
+knowledge = ['''it's "both" and \''', "x"]
+pipeline = ""
+column = "backlog"
+session = ""
+phase = ""
+blocked_by = []
+blocks = []
+touched = "2026-11-26T12:00:00.123456789+00:00"
+
+[[card]]
+id = "odd-5"
+title = """
+two
+lines"""
+desc = """
+two
+lines"""
+priority = ""
+category = """
+two
+lines"""
+subtasks = []
+attachments = []
+knowledge = ["""
+two
+lines""", "x"]
+pipeline = ""
+column = "backlog"
+session = ""
+phase = ""
+blocked_by = []
+blocks = []
+touched = "2026-11-26T12:00:00.123456789+00:00"
+
+[[card]]
+id = "odd-6"
+title = """
+two
+lines with \"quotes\""""
+desc = """
+two
+lines with \"quotes\""""
+priority = ""
+category = """
+two
+lines with \"quotes\""""
+subtasks = []
+attachments = []
+knowledge = ["""
+two
+lines with \"quotes\"""", "x"]
+pipeline = ""
+column = "backlog"
+session = ""
+phase = ""
+blocked_by = []
+blocks = []
+touched = "2026-11-26T12:00:00.123456789+00:00"
+
+[[card]]
+id = "odd-7"
+title = '''
+path C:\Users\x
+second'''
+desc = '''
+path C:\Users\x
+second'''
+priority = ""
+category = '''
+path C:\Users\x
+second'''
+subtasks = []
+attachments = []
+knowledge = ['''
+path C:\Users\x
+second''', "x"]
+pipeline = ""
+column = "backlog"
+session = ""
+phase = ""
+blocked_by = []
+blocks = []
+touched = "2026-11-26T12:00:00.123456789+00:00"
+
+[[card]]
+id = "odd-8"
+title = "tab\there"
+desc = "tab\there"
+priority = ""
+category = "tab\there"
+subtasks = []
+attachments = []
+knowledge = ["tab\there", "x"]
+pipeline = ""
+column = "backlog"
+session = ""
+phase = ""
+blocked_by = []
+blocks = []
+touched = "2026-11-26T12:00:00.123456789+00:00"
+
+[[card]]
+id = "odd-9"
+title = "ctl\u0001char"
+desc = "ctl\u0001char"
+priority = ""
+category = "ctl\u0001char"
+subtasks = []
+attachments = []
+knowledge = ["ctl\u0001char", "x"]
+pipeline = ""
+column = "backlog"
+session = ""
+phase = ""
+blocked_by = []
+blocks = []
+touched = "2026-11-26T12:00:00.123456789+00:00"
+
+[[card]]
+id = "odd-10"
+title = "cr\rlf"
+desc = "cr\rlf"
+priority = ""
+category = "cr\rlf"
+subtasks = []
+attachments = []
+knowledge = ["cr\rlf", "x"]
+pipeline = ""
+column = "backlog"
+session = ""
+phase = ""
+blocked_by = []
+blocks = []
+touched = "2026-11-26T12:00:00.123456789+00:00"
+
+[[card]]
+id = "odd-11"
+title = """
+bell\u0007
+line"""
+desc = """
+bell\u0007
+line"""
+priority = ""
+category = """
+bell\u0007
+line"""
+subtasks = []
+attachments = []
+knowledge = ["""
+bell\u0007
+line""", "x"]
+pipeline = ""
+column = "backlog"
+session = ""
+phase = ""
+blocked_by = []
+blocks = []
+touched = "2026-11-26T12:00:00.123456789+00:00"
+
+[[card]]
+id = "odd-12"
+title = "del\u007F"
+desc = "del\u007F"
+priority = ""
+category = "del\u007F"
+subtasks = []
+attachments = []
+knowledge = ["del\u007F", "x"]
+pipeline = ""
+column = "backlog"
+session = ""
+phase = ""
+blocked_by = []
+blocks = []
+touched = "2026-11-26T12:00:00.123456789+00:00"
+
+[[card]]
+id = "odd-13"
+title = "trailing quote'"
+desc = "trailing quote'"
+priority = ""
+category = "trailing quote'"
+subtasks = []
+attachments = []
+knowledge = ["trailing quote'", "x"]
+pipeline = ""
+column = "backlog"
+session = ""
+phase = ""
+blocked_by = []
+blocks = []
+touched = "2026-11-26T12:00:00.123456789+00:00"
+
+[[card]]
+id = "odd-14"
+title = "''' three"
+desc = "''' three"
+priority = ""
+category = "''' three"
+subtasks = []
+attachments = []
+knowledge = ["''' three", "x"]
+pipeline = ""
+column = "backlog"
+session = ""
+phase = ""
+blocked_by = []
+blocks = []
+touched = "2026-11-26T12:00:00.123456789+00:00"
+
+[[card]]
+id = "odd-15"
+title = """
+multi
+'single' ''two''
+end"""
+desc = """
+multi
+'single' ''two''
+end"""
+priority = ""
+category = """
+multi
+'single' ''two''
+end"""
+subtasks = []
+attachments = []
+knowledge = ["""
+multi
+'single' ''two''
+end""", "x"]
+pipeline = ""
+column = "backlog"
+session = ""
+phase = ""
+blocked_by = []
+blocks = []
+touched = "2026-11-26T12:00:00.123456789+00:00"
+
+[[card]]
+id = "odd-16"
+title = "ünï — ação 😀"
+desc = "ünï — ação 😀"
+priority = ""
+category = "ünï — ação 😀"
+subtasks = []
+attachments = []
+knowledge = ["ünï — ação 😀", "x"]
+pipeline = ""
+column = "backlog"
+session = ""
+phase = ""
+blocked_by = []
+blocks = []
+touched = "2026-11-26T12:00:00.123456789+00:00"
+
+[[card]]
+id = "odd-17"
+title = """
+ends with newline
+"""
+desc = """
+ends with newline
+"""
+priority = ""
+category = """
+ends with newline
+"""
+subtasks = []
+attachments = []
+knowledge = ["""
+ends with newline
+""", "x"]
+pipeline = ""
+column = "backlog"
+session = ""
+phase = ""
+blocked_by = []
+blocks = []
+touched = "2026-11-26T12:00:00.123456789+00:00"
+
+[[card]]
+id = "odd-18"
+title = """
+
+starts with newline"""
+desc = """
+
+starts with newline"""
+priority = ""
+category = """
+
+starts with newline"""
+subtasks = []
+attachments = []
+knowledge = ["""
+
+starts with newline""", "x"]
+pipeline = ""
+column = "backlog"
+session = ""
+phase = ""
+blocked_by = []
+blocks = []
+touched = "2026-11-26T12:00:00.123456789+00:00"
+
+[[card]]
+id = "odd-19"
+title = ""
+desc = ""
+priority = ""
+category = ""
+subtasks = []
+attachments = []
+knowledge = ["", "x"]
+pipeline = ""
+column = "backlog"
+session = ""
+phase = ""
+blocked_by = []
+blocks = []
+touched = "2026-11-26T12:00:00.123456789+00:00"
+
+[[card]]
+id = "odd-20"
+title = " "
+desc = " "
+priority = ""
+category = " "
+subtasks = []
+attachments = []
+knowledge = [" ", "x"]
+pipeline = ""
+column = "backlog"
+session = ""
+phase = ""
+blocked_by = []
+blocks = []
+touched = "2026-11-26T12:00:00.123456789+00:00"
+
+[[card]]
+id = "odd-21"
+title = """
+emoji 😀
+\"q\""""
+desc = """
+emoji 😀
+\"q\""""
+priority = ""
+category = """
+emoji 😀
+\"q\""""
+subtasks = []
+attachments = []
+knowledge = ["""
+emoji 😀
+\"q\"""", "x"]
+pipeline = ""
+column = "backlog"
+session = ""
+phase = ""
+blocked_by = []
+blocks = []
+touched = "2026-11-26T12:00:00.123456789+00:00"
+
+[[card]]
+id = "odd-22"
+title = '\'
+desc = '\'
+priority = ""
+category = '\'
+subtasks = []
+attachments = []
+knowledge = ['\', "x"]
+pipeline = ""
+column = "backlog"
+session = ""
+phase = ""
+blocked_by = []
+blocks = []
+touched = "2026-11-26T12:00:00.123456789+00:00"
+
+[[card]]
+id = "odd-23"
+title = "'"
+desc = "'"
+priority = ""
+category = "'"
+subtasks = []
+attachments = []
+knowledge = ["'", "x"]
+pipeline = ""
+column = "backlog"
+session = ""
+phase = ""
+blocked_by = []
+blocks = []
+touched = "2026-11-26T12:00:00.123456789+00:00"
+
+[[card]]
+id = "odd-24"
+title = '''a'b\c'''
+desc = '''a'b\c'''
+priority = ""
+category = '''a'b\c'''
+subtasks = []
+attachments = []
+knowledge = ['''a'b\c''', "x"]
+pipeline = ""
+column = "backlog"
+session = ""
+phase = ""
+blocked_by = []
+blocks = []
+touched = "2026-11-26T12:00:00.123456789+00:00"
+
+[[card]]
+id = "odd-25"
+title = """
+esc\u001B[0m
+color"""
+desc = """
+esc\u001B[0m
+color"""
+priority = ""
+category = """
+esc\u001B[0m
+color"""
+subtasks = []
+attachments = []
+knowledge = ["""
+esc\u001B[0m
+color""", "x"]
+pipeline = ""
+column = "backlog"
+session = ""
+phase = ""
+blocked_by = []
+blocks = []
+touched = "2026-11-26T12:00:00.123456789+00:00"
+
+[[card]]
+id = "odd-26"
+title = '''
+lit\eral
+with 'one' quote'''
+desc = '''
+lit\eral
+with 'one' quote'''
+priority = ""
+category = '''
+lit\eral
+with 'one' quote'''
+subtasks = []
+attachments = []
+knowledge = ['''
+lit\eral
+with 'one' quote''', "x"]
+pipeline = ""
+column = "backlog"
+session = ""
+phase = ""
+blocked_by = []
+blocks = []
+touched = "2026-11-26T12:00:00.123456789+00:00"
+
+[[card]]
+id = "odd-27"
+title = '''
+lit\eral
+''two'' quotes
+'''
+desc = '''
+lit\eral
+''two'' quotes
+'''
+priority = ""
+category = '''
+lit\eral
+''two'' quotes
+'''
+subtasks = []
+attachments = []
+knowledge = ['''
+lit\eral
+''two'' quotes
+''', "x"]
+pipeline = ""
+column = "backlog"
+session = ""
+phase = ""
+blocked_by = []
+blocks = []
+touched = "2026-11-26T12:00:00.123456789+00:00"
+
+[[card]]
+id = "odd-28"
+title = '''
+q'q\
+"d"'''
+desc = '''
+q'q\
+"d"'''
+priority = ""
+category = '''
+q'q\
+"d"'''
+subtasks = []
+attachments = []
+knowledge = ['''
+q'q\
+"d"''', "x"]
+pipeline = ""
+column = "backlog"
+session = ""
+phase = ""
+blocked_by = []
+blocks = []
+touched = "2026-11-26T12:00:00.123456789+00:00"
+
+[[card]]
+id = "full-0"
+title = "Full card"
+desc = "every table"
+priority = "high"
+category = "ui"
+knowledge = []
+pipeline = ""
+column = "backlog"
+session = ""
+phase = ""
+blocked_by = ["other/up-1"]
+blocks = ["other/down-1", "other/down-2"]
+touched = "2026-11-26T12:00:00.123456789+00:00"
+effort = "high"
+suggested = true
+suggestion_reason = "why"
+suggestion_source = "gh:#1"
+suggestion_accepted_at = "t"
+suggestion_via = "app"
+split_from = "parent"
+split_hash = "hash"
+
+[[card.subtasks]]
+title = "one"
+done = true
+
+[[card.subtasks]]
+title = "two"
+done = false
+
+[[card.attachments]]
+name = "a.png"
+path = "kanban/attachments/full-0/a.png"
+kind = "image"
+note = "n"
+
+[card.readiness]
+verdict = "ready"
+score = 7
+checks = [true, false, true, true, true, true, true, true]
+missing_questions = []
+risk = "low"
+estimate_min = 45
+triaged_at = "2026-11-12T23:01:00.366611300+00:00"
+text_hash = "0123456789abcdef"
+
+[card.outcome]
+status = "done"
+summary = """
+multi
+line \"summary\""""
+pr = "https://x/1"
+branch = "card/x"
+evidence = ["e1", "e2"]
+cost_usd = 0.16826609999999995
+tokens = 12345
+followups = []
+questions = ["q"]
+at = "t"
+fully_proven = true
+verified_sha = "deadbeef"
+base_sha = "cafebabe"
+
+[card.outcome.criteria]
+pass = 3
+fail = 0
+
+[[card.outcome.criteria_proof]]
+index = 1
+text = "t"
+test_path = "p"
+test_name = "n"
+status = "proven"
+reason = ""
+
+[[card.outcome.criteria_proof]]
+index = 2
+text = "t2"
+test_path = "p"
+test_name = "n"
+status = "unproven"
+reason = "r"
+
+[card.outcome.merge]
+state = "merged"
+reason = ""
+pr_number = 12
+strategy = "squash"
+merge_commit = "abc"
+at = "t"
+
+[card.outcome.deploy]
+state = "succeeded"
+reason = ""
+command = "run it"
+output_tail = """
+line1
+line2"""
+at = "t"
+
+[card.outcome.evaluation]
+action = "merge"
+at = "t"
+via = "app"
+comment = "ok"
+
+[card.spec]
+story = "As a user"
+refined_at = "t"
+text_hash = "h"
+edited = true
+assumptions = ["a1", "a2"]
+
+[card.spec.assumptions_tr]
+lang = "pt-BR"
+items = ["t1", "t2"]
+
+[[card.spec.acceptance]]
+given = "g"
+when = "w"
+then = "t"
+
+[[card.spec.acceptance]]
+given = "g2"
+when = "w2"
+then = "t2"
+
+[[card.clarifications]]
+id = "q1"
+question = "Which?"
+answer = "This"
+asked_at = "a"
+answered_at = "b"
+via = "agent"
+options = ["This", "That"]
+recommended = 0
+
+[card.clarifications.tr]
+lang = "pt-BR"
+question = "Qual?"
+options = ["Isto", "Aquilo"]
+
+[[card.clarifications]]
+id = "q2"
+question = "Open?"
+answer = ""
+asked_at = "a"
+answered_at = ""
+via = ""
+
+[card.readiness_error]
+error = "timeout"
+at = "t"
+text_hash = "h"
+attempts = 2
+retry_after = "later"
+
+[[card]]
+id = "whole-float"
+title = "whole-float"
+desc = ""
+priority = ""
+category = ""
+subtasks = []
+attachments = []
+knowledge = []
+pipeline = ""
+column = "backlog"
+session = ""
+phase = ""
+blocked_by = []
+blocks = []
+touched = "2026-11-26T12:00:00.123456789+00:00"
+
+[card.outcome]
+status = "x"
+summary = ""
+pr = ""
+branch = ""
+evidence = []
+cost_usd = 2.0
+followups = []
+questions = []
+at = ""
+fully_proven = false
+
+[card.outcome.criteria]
+pass = 0
+fail = 0
+
+[[card]]
+id = "tiny-float"
+title = "tiny-float"
+desc = ""
+priority = ""
+category = ""
+subtasks = []
+attachments = []
+knowledge = []
+pipeline = ""
+column = "backlog"
+session = ""
+phase = ""
+blocked_by = []
+blocks = []
+touched = "2026-11-26T12:00:00.123456789+00:00"
+
+[card.outcome]
+status = "x"
+summary = ""
+pr = ""
+branch = ""
+evidence = []
+cost_usd = 0.0000001234
+tokens = 9223372036854775807
+followups = []
+questions = []
+at = ""
+fully_proven = false
+
+[card.outcome.criteria]
+pass = 0
+fail = 0
+
+[[card]]
+id = "big-float"
+title = "big-float"
+desc = ""
+priority = ""
+category = ""
+subtasks = []
+attachments = []
+knowledge = []
+pipeline = ""
+column = "backlog"
+session = ""
+phase = ""
+blocked_by = []
+blocks = []
+touched = "2026-11-26T12:00:00.123456789+00:00"
+
+[card.outcome]
+status = "x"
+summary = ""
+pr = ""
+branch = ""
+evidence = []
+cost_usd = 15000000000000000000000.0
+followups = []
+questions = []
+at = ""
+fully_proven = false
+
+[card.outcome.criteria]
+pass = 0
+fail = 0
+
+[[card]]
+id = "zero-float"
+title = "zero-float"
+desc = ""
+priority = ""
+category = ""
+subtasks = []
+attachments = []
+knowledge = []
+pipeline = ""
+column = "backlog"
+session = ""
+phase = ""
+blocked_by = []
+blocks = []
+touched = "2026-11-26T12:00:00.123456789+00:00"
+
+[card.outcome]
+status = "x"
+summary = ""
+pr = ""
+branch = ""
+evidence = []
+cost_usd = 0.0
+followups = []
+questions = []
+at = ""
+fully_proven = false
+
+[card.outcome.criteria]
+pass = 0
+fail = 0

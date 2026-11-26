@@ -1,0 +1,9 @@
+name = "empty"
+mode = "monolith"
+pipeline = ""
+card = []
+
+[[column]]
+id = "backlog"
+title = "Backlog"
+pipeline = ""

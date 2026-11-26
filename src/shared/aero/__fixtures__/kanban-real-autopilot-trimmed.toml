@@ -1,0 +1,897 @@
+name = "autopilot"
+mode = "monolith"
+pipeline = ""
+
+[[column]]
+id = "backlog"
+title = "Backlog"
+pipeline = ""
+
+[[column]]
+id = "doing"
+title = "Doing"
+pipeline = ""
+
+[[column]]
+id = "review"
+title = "Review"
+pipeline = ""
+
+[[column]]
+id = "done"
+title = "Done"
+pipeline = ""
+
+[[column]]
+id = "blocked"
+title = "Blocked"
+pipeline = ""
+
+[[card]]
+id = "snooze-settle-persisted-state-wa-394bc7"
+title = "Snooze/settle: persisted state, wake rule and tab actions"
+desc = "Persist snoozedUntil and settled per session in sessions.rs (missing means not snoozed, not settled). Add a pure wake helper next to idleTabs.ts that reads the states from src/attention.ts. Add tab context-menu actions: snooze 1 h, tonight 19:00, tomorrow 09:00, settle. Acceptance: snoozed or settled tabs leave the strip and keep running; they return on ask or error, or when the wake time passes; settled sessions are never deleted; a Rust #[test] covers the wake rule (CARGO_TARGET_DIR=target-verify cargo test sessions); npx tsc --noEmit passes; English strings go through i18n."
+priority = "medium"
+category = "herdr"
+subtasks = []
+attachments = []
+knowledge = ["65935125-8338-4cba-b494-557d8a383a38"]
+pipeline = ""
+column = "review"
+session = ""
+phase = "autopilot: PR opened, to evaluate"
+blocked_by = []
+blocks = []
+touched = "2026-11-12T23:50:13.223913+00:00"
+split_from = "snooze-or-settle-a-chat-it-leave-e29ba3"
+
+[card.readiness]
+verdict = "ready"
+score = 8
+checks = [true, true, true, true, true, true, true, true]
+missing_questions = []
+risk = "medium"
+estimate_min = 75
+triaged_at = "2026-11-12T23:08:43.721581200+00:00"
+text_hash = "10037060e340b240"
+
+[card.outcome]
+status = "done"
+summary = "Snooze/settle persisted in sessions.rs, wake rule in snooze.ts mirrored in Rust, tab-menu actions with i18n; cargo test and tsc pass; sidebar shelves, manual and version bump left out per the split. Verified by the harness: checks, NYA gate and the draft PR."
+pr = "https://github.com/owner/repo/pull/73"
+branch = "autopilot/snooze-settle-persisted-state-wa-394bc7"
+evidence = ["RED: node src/snooze.check.ts with the asking/error wake line removed -> FAIL a question or an error brings a snoozed or settled chat back to the strip", "GREEN: CARGO_TARGET_DIR=/c/tv-snooze cargo test sessions -> 7 passed incl. sessions::tests::wake_rule_parks_until_the_wake_time_and_wakes_on_ask_or_error", "GREEN: full cargo test -> 855+5+4+6 passed, 0 failed", "GREEN: npx tsc --noEmit (after npm ci) -> no errors", "nya_check not run: tool not exposed in this run", "harness build: pass (16s)", "harness nya: passed (47 scars checked)", "harness bug proof: not a bug card", "flag: not fully proven, so it is never merged automatically: 6 of 6 acceptance criteria unproven"]
+cost_usd = 1.2882094999999996
+tokens = 122044
+followups = ["Sidebar Snoozed/Settled shelves and the manual page (split card)", "Version bump with a docs/manual/CHANGELOG.md section when released"]
+questions = []
+at = "2026-11-12T23:50:13.215976600+00:00"
+fully_proven = false
+verified_sha = "681719d2e33553d7c885990c659b22d70b4838e3"
+base_sha = "c8a0414082db2b29282d95ea7f765004e57e80ed"
+
+[card.outcome.criteria]
+pass = 0
+fail = 6
+
+[[card.outcome.criteria_proof]]
+index = 1
+text = "Given a chat tab is open, when I choose Snooze 1 h, Tonight 19:00, Tomorrow 09:00 or Settle from the tab context menu, then the tab leaves the strip, and the session keeps running in the background"
+test_path = "src-tauri/tests/snooze_settle.rs"
+test_name = "snooze_and_settle_leave_the_tab_strip_while_the_session_keeps_running"
+status = "unproven"
+reason = "checks.test is not configured, so no test run can back the binding"
+
+[[card.outcome.criteria_proof]]
+index = 2
+text = "Given a tab is snoozed or settled, when its session asks a question or hits an error, then the tab returns to the strip"
+test_path = "src-tauri/tests/snooze_settle.rs"
+test_name = "a_question_or_an_error_brings_a_snoozed_or_settled_chat_back"
+status = "unproven"
+reason = "checks.test is not configured, so no test run can back the binding"
+
+[[card.outcome.criteria_proof]]
+index = 3
+text = "Given a tab is snoozed until a wake time, when the wake time passes, then the tab returns to the strip"
+test_path = "src-tauri/tests/snooze_settle.rs"
+test_name = "a_snoozed_chat_returns_when_the_wake_time_passes"
+status = "unproven"
+reason = "checks.test is not configured, so no test run can back the binding"
+
+[[card.outcome.criteria_proof]]
+index = 4
+text = "Given a session is settled, when it is settled or its state is saved, then the session is never deleted from sessions.rs storage"
+test_path = "src-tauri/tests/snooze_settle.rs"
+test_name = "a_settled_session_is_never_deleted"
+status = "unproven"
+reason = "checks.test is not configured, so no test run can back the binding"
+
+[[card.outcome.criteria_proof]]
+index = 5
+text = "Given the wake rule is implemented in sessions.rs, when I run CARGO_TARGET_DIR=target-verify cargo test sessions from src-tauri/, then a Rust #[test] covering the wake rule passes"
+test_path = "src-tauri/tests/snooze_settle.rs"
+test_name = "wake_rule_is_mirrored_in_sessions_rs_and_covered_by_a_rust_test"
+status = "unproven"
+reason = "checks.test is not configured, so no test run can back the binding"
+
+[[card.outcome.criteria_proof]]
+index = 6
+text = "Given the change is made, when I run npx tsc --noEmit, then it passes, and every new English string goes through t()"
+test_path = "src-tauri/tests/snooze_settle.rs"
+test_name = "new_english_strings_go_through_i18n_and_the_rule_stays_pure"
+status = "unproven"
+reason = "checks.test is not configured, so no test run can back the binding"
+
+[card.spec]
+story = "As a user of Aero, I want to snooze or settle a chat from its tab menu, so that it leaves the tab strip while it keeps running and returns on its own when it needs me."
+refined_at = "2026-11-12T23:08:43.725214400+00:00"
+text_hash = "10037060e340b240"
+assumptions = ["The blocking attention-model card is already done on the board, so its state names are read from src/attention.ts.", "Build check is `npm ci && npx tsc --noEmit`; the Rust test runs from src-tauri/ with CARGO_TARGET_DIR=target-verify cargo test sessions.", "Missing snoozedUntil and settled fields mean not snoozed and not settled, so no migration step is needed.", "'Tonight' means 19:00 and 'tomorrow 09:00' use the local machine time.", "The wake rule is a small pure function, mirrored in Rust in sessions.rs so the Rust #[test] covers it.", "New strings are added as i18n keys in English and pt-BR; the sidebar shelves and manual page stay out per the split."]
+
+[card.spec.assumptions_tr]
+lang = "pt-BR"
+items = ["O card de modelo de atenção que bloqueava este já está concluído no quadro, então os nomes dos estados são lidos de src/attention.ts.", "A verificação de build é `npm ci && npx tsc --noEmit`; o teste Rust roda em src-tauri/ com CARGO_TARGET_DIR=target-verify cargo test sessions.", "Campos snoozedUntil e settled ausentes significam não adiada e não resolvida, então não é preciso etapa de migração.", "'Tonight' significa 19:00 e 'tomorrow 09:00' usa o horário local da máquina.", "A regra de retorno é uma pequena função pura, espelhada em Rust em sessions.rs para que o #[test] Rust a cubra.", "As novas strings são chaves de i18n em inglês e pt-BR; as prateleiras da barra lateral e a página do manual ficam de fora conforme a divisão."]
+
+[[card.spec.acceptance]]
+given = "a chat tab is open"
+when = "I choose Snooze 1 h, Tonight 19:00, Tomorrow 09:00 or Settle from the tab context menu"
+then = "the tab leaves the strip, and the session keeps running in the background"
+
+[[card.spec.acceptance]]
+given = "a tab is snoozed or settled"
+when = "its session asks a question or hits an error"
+then = "the tab returns to the strip"
+
+[[card.spec.acceptance]]
+given = "a tab is snoozed until a wake time"
+when = "the wake time passes"
+then = "the tab returns to the strip"
+
+[[card.spec.acceptance]]
+given = "a session is settled"
+when = "it is settled or its state is saved"
+then = "the session is never deleted from sessions.rs storage"
+
+[[card.spec.acceptance]]
+given = "the wake rule is implemented in sessions.rs"
+when = "I run CARGO_TARGET_DIR=target-verify cargo test sessions from src-tauri/"
+then = "a Rust #[test] covering the wake rule passes"
+
+[[card.spec.acceptance]]
+given = "the change is made"
+when = "I run npx tsc --noEmit"
+then = "it passes, and every new English string goes through t()"
+
+[[card.clarifications]]
+id = "qfdb82c5c"
+question = "Has the attention-model card landed, and what are the exact names of its asking and done states that the wake rule must read?"
+answer = "Not yet: this card is blocked_by autopilot/attention-model-finished-not-see-9dcfad and must not start before that card is done. Read the state names from the module that card ships (the pure attention module) instead of inventing new ones."
+asked_at = "2026-11-11T23:51:17.330271600+00:00"
+answered_at = "2026-11-11T23:53:24.926267300+00:00"
+via = "agent"
+
+[[card.clarifications]]
+id = "q1c079de9"
+question = "Which command runs the runnable check for the pure wake helper (for example npm test), since only the build command is known?"
+answer = "Put the wake rule where it can be checked with the existing toolchain: if the repo has no TypeScript test runner, keep the pure helper small and add its check as a Rust #[test] next to the persisted fields in sessions.rs, run with `CARGO_TARGET_DIR=target-verify cargo test sessions` from src-tauri/ (never the default target dir). `npx tsc --noEmit` must also pass."
+asked_at = "2026-11-11T23:51:17.330271600+00:00"
+answered_at = "2026-11-11T23:53:24.926267300+00:00"
+via = "agent"
+
+[[card.clarifications]]
+id = "qa06d8379"
+question = "Is a default for existing sessions without snoozedUntil/settled (empty/false) acceptable as the migration, and is 'tonight' the local machine time?"
+answer = "Yes: missing fields mean not snoozed and not settled (no migration step). \"Tonight\" and \"tomorrow 09:00\" use the local machine time."
+asked_at = "2026-11-11T23:51:17.330271600+00:00"
+answered_at = "2026-11-11T23:53:24.926267300+00:00"
+via = "agent"
+
+[[card.clarifications]]
+id = "qce3f32e4"
+question = "Has the attention-model card (autopilot/attention-model-finished-not-see-9dcfad) landed, and what are the exact names of its asking and done states that the wake rule must read?"
+answer = "It lands in release 2.18.0 (PR #63, pure module src/attention.ts). This card stays blocked_by it, so start only after it is merged to main, and read the exact state names from src/attention.ts on main."
+asked_at = "2026-11-11T23:54:17.870191400+00:00"
+answered_at = "2026-11-12T01:53:49.564261300+00:00"
+via = "agent"
+
+[[card.clarifications]]
+id = "q8a00e7b6"
+question = "Should the Snoozed/Settled sidebar shelf UI and the manual page update be in this card, or split into a follow-up so the scope fits in 90 minutes?"
+answer = "Split it (decision delegated by the user on 2026-11-12). This card covers the persisted snooze/settle state, the wake rule and the tab context-menu actions; the sidebar shelves and the manual page go in a follow-up card."
+asked_at = "2026-11-11T23:54:17.870191400+00:00"
+answered_at = "2026-11-12T01:53:49.564261300+00:00"
+via = "agent"
+
+[[card]]
+id = "snooze-or-settle-a-chat-it-leave-e29ba3"
+title = "Snooze or settle a chat: it leaves the tab strip and comes back by itself when it needs me"
+desc = """
+Story: as the user, I want to park chats I am waiting on (snooze 1 h, until tonight, until tomorrow 09:00, or settle indefinitely) without closing them, and have them return on their own when they ask me something.
+
+Today (observed 2026-11-11): `isPinned` only means \"in the open-tab strip\" and src/idleTabs.ts auto-closes idle tabs after N days; there is no snooze, no manual settle, no wake-on-event. Idea from herdr `tab.settle` and herdr-layout-examples threads/ (t4-threads: snooze, settle shelves, wake early on blocked/done).
+
+Acceptance:
+- Given an open tab, when the user snoozes it (1 h / tonight 19:00 / tomorrow 09:00) or settles it, then it leaves the strip and appears in a \"Snoozed\" or \"Settled\" shelf in the sidebar with its wake time; it keeps running.
+- Given a snoozed or settled session starts asking or errors, then it returns to the strip at once with its attention marker.
+- Given a snooze time passes, then the tab returns to the strip.
+- Given a settled session, then it is never deleted and stays searchable.
+- The per-session `snoozedUntil` / `settled` state is persisted with the session (sessions.rs) and the wake rule is a pure helper next to idleTabs.ts with a runnable check; English strings via i18n; manual page updated; tsc passes.
+
+Depends on the attention-model card (uses its asking/done state). Effort S-M. Source: herdr study 65935125."""
+priority = "medium"
+category = "herdr"
+subtasks = []
+attachments = []
+knowledge = ["65935125-8338-4cba-b494-557d8a383a38"]
+pipeline = ""
+column = "backlog"
+session = ""
+phase = ""
+blocked_by = ["autopilot/attention-model-finished-not-see-9dcfad"]
+blocks = ["autopilot/snoozed-and-settled-shelves-in-t-c1d137"]
+touched = "2026-11-11T23:50:24.375224200+00:00"
+split_hash = "86493f304856ff68"
+
+[card.readiness]
+verdict = "split"
+score = 7
+checks = [true, true, true, false, true, true, true, true]
+missing_questions = []
+risk = "medium"
+estimate_min = 75
+triaged_at = "2026-11-12T23:03:27.755393800+00:00"
+text_hash = "86493f304856ff68"
+split_into = ["snooze-settle-persisted-state-wa-394bc7", "snoozed-and-settled-sidebar-shel-5d7d6a"]
+
+[card.spec]
+story = "As the user, I want to snooze a chat for 1 hour, until tonight 19:00 or until tomorrow 09:00, or settle it indefinitely, without closing it, so that it leaves my tab strip and returns on its own when it needs me."
+refined_at = "2026-11-12T23:03:27.991356900+00:00"
+text_hash = "86493f304856ff68"
+assumptions = ["Checks use the Rust toolchain: cargo test in src-tauri with CARGO_TARGET_DIR=target-verify, and the build is npm ci && npx tsc --noEmit.", "Missing snoozedUntil or settled fields mean not snoozed and not settled, so no migration step is needed.", "Tonight and tomorrow 09:00 use the local machine time.", "The attention-model dependency is marked done on the board, but the commit history only reaches 2.14.0 and the card says it lands in 2.18.0, so I did not count it as landed."]
+
+[card.spec.assumptions_tr]
+lang = "pt-BR"
+items = ["As verificações usam o toolchain Rust: cargo test em src-tauri com CARGO_TARGET_DIR=target-verify, e o build é npm ci && npx tsc --noEmit.", "Campos snoozedUntil ou settled ausentes significam não adiado e não settled, então não é preciso etapa de migração.", "Hoje à noite e amanhã às 09:00 usam o horário local da máquina.", "A dependência do card de atenção está marcada como concluída no quadro, mas o histórico de commits só vai até a 2.14.0 e o card diz que ela entra na 2.18.0, então não a considerei já entregue."]
+
+[[card.spec.acceptance]]
+given = "an open chat tab"
+when = "the user snoozes it (1 h, tonight 19:00 or tomorrow 09:00) or settles it"
+then = "the tab leaves the tab strip and the session keeps running"
+
+[[card.spec.acceptance]]
+given = "a snoozed or settled session starts asking for input or errors"
+when = "the attention state changes"
+then = "the session returns to the tab strip at once with its attention marker"
+
+[[card.spec.acceptance]]
+given = "a snoozed session whose wake time has passed"
+when = "the wake rule is evaluated"
+then = "the tab returns to the tab strip"
+
+[[card.spec.acceptance]]
+given = "a settled session"
+when = "the user settles it or it stays settled"
+then = "it is never deleted and remains searchable"
+
+[[card.clarifications]]
+id = "qfdb82c5c"
+question = "Has the attention-model card landed, and what are the exact names of its asking and done states that the wake rule must read?"
+answer = "Not yet: this card is blocked_by autopilot/attention-model-finished-not-see-9dcfad and must not start before that card is done. Read the state names from the module that card ships (the pure attention module) instead of inventing new ones."
+asked_at = "2026-11-11T23:51:17.330271600+00:00"
+answered_at = "2026-11-11T23:53:24.926267300+00:00"
+via = "agent"
+
+[[card.clarifications]]
+id = "q1c079de9"
+question = "Which command runs the runnable check for the pure wake helper (for example npm test), since only the build command is known?"
+answer = "Put the wake rule where it can be checked with the existing toolchain: if the repo has no TypeScript test runner, keep the pure helper small and add its check as a Rust #[test] next to the persisted fields in sessions.rs, run with `CARGO_TARGET_DIR=target-verify cargo test sessions` from src-tauri/ (never the default target dir). `npx tsc --noEmit` must also pass."
+asked_at = "2026-11-11T23:51:17.330271600+00:00"
+answered_at = "2026-11-11T23:53:24.926267300+00:00"
+via = "agent"
+
+[[card.clarifications]]
+id = "qa06d8379"
+question = "Is a default for existing sessions without snoozedUntil/settled (empty/false) acceptable as the migration, and is 'tonight' the local machine time?"
+answer = "Yes: missing fields mean not snoozed and not settled (no migration step). \"Tonight\" and \"tomorrow 09:00\" use the local machine time."
+asked_at = "2026-11-11T23:51:17.330271600+00:00"
+answered_at = "2026-11-11T23:53:24.926267300+00:00"
+via = "agent"
+
+[[card.clarifications]]
+id = "qce3f32e4"
+question = "Has the attention-model card (autopilot/attention-model-finished-not-see-9dcfad) landed, and what are the exact names of its asking and done states that the wake rule must read?"
+answer = "It lands in release 2.18.0 (PR #63, pure module src/attention.ts). This card stays blocked_by it, so start only after it is merged to main, and read the exact state names from src/attention.ts on main."
+asked_at = "2026-11-11T23:54:17.870191400+00:00"
+answered_at = "2026-11-12T01:53:49.564261300+00:00"
+via = "agent"
+
+[[card.clarifications]]
+id = "q8a00e7b6"
+question = "Should the Snoozed/Settled sidebar shelf UI and the manual page update be in this card, or split into a follow-up so the scope fits in 90 minutes?"
+answer = "Split it (decision delegated by the user on 2026-11-12). This card covers the persisted snooze/settle state, the wake rule and the tab context-menu actions; the sidebar shelves and the manual page go in a follow-up card."
+asked_at = "2026-11-11T23:54:17.870191400+00:00"
+answered_at = "2026-11-12T01:53:49.564261300+00:00"
+via = "agent"
+
+[[card]]
+id = "match-whole-word-todo-fixme-in-a-489788"
+title = "Match whole-word TODO/FIXME in Autopilot suggest signals"
+desc = """
+[src: gh/owner/repo#55]
+Suggested by Autopilot from src-tauri/src/autopilot_suggest.rs:265.
+Found: if no.parse::<u32>().is_err() || !(text.contains(\"TODO\") || text.contains(\"FIXME\")) {
+
+The suggest-signal filter in src-tauri/src/autopilot_suggest.rs (around line 265) checks `text.contains(\"TODO\")`, so it also matches Portuguese words like \"TODOS\" (\"all\") in comments such as those in src/components.tsx and src/7-adapt.css. Change the check to match TODO and FIXME only as whole words, and make the git grep pattern at line 505 agree with it. Add cases to the existing `todo_signals` test (around lines 669-677) asserting that a line containing \"TODOS os\" yields no signal while \"// TODO: handle\" and \"FIXME later\" still do. Done when `cargo test` passes for autopilot_suggest and the new assertions cover the \"TODOS\" case."""
+priority = ""
+category = "suggestion"
+subtasks = []
+attachments = []
+knowledge = []
+pipeline = ""
+column = "done"
+session = ""
+phase = "autopilot: merged"
+blocked_by = []
+blocks = []
+touched = "2026-11-06T12:48:46.911139400+00:00"
+suggestion_reason = "Real TODO markers in the repo are being mixed with Portuguese comments, so Autopilot would propose cards from text that is not a task."
+suggestion_source = "todo:fc762845"
+suggestion_accepted_at = "2026-11-06T01:19:40.383128600+00:00"
+suggestion_via = "app"
+
+[card.readiness]
+verdict = "ready"
+score = 8
+checks = [true, true, true, true, true, true, true, true]
+missing_questions = []
+risk = "low"
+estimate_min = 30
+triaged_at = "2026-11-06T01:19:49.633823+00:00"
+text_hash = "f08bdd10189073b4"
+
+[card.outcome]
+status = "done"
+summary = 'TODO/FIXME suggest signals now match whole words only; git grep pattern updated to \b(TODO|FIXME)\b; test extended; 19 autopilot_suggest tests pass. Verified by the harness: checks, NYA gate and the draft PR.'
+pr = "https://github.com/owner/repo/pull/56"
+branch = "autopilot/match-whole-word-todo-fixme-in-a-489788"
+evidence = ["cargo test autopilot_suggest: 19 passed; 0 failed", "initial run: error: unknown character escape: `b` (fixed by escaping the backslash in the git grep pattern)", "harness build: pass (13s)", "harness nya: passed (43 scars checked)", "harness bug proof: not a bug card", "flag: not fully proven, so it is never merged automatically: 5 of 5 acceptance criteria unproven"]
+cost_usd = 0.2211075
+tokens = 38689
+followups = []
+questions = []
+at = "2026-11-06T01:24:08.396309600+00:00"
+fully_proven = false
+verified_sha = "14d18f1abf587384550165d906d4424b130fda27"
+base_sha = "c8c16fc20a838475d8949f0d65c6e849e34b01ae"
+
+[card.outcome.criteria]
+pass = 0
+fail = 5
+
+[[card.outcome.criteria_proof]]
+index = 1
+text = "Given a line containing \"TODOS os\" with no other TODO or FIXME token, when the suggest-signal filter in src-tauri/src/autopilot_suggest.rs evaluates it, then it yields no signal"
+test_path = "src-tauri/src/autopilot_suggest.rs"
+test_name = "todo_lines_key_on_the_text_not_the_line_number"
+status = "unproven"
+reason = "`src-tauri/src/autopilot_suggest.rs` is not a test file (it must sit in a test folder or be named like a test)"
+
+[[card.outcome.criteria_proof]]
+index = 2
+text = "Given a line containing \"// TODO: handle\", when the suggest-signal filter evaluates it, then it yields a signal"
+test_path = "src-tauri/src/autopilot_suggest.rs"
+test_name = "todo_lines_key_on_the_text_not_the_line_number"
+status = "unproven"
+reason = "`src-tauri/src/autopilot_suggest.rs` is not a test file (it must sit in a test folder or be named like a test)"
+
+[[card.outcome.criteria_proof]]
+index = 3
+text = "Given a line containing \"FIXME later\", when the suggest-signal filter evaluates it, then it yields a signal"
+test_path = "src-tauri/src/autopilot_suggest.rs"
+test_name = "todo_lines_key_on_the_text_not_the_line_number"
+status = "unproven"
+reason = "`src-tauri/src/autopilot_suggest.rs` is not a test file (it must sit in a test folder or be named like a test)"
+
+[[card.outcome.criteria_proof]]
+index = 4
+text = "Given the git grep pattern at about line 505 of autopilot_suggest.rs, when it is updated to match the new filter, then it matches whole-word TODO and FIXME only, consistent with the filter"
+test_path = "src-tauri/src/autopilot_suggest.rs"
+test_name = "todo_lines_key_on_the_text_not_the_line_number"
+status = "unproven"
+reason = "`src-tauri/src/autopilot_suggest.rs` is not a test file (it must sit in a test folder or be named like a test)"
+
+[[card.outcome.criteria_proof]]
+index = 5
+text = "Given the updated todo_signals test with the new assertions, when cargo test is run for autopilot_suggest, then all tests pass"
+test_path = "src-tauri/src/autopilot_suggest.rs"
+test_name = "todo_lines_key_on_the_text_not_the_line_number"
+status = "unproven"
+reason = "`src-tauri/src/autopilot_suggest.rs` is not a test file (it must sit in a test folder or be named like a test)"
+
+[card.outcome.merge]
+state = "merged"
+reason = ""
+pr_number = 56
+strategy = "merge"
+merge_commit = "4f7adfceab91f7381e131ff9901ba997e9502b9b"
+at = "2026-11-06T12:48:46.906577900+00:00"
+
+[card.outcome.evaluation]
+action = "merge"
+at = "2026-11-06T12:48:36.617464200+00:00"
+via = "app"
+comment = "se tiver tudo revisado e gerar boas melhorias pode mergear"
+
+[card.spec]
+story = "As an Autopilot user, I want TODO and FIXME suggest signals matched only as whole words, so that Portuguese words like \"TODOS\" in comments no longer produce false suggestions."
+refined_at = "2026-11-06T01:19:49.634424300+00:00"
+text_hash = "f08bdd10189073b4"
+
+[[card.spec.acceptance]]
+given = "a line containing \"TODOS os\" with no other TODO or FIXME token"
+when = "the suggest-signal filter in src-tauri/src/autopilot_suggest.rs evaluates it"
+then = "it yields no signal"
+
+[[card.spec.acceptance]]
+given = "a line containing \"// TODO: handle\""
+when = "the suggest-signal filter evaluates it"
+then = "it yields a signal"
+
+[[card.spec.acceptance]]
+given = "a line containing \"FIXME later\""
+when = "the suggest-signal filter evaluates it"
+then = "it yields a signal"
+
+[[card.spec.acceptance]]
+given = "the git grep pattern at about line 505 of autopilot_suggest.rs"
+when = "it is updated to match the new filter"
+then = "it matches whole-word TODO and FIXME only, consistent with the filter"
+
+[[card.spec.acceptance]]
+given = "the updated todo_signals test with the new assertions"
+when = "cargo test is run for autopilot_suggest"
+then = "all tests pass"
+
+[[card]]
+id = "treat-a-chat-docked-in-the-kanba-c118d2"
+title = "Treat a chat docked in the Kanban view as visible for OS notifications"
+desc = """
+Suggested by Autopilot from a follow-up of the run on «OS notification when a background session asks, errors or finishes unseen».
+
+Find the visibility check the OS notification logic uses to decide whether a session is on screen. Make a chat docked in the Kanban view count as visible, so the app does not send a notification for a chat the user is already looking at. Background chats that are not shown in the chat pane or the Kanban dock should still notify as before. Done when a unit test or manual check shows no notification for a docked chat that asks, errors or finishes, and a notification still fires for a chat that is truly hidden."""
+priority = ""
+category = "suggestion"
+subtasks = []
+attachments = []
+knowledge = []
+pipeline = ""
+column = "backlog"
+session = ""
+phase = ""
+blocked_by = []
+blocks = []
+touched = "2026-11-13T14:09:32.001368500+00:00"
+suggested = true
+suggestion_reason = "The follow-up from the OS notification run flags this as a known gap, and it causes spurious notifications for chats the user is already watching."
+suggestion_source = "followup:f92f1d5e"
+
+[[card]]
+id = "i18n-rollout-translate-the-rest--ed4392"
+title = "i18n rollout: translate the rest of the UI and make the Telegram bot follow the interface language"
+desc = """
+Depends on the i18n foundation card (src/i18n.ts + Interface language setting).
+
+Outcome: the whole app UI goes through `t()` with complete en + pt-BR dictionaries, and there is ONE language preference.
+- Migrate sidebar, composer, tabs, Kanban, Knowledge, Observatory, Loops, Pipelines, Routines, Agents, Skills, Plugins, Autopilot panel, toasts and backend error strings that surface in the UI.
+- Telegram \"Bot language\" defaults to \"Same as the app\" (keeps an explicit override). telegram.rs reads the shared preference.
+- Add a check (script or unit test) that fails when a key exists in `en` but not in `pt-BR`.
+
+Acceptance:
+- Given Português do Brasil, when I walk every sidebar view, then no English UI copy remains (product names like Claude, Codex, GitHub excepted).
+- Given the key-parity check, when a key is missing in pt-BR, then it fails.
+- `npx tsc --noEmit` and `cargo check` (CARGO_TARGET_DIR=target-verify) pass.
+
+Too large for one autonomous run: split per view before dispatching."""
+priority = ""
+category = ""
+subtasks = []
+attachments = []
+knowledge = []
+pipeline = ""
+column = "backlog"
+session = ""
+phase = ""
+blocked_by = []
+blocks = []
+touched = "2026-10-20T17:24:06.454169500+00:00"
+split_hash = "4960d280c0d71ce5"
+
+[card.readiness]
+verdict = "split"
+score = 7
+checks = [true, true, false, true, true, true, true, true]
+missing_questions = []
+risk = "medium"
+estimate_min = 240
+triaged_at = "2026-11-12T23:01:00.366611300+00:00"
+text_hash = "4960d280c0d71ce5"
+split_into = ["i18n-sidebar-tabs-composer-and-c-03e3d2", "i18n-work-and-automation-views-t-0372eb", "i18n-knowledge-observatory-agent-20a47b", "telegram-follows-the-app-languag-d042d1"]
+
+[card.spec]
+story = "As a Portuguese-speaking user, I want the whole app interface and the Telegram bot to follow one interface language preference, so that I never see English UI copy when I have chosen Português do Brasil."
+refined_at = "2026-11-12T23:01:00.375119800+00:00"
+text_hash = "4960d280c0d71ce5"
+assumptions = ["This card is too big for one run, so it is split into four cards by view and area, in the order the board lists them.", "The i18n foundation card is done and in the repo, so it is not a dependency; the existing rollout cards 1/3 to 3/3 are covered by the split.", "Build commands are npm ci, npx tsc --noEmit and cargo check with CARGO_TARGET_DIR=target-verify.", "The key-parity check is a node or unit test script added to the npm scripts, run with the existing test setup.", "Backend error strings are translated only where they reach the UI; the Telegram bot reads the shared preference from telegram.rs."]
+
+[card.spec.assumptions_tr]
+lang = "pt-BR"
+items = ["Este cartão é grande demais para uma execução só, então é dividido em quatro cartões por tela e área, na ordem em que o quadro os lista.", "O cartão da fundação i18n já está concluído e no repositório, então não é dependência; os cartões de implantação 1/3 a 3/3 são cobertos pela divisão.", "Os comandos de build são npm ci, npx tsc --noEmit e cargo check com CARGO_TARGET_DIR=target-verify.", "A verificação de paridade de chaves é um script de teste em node ou unitário adicionado aos scripts npm, executado com a configuração de testes existente.", "Mensagens de erro do backend são traduzidas apenas quando chegam à interface; o bot do Telegram lê a preferência compartilhada em telegram.rs."]
+
+[[card.spec.acceptance]]
+given = "the interface language is set to Português do Brasil"
+when = "I walk through every sidebar view"
+then = "no English UI copy remains, except product names such as Claude, Codex and GitHub"
+
+[[card.spec.acceptance]]
+given = "a key exists in the en dictionary but not in pt-BR"
+when = "the key-parity check runs"
+then = "the check fails and names the missing key"
+
+[[card.spec.acceptance]]
+given = "the Telegram bot language is left at its default"
+when = "the bot sends a message"
+then = "it uses the app's interface language"
+
+[[card.spec.acceptance]]
+given = "the repo is built"
+when = "I run npx tsc --noEmit and cargo check with CARGO_TARGET_DIR=target-verify"
+then = "both pass"
+
+[[card]]
+id = "i18n-rollout-1-3-sidebar-tabs-co-3e4f56"
+title = "i18n rollout 1/3: sidebar, tabs, composer and chat thread through t()"
+desc = """
+Split from `i18n-rollout-translate-the-rest--ed4392`. Depends on PR #47 (i18n foundation) being merged.
+
+Outcome: the sidebar, session tabs, composer (model/effort/modes/schedule/attach) and chat thread chrome (badges, notices, ask cards) go through `t()` from src/i18n, with full en and pt-BR keys. Product names (Claude, Codex, GitHub) stay as they are.
+
+Acceptance:
+- Given Português do Brasil, when I use the chat screen, then no English UI copy remains in these areas.
+- Given English, then the text is identical to today.
+- `npx tsc --noEmit` passes."""
+priority = ""
+category = ""
+subtasks = []
+attachments = []
+knowledge = []
+pipeline = ""
+column = "review"
+session = ""
+phase = "autopilot: PR opened, to evaluate"
+blocked_by = []
+blocks = []
+touched = "2026-11-13T20:29:54.524456700+00:00"
+
+[card.readiness]
+verdict = "ready"
+score = 8
+checks = [true, true, true, true, true, true, true, true]
+missing_questions = []
+risk = "low"
+estimate_min = 75
+triaged_at = "2026-11-12T23:01:33.500830700+00:00"
+text_hash = "3e827e084e5c9e2a"
+
+[card.outcome]
+status = "done"
+summary = "Chat screen (sidebar, tabs, composer, thread chrome, hero, dictation errors) goes through t() with 330 en/pt-BR keys; English identical bar 2 Portuguese leftovers fixed; tsc and 3 new Rust tests pass. Verified by the harness: checks, NYA gate and the draft PR."
+pr = "https://github.com/owner/repo/pull/79"
+branch = "autopilot/i18n-rollout-1-3-sidebar-tabs-co-3e4f56"
+evidence = ["RED: node tests/chatScreen.check.mjs <pre-change src> 'no English' -> FAIL, 225 hardcoded-copy findings (New chat, Knowledge, Show more, Add project, Back, ...)", "GREEN: node tests/chatScreen.check.mjs -> 4 ok lines (no English copy, pt-BR coverage with placeholders, English identity vs golden + api.ts tables, typecheck)", "GREEN: cargo test --test i18n_chat_screen -> 3 passed; --test attention_model --test npm_test_script -> 9 passed", "GREEN: npx tsc --noEmit -> exit 0 at HEAD after npm ci", "verify: 325 of 330 English values appear verbatim in the original source; 3 composites render identically; 2 deliberate fixes (Try again, asking…)", "not run: nya_check (tool not exposed in this run); full cargo test suite", "harness build: pass (15s)", "harness nya: passed (28 scars checked)", "harness bug proof: not a bug card", "flag: not fully proven, so it is never merged automatically: 3 of 3 acceptance criteria unproven"]
+cost_usd = 3.9927612
+tokens = 272091
+followups = ["Other screens (kanban, settings tail, plugins, routines, observatory) still have hardcoded English: rollout parts 2 and 3", "Skills gallery still shows group names via skillGroup() untranslated (outside this card's areas)"]
+questions = []
+at = "2026-11-13T20:29:54.515253800+00:00"
+fully_proven = false
+verified_sha = "45446e5bdf999555fd4d46a4dcd2943df8204540"
+base_sha = "c8a0414082db2b29282d95ea7f765004e57e80ed"
+
+[card.outcome.criteria]
+pass = 0
+fail = 3
+
+[[card.outcome.criteria_proof]]
+index = 1
+text = "Given the interface language is Português do Brasil, when I use the sidebar, session tabs, composer and chat thread, then no English UI copy remains in these areas, and product names (Claude, Codex, GitHub) stay as they are"
+test_path = "src-tauri/tests/i18n_chat_screen.rs"
+test_name = "pt_br_chat_screen_shows_no_english_copy"
+status = "unproven"
+reason = "checks.test is not configured, so no test run can back the binding"
+
+[[card.outcome.criteria_proof]]
+index = 2
+text = "Given the interface language is English, when I use the same areas, then the visible text is identical to today"
+test_path = "src-tauri/tests/i18n_chat_screen.rs"
+test_name = "english_chat_screen_text_is_identical_to_before_the_translation"
+status = "unproven"
+reason = "checks.test is not configured, so no test run can back the binding"
+
+[[card.outcome.criteria_proof]]
+index = 3
+text = "Given the change is complete, when I run npm ci && npx tsc --noEmit, then the typecheck passes with no errors"
+test_path = "src-tauri/tests/i18n_chat_screen.rs"
+test_name = "typecheck_passes_after_the_chat_screen_translation"
+status = "unproven"
+reason = "checks.test is not configured, so no test run can back the binding"
+
+[card.spec]
+story = "As a Brazilian Portuguese user, I want the sidebar, session tabs, composer and chat thread to show Portuguese text, so that I can use the chat screen in my own language without English leftovers."
+refined_at = "2026-11-12T23:01:33.717074600+00:00"
+text_hash = "3e827e084e5c9e2a"
+assumptions = ["The i18n foundation (PR #47, Settings language, t() in src/i18n) has already landed, per the board, so it is not a blocker.", "Build and check command: npm ci && npx tsc --noEmit, from the repo proof commands.", "The agent finds the sidebar, tabs, composer and chat thread components by searching the source; no file list is needed.", "Keys are added to both the en and pt-BR dictionaries; English values must equal the current strings.", "No migrations or stored data change; the blast radius is UI text only, so risk is low.", "Estimated at about 75 minutes, which fits one run, so no split."]
+
+[card.spec.assumptions_tr]
+lang = "pt-BR"
+items = ["A fundação i18n (PR #47, idioma nas Configurações, t() em src/i18n) já foi integrada, segundo o quadro, então não bloqueia.", "Comando de build e verificação: npm ci && npx tsc --noEmit, dos comandos de prova do repositório.", "O agente encontra os componentes da barra lateral, abas, compositor e thread do chat pesquisando o código; não é preciso lista de arquivos.", "As chaves são adicionadas aos dicionários en e pt-BR; os valores em inglês devem ser iguais aos textos atuais.", "Nenhuma migração ou dado armazenado muda; o impacto se limita ao texto da interface, então o risco é baixo.", "Estimado em cerca de 75 minutos, cabe em uma execução, então não há divisão."]
+
+[[card.spec.acceptance]]
+given = "the interface language is Português do Brasil"
+when = "I use the sidebar, session tabs, composer and chat thread"
+then = "no English UI copy remains in these areas, and product names (Claude, Codex, GitHub) stay as they are"
+
+[[card.spec.acceptance]]
+given = "the interface language is English"
+when = "I use the same areas"
+then = "the visible text is identical to today"
+
+[[card.spec.acceptance]]
+given = "the change is complete"
+when = "I run npm ci && npx tsc --noEmit"
+then = "the typecheck passes with no errors"
+
+[[card]]
+id = "i18n-rollout-2-3-work-and-automa-e6f987"
+title = "i18n rollout 2/3: Work and Automation views (Kanban, Autopilot, Routines, Loops, Pipelines) through t()"
+desc = """
+Split from `i18n-rollout-translate-the-rest--ed4392`. Depends on PR #47 (i18n foundation) being merged.
+
+Outcome: KanbanView (cards, triage, approvals), the Autopilot panel outside Settings, RoutinesView, Loops and Pipelines (including the LAB) go through `t()` with full en and pt-BR keys.
+
+Acceptance:
+- Given Português do Brasil, when I walk these views, then no English UI copy remains.
+- Given English, then the text is identical to today.
+- `npx tsc --noEmit` passes."""
+priority = ""
+category = ""
+subtasks = []
+attachments = []
+knowledge = []
+pipeline = ""
+column = "backlog"
+session = ""
+phase = ""
+blocked_by = []
+blocks = []
+touched = "2026-10-21T05:41:24.390526500+00:00"
+split_hash = "b4471a1164128aa2"
+
+[card.readiness]
+verdict = "split"
+score = 7
+checks = [true, true, false, true, true, true, true, true]
+missing_questions = []
+risk = "low"
+estimate_min = 150
+triaged_at = "2026-11-12T23:01:50.057438500+00:00"
+text_hash = "b4471a1164128aa2"
+split_into = ["i18n-kanban-and-autopilot-panel--1bcbbe", "i18n-routinesview-and-loops-thro-2ad6c8", "i18n-pipelines-and-the-lab-throu-77c8ef"]
+
+[card.spec]
+story = "As a Portuguese-speaking user, I want the Work and Automation views to show Brazilian Portuguese text when I pick that interface language, so that I can use them without English copy, and I want English to stay unchanged."
+refined_at = "2026-11-12T23:01:50.067786800+00:00"
+text_hash = "b4471a1164128aa2"
+assumptions = ["PR #47 is treated as landed, since the i18n foundation card is done in the repo context.", "Proof commands are npm ci and npx tsc --noEmit; English output must stay byte-identical.", "Kanban and Autopilot were partly translated earlier (kb.* keys), so the work covers only the strings still in English.", "Too big for one 90-minute run, so it is split into three cards by view group."]
+
+[card.spec.assumptions_tr]
+lang = "pt-BR"
+items = ["O PR #47 é considerado concluído, pois o card da fundação i18n está pronto no contexto do repositório.", "Os comandos de verificação são npm ci e npx tsc --noEmit; a saída em inglês deve permanecer idêntica.", "Kanban e Autopilot já foram parcialmente traduzidos antes (chaves kb.*), então o trabalho cobre só os textos que ainda estão em inglês.", "Grande demais para uma execução de 90 minutos, então é dividido em três cards por grupo de telas."]
+
+[[card.spec.acceptance]]
+given = "The interface language is Português do Brasil"
+when = "I walk through the Kanban, Autopilot panel, Routines, Loops and Pipelines views"
+then = "No English UI copy remains in those views"
+
+[[card.spec.acceptance]]
+given = "The interface language is English"
+when = "I open the same views"
+then = "The text is identical to what it is today"
+
+[[card.spec.acceptance]]
+given = "The code changes are made"
+when = "I run npx tsc --noEmit"
+then = "The type check passes"
+
+[[card]]
+id = "i18n-rollout-3-3-knowledge-obser-ddcc1f"
+title = "i18n rollout 3/3: Knowledge, Observatory, Agents, Skills, Plugins, toasts, key-parity check and Telegram follows the app language"
+desc = """
+Split from `i18n-rollout-translate-the-rest--ed4392`. Depends on PR #47 and the two earlier rollout cards.
+
+Outcome:
+- Knowledge (TerminalView), Observatory, Agents, Skills, Plugins and toasts go through `t()`.
+- A check (script in CI's web job, or a unit test) fails when a key exists in `en` but not in `pt-BR`.
+- Telegram \"Bot language\" gains \"Same as the app\" as the default and keeps an explicit override; telegram.rs reads the shared preference (the frontend must persist it somewhere the backend can read, e.g. a settings command).
+
+Acceptance:
+- Given Português do Brasil, when I walk every sidebar view, then no English UI copy remains (product names excepted).
+- Given a key missing in pt-BR, then the parity check fails.
+- `npx tsc --noEmit` and `cargo check` (CARGO_TARGET_DIR=target-verify) pass."""
+priority = ""
+category = ""
+subtasks = []
+attachments = []
+knowledge = []
+pipeline = ""
+column = "backlog"
+session = ""
+phase = ""
+blocked_by = []
+blocks = []
+touched = "2026-10-21T05:41:27.627541500+00:00"
+split_hash = "eb6f9a97a47d4626"
+
+[card.readiness]
+verdict = "split"
+score = 6
+checks = [true, true, false, false, true, true, true, true]
+missing_questions = []
+risk = "medium"
+estimate_min = 150
+triaged_at = "2026-11-12T23:02:12.191751+00:00"
+text_hash = "eb6f9a97a47d4626"
+split_into = ["i18n-translate-knowledge-observa-31ab10", "i18n-key-parity-check-between-en-04d2b1", "telegram-follows-the-app-languag-802432"]
+
+[card.spec]
+story = "As a Portuguese-speaking user, I want every remaining view, toast and the Telegram bot language to follow the app language, so that I see no English copy when I use Português do Brasil."
+refined_at = "2026-11-12T23:02:12.406435800+00:00"
+text_hash = "eb6f9a97a47d4626"
+assumptions = ["The card is too big for one run, so it is split into three cards: UI translation, the key-parity check, and the Telegram language setting.", "Build and check commands are npm ci, npx tsc --noEmit and cargo check with CARGO_TARGET_DIR=target-verify.", "The card depends on PR #47 and the rollout cards 1/3 and 2/3, which are not yet landed in the repo context, so this card is not ready to run.", "Telegram language is stored as a shared preference that the frontend writes and telegram.rs reads; the exact storage is left to the coding agent."]
+
+[card.spec.assumptions_tr]
+lang = "pt-BR"
+items = ["O card é grande demais para uma execução só, então é dividido em três cards: tradução da interface, verificação de paridade de chaves e configuração de idioma do Telegram.", "Os comandos de build e verificação são npm ci, npx tsc --noEmit e cargo check com CARGO_TARGET_DIR=target-verify.", "O card depende do PR #47 e dos cards de rollout 1/3 e 2/3, que ainda não foram integrados ao repositório, então este card não está pronto para execução.", "O idioma do Telegram é guardado como preferência compartilhada que o frontend grava e o telegram.rs lê; a forma exata de armazenamento fica a critério do agente."]
+
+[[card.spec.acceptance]]
+given = "the interface is set to Português do Brasil"
+when = "I walk every sidebar view and trigger toasts"
+then = "no English UI copy remains, except product names"
+
+[[card.spec.acceptance]]
+given = "a key exists in en but is missing in pt-BR"
+when = "the parity check runs in CI's web job or as a unit test"
+then = "the check fails and names the missing key"
+
+[[card.spec.acceptance]]
+given = "Telegram 'Bot language' is left at its default"
+when = "the bot sends a message"
+then = "it uses the app's language; an explicit override still wins"
+
+[[card.spec.acceptance]]
+given = "the user changes the app language or the Telegram override"
+when = "the backend reads the shared preference"
+then = "telegram.rs uses the saved value"
+
+[[card.spec.acceptance]]
+given = "the change is complete"
+when = "npx tsc --noEmit and cargo check (CARGO_TARGET_DIR=target-verify) run"
+then = "both pass"
+
+[[card]]
+id = "i18n-sidebar-tabs-composer-and-c-03e3d2"
+title = "i18n: sidebar, tabs, composer and chat thread through t()"
+desc = "Move the sidebar, session tabs, composer and chat thread strings to t() with complete en and pt-BR keys. Acceptance: with Português do Brasil selected, these surfaces show no English copy; npx tsc --noEmit passes."
+priority = ""
+category = ""
+subtasks = []
+attachments = []
+knowledge = []
+pipeline = ""
+column = "done"
+session = ""
+phase = "Discarded: PR #83 duplicates #79"
+blocked_by = []
+blocks = []
+touched = "2026-11-16T19:35:11.240100100+00:00"
+split_from = "i18n-rollout-translate-the-rest--ed4392"
+
+[card.readiness]
+verdict = "ready"
+score = 8
+checks = [true, true, true, true, true, true, true, true]
+missing_questions = []
+risk = "low"
+estimate_min = 75
+triaged_at = "2026-11-12T23:06:08.245329300+00:00"
+text_hash = "59ef0c257f8168a7"
+
+[card.outcome]
+status = "done"
+summary = "Sidebar, tabs, composer and chat thread moved to t() with 303 en/pt-BR keys. tsc passes; i18n check and Rust tests pass. KanbanSessions and model prompts stay English. Verified by the harness: checks, NYA gate and the draft PR."
+pr = "https://github.com/owner/repo/pull/83"
+branch = "autopilot/i18n-sidebar-tabs-composer-and-c-03e3d2"
+evidence = ["RED (check on main sources): 3 FAIL, e.g. hardcoded title=\"search projects\", missing side.newChat", "GREEN: node src/i18n.check.ts -> 3 ok", "npm ci && npx tsc --noEmit -> no errors", "cargo test --test i18n_surfaces --test attention_model -> 4 + 5 passed", "harness build: pass (16s)", "harness nya: passed (28 scars checked)", "harness bug proof: not a bug card", "flag: not fully proven, so it is never merged automatically: 4 of 4 acceptance criteria unproven"]
+cost_usd = 5.528510200000001
+tokens = 218220
+followups = ["KanbanSessions strip and the useVoiceDictation error messages are still English", "nya_check was not available in this run; run it on the branch"]
+questions = []
+at = "2026-11-13T21:32:38.124269300+00:00"
+fully_proven = false
+verified_sha = "90217a2217a136ebdd6434af03d9d8c8f75b4b39"
+base_sha = "c8a0414082db2b29282d95ea7f765004e57e80ed"
+
+[card.outcome.criteria]
+pass = 0
+fail = 4
+
+[[card.outcome.criteria_proof]]
+index = 1
+text = "Given the interface language is set to Português do Brasil, when I view the sidebar, session tabs, composer and chat thread, then no English UI copy appears on these surfaces, apart from brand names and technical identifiers"
+test_path = "src-tauri/tests/i18n_surfaces.rs"
+test_name = "with_portugues_do_brasil_selected_the_four_surfaces_show_no_english_copy"
+status = "unproven"
+reason = "checks.test is not configured, so no test run can back the binding"
+
+[[card.outcome.criteria_proof]]
+index = 2
+text = "Given the interface language is set to English, when I view the same surfaces, then the text is unchanged in meaning from before the change"
+test_path = "src-tauri/tests/i18n_surfaces.rs"
+test_name = "with_english_selected_the_text_of_these_surfaces_is_unchanged_in_meaning"
+status = "unproven"
+reason = "checks.test is not configured, so no test run can back the binding"
+
+[[card.outcome.criteria_proof]]
+index = 3
+text = "Given the en and pt-BR translation files are compared, when the strings for these surfaces are checked, then every key used on these surfaces exists in both languages"
+test_path = "src-tauri/tests/i18n_surfaces.rs"
+test_name = "every_key_used_on_these_surfaces_exists_in_both_the_en_and_pt_br_dictionaries"
+status = "unproven"
+reason = "checks.test is not configured, so no test run can back the binding"
+
+[[card.outcome.criteria_proof]]
+index = 4
+text = "Given the change is complete, when npx tsc --noEmit is run, then it passes with no errors"
+test_path = "src-tauri/tests/i18n_surfaces.rs"
+test_name = "the_front_end_type_checks_with_no_errors"
+status = "unproven"
+reason = "checks.test is not configured, so no test run can back the binding"
+
+[card.spec]
+story = "As a Portuguese-speaking user, I want the sidebar, session tabs, composer and chat thread to show Brazilian Portuguese text when that interface language is selected, so that I can use these surfaces in my language."
+refined_at = "2026-11-12T23:06:08.248646600+00:00"
+text_hash = "59ef0c257f8168a7"
+assumptions = ["The i18n foundation card has landed, so t() and the en and pt-BR key files already exist; I will reuse them and add keys for these surfaces.", "Brand names and technical identifiers (such as Aero, file names, model names) stay as they are and do not count as English copy.", "Verification is the build command npm ci && npx tsc --noEmit, plus a check that en and pt-BR keys match for these surfaces.", "Work is limited to the four named surfaces; other views are covered by the sibling rollout cards.", "Estimated effort is about 75 minutes, which fits one run."]
+
+[card.spec.assumptions_tr]
+lang = "pt-BR"
+items = ["A fundação de i18n já foi concluída, então t() e os arquivos de chaves en e pt-BR já existem; vou reutilizá-los e adicionar chaves para estas superfícies.", "Nomes de marcas e identificadores técnicos (como Aero, nomes de arquivos e nomes de modelos) permanecem como estão e não contam como texto em inglês.", "A verificação é o comando de build npm ci && npx tsc --noEmit, mais uma checagem de que as chaves en e pt-BR coincidem para estas superfícies.", "O trabalho se limita às quatro superfícies citadas; as outras telas são cobertas pelos cards irmãos da implantação.", "O esforço estimado é de cerca de 75 minutos, o que cabe em uma execução."]
+
+[[card.spec.acceptance]]
+given = "the interface language is set to Português do Brasil"
+when = "I view the sidebar, session tabs, composer and chat thread"
+then = "no English UI copy appears on these surfaces, apart from brand names and technical identifiers"
+
+[[card.spec.acceptance]]
+given = "the interface language is set to English"
+when = "I view the same surfaces"
+then = "the text is unchanged in meaning from before the change"
+
+[[card.spec.acceptance]]
+given = "the en and pt-BR translation files are compared"
+when = "the strings for these surfaces are checked"
+then = "every key used on these surfaces exists in both languages"
+
+[[card.spec.acceptance]]
+given = "the change is complete"
+when = "npx tsc --noEmit is run"
+then = "it passes with no errors"
