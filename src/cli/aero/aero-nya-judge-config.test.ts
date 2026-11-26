@@ -1,9 +1,9 @@
 import { mkdtemp, rename, rm, symlink, writeFile } from 'node:fs/promises'
-import { tmpdir } from 'node:os'
+import { homedir, tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { runAeroNyaGit } from './aero-nya-git'
-import { readAeroNyaJudgeSettings } from './aero-nya-judge-config'
+import { readAeroNyaJudgeSettings, userConfigPath } from './aero-nya-judge-config'
 import { createAeroNyaTestRepository } from './aero-nya-test-repository'
 
 let root: string
@@ -53,13 +53,19 @@ describe('readAeroNyaJudgeSettings', () => {
     })
   })
 
-  it('lets the local file pick a built-in judge over the user config', async () => {
+  it('keeps a command of the user config over the built-in judge a clone selects', async () => {
     await userConfig(COMMAND)
     await localConfig('schema = 1\njudge = "codex"\n')
     expect((await readAeroNyaJudgeSettings(root)).judge).toMatchObject({
-      judge: 'codex',
-      command: []
+      judge: 'custom',
+      command: ['node', 'judge.js']
     })
+  })
+
+  it('lets the local file select a built-in judge when the user config has no command', async () => {
+    await userConfig('schema = 1\njudge = "hermes"\n')
+    await localConfig('schema = 1\njudge = "codex"\n')
+    expect((await readAeroNyaJudgeSettings(root)).judge).toMatchObject({ judge: 'codex' })
   })
 
   it('refuses a missing judge, an unsupported schema and a repo config that is not there', async () => {
@@ -116,5 +122,33 @@ describe('a judge command that a clone could carry', () => {
       return
     }
     await expect(readAeroNyaJudgeSettings(root)).rejects.toThrow(/\.nya .*symbolic link/)
+  })
+})
+
+describe('where the user config is looked up', () => {
+  const savedXdg = process.env.XDG_CONFIG_HOME
+  const savedPlatform = Object.getOwnPropertyDescriptor(process, 'platform')!
+
+  afterEach(() => {
+    Object.defineProperty(process, 'platform', savedPlatform)
+    if (savedXdg === undefined) {
+      delete process.env.XDG_CONFIG_HOME
+    } else {
+      process.env.XDG_CONFIG_HOME = savedXdg
+    }
+  })
+
+  it('refuses a relative NYA_CONFIG', () => {
+    process.env.NYA_CONFIG = 'nya.toml'
+    expect(() => userConfigPath()).toThrow('NYA_CONFIG must be an absolute path')
+  })
+
+  it('ignores a relative XDG_CONFIG_HOME like the XDG spec', () => {
+    delete process.env.NYA_CONFIG
+    Object.defineProperty(process, 'platform', { value: 'linux' })
+    process.env.XDG_CONFIG_HOME = 'relative/config'
+    expect(userConfigPath()).toBe(join(homedir(), '.config', 'nya', 'config.toml'))
+    process.env.XDG_CONFIG_HOME = join(tmpdir(), 'xdg')
+    expect(userConfigPath()).toBe(join(tmpdir(), 'xdg', 'nya', 'config.toml'))
   })
 })

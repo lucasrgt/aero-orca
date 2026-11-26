@@ -13,6 +13,9 @@ const STRICT_UTF8 = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true })
 
 export type AeroNyaDiff = { body: string; paths: string[] }
 
+/** How an untracked file's bytes are read; injectable so the failure branch can be exercised. */
+export type ReadFileBytes = (file: string) => Promise<Uint8Array>
+
 // A file that cannot be opened as a plain file is skipped like Aero does; any other failure (a file
 // past what Node or V8 can hold, say) fails the check, since passing would mean it was never audited.
 const UNREADABLE_CODES = new Set(['ENOENT', 'EACCES', 'EPERM', 'EISDIR', 'ENOTDIR'])
@@ -22,13 +25,13 @@ const UNREADABLE_CODES = new Set(['ENOENT', 'EACCES', 'EPERM', 'EISDIR', 'ENOTDI
  * valid UTF-8 or cannot be opened counts as empty. Unlike Aero it never follows a symlink, so an
  * untracked link cannot pull a file from outside the repo into the judge's prompt.
  */
-async function readUntrackedText(root: string, path: string): Promise<string> {
+async function readUntrackedText(root: string, path: string, read: ReadFileBytes): Promise<string> {
   const file = join(root, ...path.split('/'))
   try {
     if (!(await lstat(file)).isFile()) {
       return ''
     }
-    return STRICT_UTF8.decode(await readFile(file))
+    return STRICT_UTF8.decode(await read(file))
   } catch (error) {
     if (
       error instanceof TypeError ||
@@ -49,7 +52,8 @@ async function readUntrackedText(root: string, path: string): Promise<string> {
  */
 export async function collectAeroNyaDiff(
   root: string,
-  base: string | undefined
+  base: string | undefined,
+  read: ReadFileBytes = readFile
 ): Promise<AeroNyaDiff> {
   const revision = base ?? 'HEAD'
   if (revision.startsWith('-')) {
@@ -72,13 +76,19 @@ export async function collectAeroNyaDiff(
       EXCLUDE_NYA
     ])
   )
-  const untracked = await runAeroNyaGit(
-    root,
-    [...QUOTE_PATH_OFF, 'ls-files', '--others', '--exclude-standard', '--', '.', EXCLUDE_NYA],
-    { trim: true }
-  )
-  for (const path of untracked.split(/\r?\n/).filter((line) => line.length > 0)) {
-    body += buildAeroNyaNewFilePatch(path, await readUntrackedText(root, path))
+  const untracked = await runAeroNyaGit(root, [
+    ...QUOTE_PATH_OFF,
+    'ls-files',
+    '-z',
+    '--others',
+    '--exclude-standard',
+    '--',
+    '.',
+    EXCLUDE_NYA
+  ])
+  // NUL-separated: without -z git quotes a name holding a quote, backslash or control character.
+  for (const path of untracked.split('\0').filter((name) => name.length > 0)) {
+    body += buildAeroNyaNewFilePatch(path, await readUntrackedText(root, path, read))
     paths.push(path)
   }
   return { body, paths }

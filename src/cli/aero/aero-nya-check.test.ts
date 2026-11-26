@@ -139,6 +139,34 @@ describe('untracked files and an uninitialized repo', () => {
     expect(body).toContain('@@ -0,0 +1,0 @@')
   })
 
+  it('fails the check instead of auditing an untracked file it could not read as empty', async () => {
+    await writeFile(join(root, 'busy.txt'), 'content')
+    for (const code of ['EBUSY', 'ERR_FS_FILE_TOO_LARGE']) {
+      const failing = async (): Promise<Uint8Array> => {
+        throw Object.assign(new Error('cannot read'), { code })
+      }
+      await expect(collectAeroNyaDiff(root, undefined, failing)).rejects.toThrow(
+        'cannot audit untracked file busy.txt'
+      )
+    }
+    const vanished = async (): Promise<Uint8Array> => {
+      throw Object.assign(new Error('gone'), { code: 'ENOENT' })
+    }
+    expect((await collectAeroNyaDiff(root, undefined, vanished)).paths).toEqual(['busy.txt'])
+  })
+
+  it('reads an untracked file whose name git would quote, where the filesystem allows one', async () => {
+    const name = 'we"ird\\name.txt'
+    try {
+      await writeFile(join(root, name), 'QUOTED-NAME-CONTENT\n')
+    } catch {
+      return
+    }
+    const { body, paths } = await collectAeroNyaDiff(root, undefined)
+    expect(paths).toEqual([name])
+    expect(body).toContain('+QUOTED-NAME-CONTENT')
+  })
+
   it('passes an empty diff without reading the scars of a repo that has none', async () => {
     const bare = await mkdtemp(join(tmpdir(), 'aero-nya-bare-'))
     cleanup.push(bare)

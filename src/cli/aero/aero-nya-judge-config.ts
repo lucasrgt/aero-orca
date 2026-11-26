@@ -1,6 +1,6 @@
 import { readFile, stat } from 'node:fs/promises'
 import { homedir } from 'node:os'
-import { join } from 'node:path'
+import { isAbsolute, join } from 'node:path'
 import {
   parseAeroNyaConfig,
   parseAeroNyaJudgeConfig,
@@ -22,12 +22,17 @@ function userConfigDirectory(): string | undefined {
   if (process.platform === 'darwin') {
     return join(homedir(), 'Library', 'Application Support')
   }
-  return process.env.XDG_CONFIG_HOME ?? join(homedir(), '.config')
+  // The XDG spec and the dirs crate ignore a relative XDG_CONFIG_HOME.
+  const xdg = process.env.XDG_CONFIG_HOME
+  return xdg && isAbsolute(xdg) ? xdg : join(homedir(), '.config')
 }
 
-function userConfigPath(): string {
+export function userConfigPath(): string {
   const override = process.env.NYA_CONFIG
   if (override) {
+    if (!isAbsolute(override)) {
+      throw new Error('NYA_CONFIG must be an absolute path')
+    }
     return override
   }
   const directory = userConfigDirectory()
@@ -102,7 +107,10 @@ export async function readAeroNyaJudgeSettings(root: string): Promise<AeroNyaJud
       `invalid .nya/config.toml: [check] timeout_seconds must be at most ${MAX_TIMEOUT_SECONDS}`
     )
   }
-  const judge = (await readLocalJudgeConfig(root)) ?? (await readUserJudgeConfig())
+  const local = await readLocalJudgeConfig(root)
+  const user = await readUserJudgeConfig()
+  // A command of the user's own wins, so a clone cannot send the diff to a cloud judge instead.
+  const judge = user !== undefined && user.command.length > 0 ? user : (local ?? user)
   if (judge === undefined) {
     throw new Error(`judge is not configured; ${SETUP_HINT}`)
   }
