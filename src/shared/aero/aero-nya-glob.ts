@@ -8,7 +8,7 @@ type GlobToken =
   | { kind: 'any-recursive' }
   | { kind: 'within'; specifiers: CharSpecifier[]; negated: boolean }
 
-type CharSpecifier = { from: string; to: string }
+type CharSpecifier = { from: string; to: string; single: boolean }
 
 /** `windows` is the crate's `cfg!(windows)`: `\` is then a path separator and equals `/` in a literal. */
 export type AeroNyaGlob = { tokens: GlobToken[]; windows: boolean }
@@ -25,10 +25,10 @@ function parseCharSpecifiers(chars: readonly string[]): CharSpecifier[] {
   const specifiers: CharSpecifier[] = []
   for (let index = 0; index < chars.length;) {
     if (index + 3 <= chars.length && chars[index + 1] === '-') {
-      specifiers.push({ from: chars[index], to: chars[index + 2] })
+      specifiers.push({ from: chars[index], to: chars[index + 2], single: false })
       index += 3
     } else {
-      specifiers.push({ from: chars[index], to: chars[index] })
+      specifiers.push({ from: chars[index], to: chars[index], single: true })
       index += 1
     }
   }
@@ -120,8 +120,18 @@ export function compileAeroNyaGlob(
   return { tokens, windows }
 }
 
-function inSpecifiers(specifiers: readonly CharSpecifier[], char: string): boolean {
-  return specifiers.some((specifier) => char >= specifier.from && char <= specifier.to)
+// A single character goes through the crate's `chars_eq`, so on Windows `[\]` also matches `/`.
+function inSpecifiers(
+  specifiers: readonly CharSpecifier[],
+  char: string,
+  windows: boolean
+): boolean {
+  return specifiers.some((specifier) =>
+    specifier.single
+      ? specifier.from === char ||
+        (isSeparator(specifier.from, windows) && isSeparator(char, windows))
+      : char >= specifier.from && char <= specifier.to
+  )
 }
 
 // The crate's MatchResult: a sub-pattern miss lets the caller try another split, while an entire
@@ -135,7 +145,7 @@ function tokenMatches(token: GlobToken, char: string, windows: boolean): boolean
     return true
   }
   if (token.kind === 'within') {
-    return inSpecifiers(token.specifiers, char) !== token.negated
+    return inSpecifiers(token.specifiers, char, windows) !== token.negated
   }
   if (token.kind !== 'char') {
     return false

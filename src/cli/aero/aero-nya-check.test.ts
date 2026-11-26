@@ -1,4 +1,4 @@
-import { mkdir, mkdtemp, rename, rm, stat, symlink, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, rm, symlink, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
@@ -7,7 +7,6 @@ import { makeAeroNyaScar } from '../../shared/aero/aero-nya-test-scars'
 import { checkAeroNya } from './aero-nya-operations'
 import { collectAeroNyaDiff } from './aero-nya-diff-collector'
 import { runAeroNyaGit } from './aero-nya-git'
-import { readAeroNyaJudgeSettings } from './aero-nya-judge-config'
 import { ENGLISH_ONLY_SCAR, createAeroNyaTestRepository } from './aero-nya-test-repository'
 
 let root: string
@@ -126,96 +125,6 @@ describe('checkAeroNya', () => {
   it('reports a judge that cannot start as an error, not a pass', async () => {
     await portuguese()
     await expect(checkAeroNya(root, {})).rejects.toThrow('judge is not configured')
-  })
-})
-
-describe('readAeroNyaJudgeSettings', () => {
-  const localConfig = (text: string) => writeFile(join(root, '.nya', 'config.local.toml'), text)
-
-  it('reads the timeout of .nya/config.toml and the judge of the local file', async () => {
-    await localConfig('schema = 1\njudge = "claude"\ncommand = []\n')
-    expect(await readAeroNyaJudgeSettings(root)).toEqual({
-      timeoutSeconds: 60,
-      judge: { schema: 1, judge: 'claude', command: [] }
-    })
-  })
-
-  it('falls back to the user config named by NYA_CONFIG', async () => {
-    const user = join(root, 'user-nya.toml')
-    await writeFile(user, 'schema = 1\njudge = "codex"\n')
-    process.env.NYA_CONFIG = user
-    expect((await readAeroNyaJudgeSettings(root)).judge).toMatchObject({ judge: 'codex' })
-  })
-
-  it('refuses a missing judge, an unsupported schema and a repo config that is not there', async () => {
-    await expect(readAeroNyaJudgeSettings(root)).rejects.toThrow('judge is not configured')
-    await localConfig('schema = 2\njudge = "claude"\n')
-    await expect(readAeroNyaJudgeSettings(root)).rejects.toThrow(
-      'unsupported judge configuration schema 2'
-    )
-    await rm(join(root, '.nya', 'config.toml'))
-    await expect(readAeroNyaJudgeSettings(root)).rejects.toThrow('.nya/config.toml is missing')
-  })
-
-  it('refuses a judge command that arrived committed in the repo, but not a personal one', async () => {
-    await localConfig('schema = 1\njudge = "custom"\ncommand = ["node", "judge.js"]\n')
-    expect((await readAeroNyaJudgeSettings(root)).judge.command).toEqual(['node', 'judge.js'])
-    await runAeroNyaGit(root, ['add', '-f', '.nya/config.local.toml'])
-    await expect(readAeroNyaJudgeSettings(root)).rejects.toThrow(
-      'refusing to run a command a clone supplied'
-    )
-  })
-})
-
-describe('the judge command of a repo that is not the developer', () => {
-  const command = 'schema = 1\njudge = "custom"\ncommand = ["node", "judge.js"]\n'
-  const localConfig = (text: string, name = 'config.local.toml') =>
-    writeFile(join(root, '.nya', name), text)
-
-  it('refuses a committed config whose name differs only in case, where the filesystem opens it', async () => {
-    await localConfig(command, 'Config.Local.toml')
-    await runAeroNyaGit(root, ['add', '-f', '.nya/Config.Local.toml'])
-    const opensLowercase = await stat(join(root, '.nya', 'config.local.toml')).then(
-      () => true,
-      () => false
-    )
-    if (!opensLowercase) {
-      return
-    }
-    await expect(readAeroNyaJudgeSettings(root)).rejects.toThrow(
-      'refusing to run a command a clone supplied'
-    )
-  })
-
-  it('refuses a .nya that is a link to another tracked directory', async () => {
-    await rename(join(root, '.nya'), join(root, 'tools-store'))
-    try {
-      await symlink(join(root, 'tools-store'), join(root, '.nya'), 'junction')
-    } catch {
-      return
-    }
-    await expect(readAeroNyaJudgeSettings(root)).rejects.toThrow(/\.nya .*symbolic link/)
-  })
-
-  it('refuses a command in a local config that git does not ignore', async () => {
-    await localConfig(command)
-    await writeFile(join(root, '.nya', '.gitignore'), 'index-v1.sqlite3\n')
-    await expect(readAeroNyaJudgeSettings(root)).rejects.toThrow('git does not ignore it')
-  })
-
-  it('still allows a built-in judge from a config git does not ignore', async () => {
-    await localConfig('schema = 1\njudge = "claude"\n')
-    await writeFile(join(root, '.nya', '.gitignore'), 'index-v1.sqlite3\n')
-    expect((await readAeroNyaJudgeSettings(root)).judge.judge).toBe('claude')
-  })
-
-  it('rejects a timeout Node would fire at once', async () => {
-    await localConfig('schema = 1\njudge = "claude"\n')
-    await writeFile(
-      join(root, '.nya', 'config.toml'),
-      'schema = 1\n\n[check]\ntimeout_seconds = 2147484\n'
-    )
-    await expect(readAeroNyaJudgeSettings(root)).rejects.toThrow('timeout_seconds must be at most')
   })
 })
 

@@ -13,9 +13,13 @@ const STRICT_UTF8 = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true })
 
 export type AeroNyaDiff = { body: string; paths: string[] }
 
+// A file that cannot be opened as a plain file is skipped like Aero does; any other failure (a file
+// past what Node or V8 can hold, say) fails the check, since passing would mean it was never audited.
+const UNREADABLE_CODES = new Set(['ENOENT', 'EACCES', 'EPERM', 'EISDIR', 'ENOTDIR'])
+
 /**
  * An untracked file's text, whatever its size (Aero reads it whole). Like Aero, a file that is not
- * valid UTF-8 or cannot be read counts as empty. Unlike Aero it never follows a symlink, so an
+ * valid UTF-8 or cannot be opened counts as empty. Unlike Aero it never follows a symlink, so an
  * untracked link cannot pull a file from outside the repo into the judge's prompt.
  */
 async function readUntrackedText(root: string, path: string): Promise<string> {
@@ -25,8 +29,16 @@ async function readUntrackedText(root: string, path: string): Promise<string> {
       return ''
     }
     return STRICT_UTF8.decode(await readFile(file))
-  } catch {
-    return ''
+  } catch (error) {
+    if (
+      error instanceof TypeError ||
+      UNREADABLE_CODES.has((error as NodeJS.ErrnoException).code ?? '')
+    ) {
+      return ''
+    }
+    throw new Error(
+      `cannot audit untracked file ${path}: ${error instanceof Error ? error.message : String(error)}`
+    )
   }
 }
 

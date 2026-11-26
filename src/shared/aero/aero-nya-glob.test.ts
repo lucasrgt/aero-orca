@@ -107,6 +107,15 @@ describe('Windows separators of the glob crate', () => {
   })
 })
 
+describe('single-character classes on Windows', () => {
+  it('lets a one-character class match the other separator on win32 only, like chars_eq', () => {
+    expect(matchesAeroNyaGlob(compileAeroNyaGlob('a[\\]b', 'win32')!, 'a/b')).toBe(true)
+    expect(matchesAeroNyaGlob(compileAeroNyaGlob('a[/]b', 'win32')!, 'a\\b')).toBe(true)
+    expect(matchesAeroNyaGlob(compileAeroNyaGlob('a[\\]b', 'linux')!, 'a/b')).toBe(false)
+    expect(matchesAeroNyaGlob(compileAeroNyaGlob('a[!\\]b', 'win32')!, 'a/b')).toBe(false)
+  })
+})
+
 describe('matchesAeroNyaScope', () => {
   it('matches a scar scope against any expected path, reading backslashes as slashes', () => {
     const scope = ['src-tauri/src/**', 'src/App.tsx']

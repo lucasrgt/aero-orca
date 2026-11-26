@@ -7,7 +7,6 @@ import {
   type AeroNyaJudgeConfig
 } from '../../shared/aero/aero-nya'
 import { probeDirectory, readGuardedFile } from '../../main/aero/aero-workspace-files'
-import { assertJudgeCommandIsPersonal } from './aero-nya-judge-trust'
 
 export type AeroNyaJudgeSettings = { timeoutSeconds: number; judge: AeroNyaJudgeConfig }
 
@@ -56,9 +55,13 @@ async function readUserJudgeConfig(): Promise<AeroNyaJudgeConfig | undefined> {
   return entry?.isFile() ? parseJudgeConfig(await readFile(path, 'utf8'), path) : undefined
 }
 
+/**
+ * The repo's `.nya/config.local.toml` may only pick a built-in judge by name. A command is code to
+ * run and a clone can carry this file under any name or short name, so no check of the file's path
+ * or git state could vouch for it: a command comes from the user's own config outside the repo.
+ */
 async function readLocalJudgeConfig(root: string): Promise<AeroNyaJudgeConfig | undefined> {
-  const file = join(root, '.nya', 'config.local.toml')
-  const read = await readGuardedFile(root, file)
+  const read = await readGuardedFile(root, join(root, '.nya', 'config.local.toml'))
   if (read.status === 'missing') {
     return undefined
   }
@@ -67,12 +70,14 @@ async function readLocalJudgeConfig(root: string): Promise<AeroNyaJudgeConfig | 
   }
   const config = parseJudgeConfig(read.text, '.nya/config.local.toml')
   if (config.command.length > 0) {
-    await assertJudgeCommandIsPersonal(root, file)
+    throw new Error(
+      `.nya/config.local.toml names a judge command; a repository may only select a built-in judge (claude, codex or hermes). Put a custom command in your own config (the file NYA_CONFIG names, else nya/config.toml in your user config directory)`
+    )
   }
   return config
 }
 
-/** The check timeout of `.nya/config.toml` and the judge: the repo's local file, else the user's. */
+/** The check timeout of `.nya/config.toml` and the judge: the repo's local choice of a built-in one, else the user's config. */
 export async function readAeroNyaJudgeSettings(root: string): Promise<AeroNyaJudgeSettings> {
   // A `.nya` that is a link could stand for any tracked directory of the clone.
   const store = await probeDirectory(root, join(root, '.nya'))
