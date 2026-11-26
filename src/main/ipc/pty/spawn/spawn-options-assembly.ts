@@ -17,6 +17,7 @@ import { shouldSeedPreAttachPtySize } from '../delivery/attached-pty-size'
 import { applyTerminalImageEnvironment } from './terminal-image-environment'
 import type { TerminalMcpPaneLaunch } from '../../../mcp-servers/terminal/terminal-mcp-launch'
 import { withSpawnTerminalMcpServers } from '../../../mcp-servers/terminal/terminal-mcp-spawn-step'
+import { withAeroTerminalInjection } from '../../../aero/aero-agent-injection'
 
 type TrustInput = Parameters<typeof applyAgentWorkspaceTrustToSpawn>[0]
 
@@ -110,10 +111,21 @@ export async function assemblePtySpawnLaunchOptions(input: PtySpawnLaunchOptions
     connectionId
   })
   const pluginDir = !connectionId ? env.ORCA_CLAUDE_AGENT_VIEW_PLUGIN_DIR : undefined
-  const launchCommand =
+  const viewCommand =
     pluginDir && mcp.command
       ? withClaudeAgentViewPlugin(mcp.command, pluginDir, shell)
       : mcp.command
+  const launchCommand = await withAeroTerminalInjection({
+    command: viewCommand,
+    launchAgent,
+    shell,
+    cwd: input.cwd,
+    isLocalFreshLaunch:
+      !connectionId &&
+      input.codexRuntime !== 'wsl' &&
+      !input.preAdoptedStablePane &&
+      input.launchCommand !== undefined
+  })
   promoteAgentTeamsShimPath(env, input.requestedAgentTeamsPath)
   const spawnOptions: PtySpawnOptions = {
     cols: args.cols,
