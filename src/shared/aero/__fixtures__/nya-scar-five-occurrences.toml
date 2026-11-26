@@ -1,0 +1,53 @@
+schema = 1
+id = "NYA-01KYTBNCRPQ171WGD3EJ68XXAA"
+title = "Windows console suppression must not allocate hidden consoles or steal foreground"
+lesson = "On Windows, console suppression must cover repository work performed by the GUI host, the provider tree, and every configured MCP command without allocating even a hidden console. CREATE_NEW_CONSOLE plus SW_HIDE can still change foreground ownership and minimize exclusive-fullscreen games; provider and MCP roots must use CREATE_NO_WINDOW while retaining inherited pipes and the job-object lifecycle. Rewrite Codex MCP commands through the AeroFortress consoleless wrapper. Resolve npm commands to .exe before .cmd/.bat; batch and explicit cmd.exe servers must run through the consoleless system cmd.exe. Process-scoped GUI-subsystem shims must force separately launched helpers into CREATE_NO_WINDOW, preserve the original cwd, environment, arguments, streams, and exit code, and restore inherited standard handles if AttachConsole ever succeeds. Any Git command spawned directly by the main process or an embedded library is outside the provider tree and must set CREATE_NO_WINDOW independently. Never replace user binaries or mutate the machine PATH. Tests must prove no distinct console is allocated: GetConsoleWindow is null under the production GUI wrapper; a console-subsystem test runner may pass only its exact preexisting parent handle to the child. Checking only IsWindowVisible is insufficient because an invisible newly allocated console may still steal focus. Release the job on normal root exit so intentional long-lived descendants can survive. An updater must terminate the full AeroFortress descendant tree before replacing the running executable, because orphaned Codex and MCP children can retain the binary lock."
+scope = ["src-tauri/src/**"]
+tags = [
+    "windows",
+    "codex",
+    "process-tree",
+    "console",
+    "bugfix",
+]
+created_at = "2026-07-30T20:32:42Z"
+
+[[occurrences]]
+occurred_at = "2026-07-30T20:32:41Z"
+source = "user report: Codex terminal windows beeped, flashed, closed, and disrupted fullscreen games"
+reported_by = "user:dev"
+corrected_by = "codex:openai"
+recorded_by = "codex:openai"
+commit = "0df0a06"
+
+[[occurrences]]
+occurred_at = "2026-07-30T21:31:43Z"
+source = "user report: AeroFortress 2.2.24 still opened multiple cmd/Windows Terminal windows for Codex and tools, while Claude did not"
+reported_by = "user:dev"
+corrected_by = "codex:openai"
+recorded_by = "codex:openai"
+commit = "368ff4b"
+
+[[occurrences]]
+occurred_at = "2026-07-31T13:21:43Z"
+source = "user report plus EVENT_OBJECT_SHOW capture: AeroFortress 2.2.25 still opened Terminal on each message; capture proved PseudoConsoleWindow git.exe was a direct child of aerofortress-harness.exe, and live git commands through the 2.2.25 shim returned empty stdout"
+reported_by = "user:dev"
+corrected_by = "codex:openai"
+recorded_by = "codex:openai"
+commit = "68b6df5"
+
+[[occurrences]]
+occurred_at = "2026-07-31T13:47:34Z"
+source = "user report and live process tree: the promised 2.2.26 update had failed and left 2.2.25 installed; Codex spawned system cmd.exe directly for codegraph.cmd, while another enabled MCP explicitly configured cmd.exe"
+reported_by = "user:dev"
+corrected_by = "codex:openai"
+recorded_by = "codex:openai"
+commit = "5589a92"
+
+[[occurrences]]
+occurred_at = "2026-08-01T17:24:40Z"
+source = "user report, foreground monitor, and installed 2.2.28 process tree: a nominally hidden --headless-tree launch gave WindowsTerminal.exe foreground for about one second and minimized League of Legends"
+reported_by = "user:dev"
+corrected_by = "codex:openai"
+recorded_by = "codex:openai"
+commit = "c111467"

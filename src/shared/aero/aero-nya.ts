@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { compileAeroNyaGlob } from './aero-nya-glob'
 import { aeroFailure, type AeroParseResult } from './aero-parse-result'
 import { parseAeroTomlDocument } from './aero-toml-document'
 import { aeroU32, aeroU64 } from './aero-toml-integers'
@@ -40,7 +41,7 @@ const AeroNyaJudgeConfigSchema = z.strictObject({
 })
 
 export type AeroNyaConfig = { schema: number; timeoutSeconds: number }
-export type AeroNyaJudgeConfig = { judge: string; command: string[] }
+export type AeroNyaJudgeConfig = { schema: number; judge: string; command: string[] }
 
 function validateScar(scar: AeroNyaScar): string[] {
   const issues: string[] = []
@@ -55,6 +56,12 @@ function validateScar(scar: AeroNyaScar): string[] {
   }
   if (scar.occurrences.length === 0) {
     issues.push('has no occurrences')
+  }
+  // Like not-you-again's `validate`, so a scope no glob can compile fails the read, never thins it.
+  for (const scope of scar.scope) {
+    if (compileAeroNyaGlob(scope) === undefined) {
+      issues.push(`invalid scope in ${scar.id}: ${scope}`)
+    }
   }
   const actors = scar.occurrences.flatMap((occurrence) => [
     occurrence.reported_by,
@@ -92,6 +99,13 @@ export function parseAeroNyaConfig(raw: string): AeroParseResult<AeroNyaConfig> 
 export function parseAeroNyaJudgeConfig(raw: string): AeroParseResult<AeroNyaJudgeConfig> {
   const parsed = parseAeroTomlDocument(raw, AeroNyaJudgeConfigSchema)
   return parsed.ok
-    ? { ok: true, value: { judge: parsed.value.judge, command: parsed.value.command } }
+    ? {
+        ok: true,
+        value: {
+          schema: parsed.value.schema,
+          judge: parsed.value.judge,
+          command: parsed.value.command
+        }
+      }
     : parsed
 }

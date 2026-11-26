@@ -8,7 +8,7 @@ export type AeroKnowledgeToolDefinition = {
 }
 
 // Aero targets a registered workspace by id; here the server is rooted at one repo, so it is inert.
-const WORKSPACE_PROPERTY = {
+export const WORKSPACE_PROPERTY = {
   type: 'string',
   description:
     'accepted for compatibility with AeroFortress and ignored: this server serves the single repo it was started in'

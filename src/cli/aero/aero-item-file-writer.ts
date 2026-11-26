@@ -1,6 +1,6 @@
 import { randomBytes } from 'node:crypto'
 import { realpath as realpathCallback } from 'node:fs'
-import { lstat, mkdir, rename, unlink, writeFile } from 'node:fs/promises'
+import { lstat, mkdir, open, rename, unlink } from 'node:fs/promises'
 import { basename, join } from 'node:path'
 import { probeDirectory, probeFile } from '../../main/aero/aero-workspace-files'
 
@@ -13,12 +13,16 @@ function errorCode(error: unknown): string | undefined {
 }
 
 /**
- * Walks `.aerofortress/items/<folders>` creating what is missing. Every level must be a real
- * directory under the repo: a symlink, or anything resolving outside, aborts the write.
+ * Walks `<base>/<folders>` creating what is missing. Every level must be a real directory under the
+ * repo: a symlink, or anything resolving outside, aborts the write.
  */
-async function ensureItemFolder(root: string, folders: readonly string[]): Promise<string> {
+async function ensureFolder(
+  root: string,
+  base: readonly string[],
+  folders: readonly string[]
+): Promise<string> {
   let directory = root
-  for (const segment of [...ITEMS_FOLDERS, ...folders]) {
+  for (const segment of [...base, ...folders]) {
     if (segment === '.' || segment === '..' || /[\\/]/.test(segment)) {
       throw new Error(`refusing unsafe folder name "${segment}"`)
     }
@@ -70,6 +74,17 @@ function assertPlainFileName(fileName: string): void {
   }
 }
 
+/** Creates `path` (never over a file) and flushes it to disk, so a crash cannot leave a renamed empty file. */
+async function writeDurableFile(path: string, text: string): Promise<void> {
+  const handle = await open(path, 'wx')
+  try {
+    await handle.writeFile(text, 'utf8')
+    await handle.sync()
+  } finally {
+    await handle.close()
+  }
+}
+
 /** What is at the target: nothing, a regular file, or something a write must never replace. */
 async function inspectTarget(target: string): Promise<'absent' | 'file' | 'other'> {
   try {
@@ -83,19 +98,20 @@ async function inspectTarget(target: string): Promise<'absent' | 'file' | 'other
 }
 
 /**
- * Writes one item file: a temp file in the same folder, then a rename over the target. The write
- * stays under `.aerofortress/items`, follows no symlink and never replaces a non-file; `create`
- * also refuses to replace a file. Returns the absolute path written.
+ * Writes one file: a temp file in the same folder, then a rename over the target. The write stays
+ * under `<base>/<folders>`, follows no symlink and never replaces a non-file; `create` also refuses
+ * to replace a file. Returns the absolute path written.
  */
-export async function writeAeroItemFile(
+export async function writeAeroGuardedFile(
   root: string,
+  base: readonly string[],
   folders: readonly string[],
   fileName: string,
   text: string,
   mode: 'create' | 'replace'
 ): Promise<string> {
   assertPlainFileName(fileName)
-  const directory = await ensureItemFolder(root, folders)
+  const directory = await ensureFolder(root, base, folders)
   const target = join(directory, fileName)
   const existing = await inspectTarget(target)
   if (existing === 'other' || (existing === 'file' && mode === 'create')) {
@@ -103,13 +119,24 @@ export async function writeAeroItemFile(
   }
   const temp = join(directory, `.${fileName}.tmp-${randomBytes(8).toString('hex')}`)
   try {
-    await writeFile(temp, text, { encoding: 'utf8', flag: 'wx' })
+    await writeDurableFile(temp, text)
     await retryWhileBusy(() => rename(temp, target))
   } catch (error) {
     await unlink(temp).catch(() => {})
     throw error
   }
   return target
+}
+
+/** One item file under `.aerofortress/items/<folders>`; see `writeAeroGuardedFile`. */
+export function writeAeroItemFile(
+  root: string,
+  folders: readonly string[],
+  fileName: string,
+  text: string,
+  mode: 'create' | 'replace'
+): Promise<string> {
+  return writeAeroGuardedFile(root, ITEMS_FOLDERS, folders, fileName, text, mode)
 }
 
 type SameFile = 'same' | 'different' | 'unknown'

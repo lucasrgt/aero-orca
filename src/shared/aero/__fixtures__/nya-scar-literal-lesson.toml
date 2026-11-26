@@ -1,0 +1,22 @@
+schema = 1
+id = "NYA-01KYASTBZEBAB8RK17E9AR5DNB"
+title = "A new prompt fragment is inert until prompt::seed registers it"
+lesson = 'A Goal Mode test failed after the new `prompt/mode/goal.md` file was added because `prompt::fragment("mode/goal")` returned an empty string. Prompt files are not discovered dynamically: every shipped seed must also be registered in `prompt.rs::seed` with `include_str!`. When adding a prompt fragment, add the file, register its exact key, and keep an assembly test that asserts a distinctive marker from the real body.'
+scope = ["src-tauri/src/**"]
+tags = [
+    "aerofortress-migration",
+    "domain:backend",
+    "prompt",
+    "include-str",
+    "goal",
+    "bugfix",
+]
+created_at = "2026-07-24T19:32:14Z"
+
+[[occurrences]]
+occurred_at = "2026-07-24T19:32:14Z"
+source = "aerofortress-item:74e63810-8ce2-4f06-aff5-87ad23b34baa"
+reported_by = "harness:observation"
+corrected_by = "git:dev@example.com"
+recorded_by = "migration:aerofortress"
+commit = "cd0fd26"

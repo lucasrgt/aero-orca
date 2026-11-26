@@ -3,9 +3,8 @@ import { lstat, mkdir, open, readFile, unlink } from 'node:fs/promises'
 import { hostname } from 'node:os'
 import { join } from 'node:path'
 import { probeDirectory } from '../../main/aero/aero-workspace-files'
+import { prepareAeroNyaLockDirectory } from './aero-nya-lock-directory'
 
-const LOCK_FILE = '.knowledge.lock'
-const BREAK_FILE = '.knowledge.lock.break'
 const ACQUIRE_TIMEOUT_MS = 5000
 /** A holder that is provably alive (same host) or unverifiable (another host) is trusted this long. */
 const HOLDER_LIMIT_MS = 120_000
@@ -21,6 +20,29 @@ const RELEASE_READ_DELAY_MS = 25
 type LockContent = { hostname: string; pid: number; at: number; token: string }
 
 export type AeroKnowledgeLockOptions = { timeoutMs?: number }
+
+/** Which directory holds the lock (`prepare` makes it fit to use and returns it) and under which names. */
+type AeroLockTarget = {
+  prepare: (root: string) => Promise<string>
+  lockFile: string
+  breakFile: string
+  subject: string
+}
+
+const KNOWLEDGE_LOCK: AeroLockTarget = {
+  prepare: ensureKnowledgeLockDirectory,
+  lockFile: '.knowledge.lock',
+  breakFile: '.knowledge.lock.break',
+  subject: 'the knowledge network'
+}
+
+// Under the git dir, never the work tree: a lock file there would show up as an untracked file.
+const NYA_SCARS_LOCK: AeroLockTarget = {
+  prepare: prepareAeroNyaLockDirectory,
+  lockFile: 'scars.lock',
+  breakFile: 'scars.lock.break',
+  subject: 'the NYA scars'
+}
 
 function errorCode(error: unknown): string | undefined {
   return (error as NodeJS.ErrnoException).code
@@ -93,7 +115,7 @@ async function isStale(
   return age > limitMs
 }
 
-async function ensureAerofortressDirectory(root: string): Promise<string> {
+async function ensureKnowledgeLockDirectory(root: string): Promise<string> {
   const directory = join(root, '.aerofortress')
   let probed = await probeDirectory(root, directory)
   if (probed.status === 'missing') {
@@ -192,21 +214,22 @@ async function breakStale(
 }
 
 /**
- * Runs `task` while holding `.aerofortress/.knowledge.lock`, so two `orca aero mcp` processes (one
- * per agent) never interleave a read-modify-write on the same repo. The lock is an exclusive-create
- * file holding the host name, pid and a timestamp. A waiter retries with backoff for about five
- * seconds. It breaks a lock held by a dead pid on this host at once, and any other lock only after
- * two minutes (judged by the file's mtime, so another machine's clock never matters). Breaking goes
- * through `.knowledge.lock.break`. Released in `finally`.
+ * Runs `task` while holding the lock file of `target`, so two processes never interleave a
+ * read-modify-write on the same repo. The lock is an exclusive-create file holding the host name,
+ * pid and a timestamp. A waiter retries with backoff for about five seconds. It breaks a lock held
+ * by a dead pid on this host at once, and any other lock only after two minutes (judged by the
+ * file's mtime, so another machine's clock never matters). Breaking goes through the break file.
+ * Released in `finally`.
  */
-export async function withAeroKnowledgeLock<T>(
+async function withAeroLock<T>(
   root: string,
+  target: AeroLockTarget,
   task: () => Promise<T>,
-  options: AeroKnowledgeLockOptions = {}
+  options: AeroKnowledgeLockOptions
 ): Promise<T> {
-  const directory = await ensureAerofortressDirectory(root)
-  const path = join(directory, LOCK_FILE)
-  const breakPath = join(directory, BREAK_FILE)
+  const directory = await target.prepare(root)
+  const path = join(directory, target.lockFile)
+  const breakPath = join(directory, target.breakFile)
   const token = randomBytes(8).toString('hex')
   const deadline = Date.now() + (options.timeoutMs ?? ACQUIRE_TIMEOUT_MS)
   let delay = FIRST_DELAY_MS
@@ -220,7 +243,7 @@ export async function withAeroKnowledgeLock<T>(
     }
     if (Date.now() >= deadline) {
       const holder = held?.content ? ` (pid ${held.content.pid} on ${held.content.hostname})` : ''
-      throw new Error(`the knowledge network is locked by another process${holder}; try again`)
+      throw new Error(`${target.subject} is locked by another process${holder}; try again`)
     }
     await sleep(delay + Math.floor(Math.random() * delay))
     delay = Math.min(delay * 2, MAX_DELAY_MS)
@@ -230,4 +253,22 @@ export async function withAeroKnowledgeLock<T>(
   } finally {
     await release(path, token)
   }
+}
+
+/** Serialises writers of `.aerofortress/` (`.knowledge.lock`), one `orca aero mcp` per agent. */
+export function withAeroKnowledgeLock<T>(
+  root: string,
+  task: () => Promise<T>,
+  options: AeroKnowledgeLockOptions = {}
+): Promise<T> {
+  return withAeroLock(root, KNOWLEDGE_LOCK, task, options)
+}
+
+/** Serialises writers of `.nya/scars` (`aero-nya/scars.lock` in the git dir); `.nya` must already exist. */
+export function withAeroNyaScarsLock<T>(
+  root: string,
+  task: () => Promise<T>,
+  options: AeroKnowledgeLockOptions = {}
+): Promise<T> {
+  return withAeroLock(root, NYA_SCARS_LOCK, task, options)
 }
