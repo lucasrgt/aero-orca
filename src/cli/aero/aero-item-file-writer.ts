@@ -1,4 +1,5 @@
 import { randomBytes } from 'node:crypto'
+import { realpath as realpathCallback } from 'node:fs'
 import { lstat, mkdir, rename, unlink, writeFile } from 'node:fs/promises'
 import { basename, join } from 'node:path'
 import { probeDirectory, probeFile } from '../../main/aero/aero-workspace-files'
@@ -56,13 +57,14 @@ async function retryWhileBusy(action: () => Promise<void>): Promise<void> {
   }
 }
 
-/** A file name is one plain path segment: no separator, no `..`, no NUL. */
+/** A file name is one plain path segment: no separator, not `.` or `..`, no NUL. */
 function assertPlainFileName(fileName: string): void {
   if (
     fileName.length === 0 ||
     fileName !== basename(fileName) ||
     /[\\/\0]/.test(fileName) ||
-    fileName.includes('..')
+    fileName === '.' ||
+    fileName === '..'
   ) {
     throw new Error('refusing an item file name that is not a plain file name')
   }
@@ -110,28 +112,73 @@ export async function writeAeroItemFile(
   return target
 }
 
-/** Whether two paths are one file; a case-insensitive filesystem makes `Arch` and `arch` the same. */
-async function isSameFile(a: string, b: string): Promise<boolean> {
-  const [first, second] = await Promise.all([
-    lstat(a, { bigint: true }).catch(() => null),
-    lstat(b, { bigint: true }).catch(() => null)
-  ])
-  return first !== null && second !== null && first.dev === second.dev && first.ino === second.ino
+type SameFile = 'same' | 'different' | 'unknown'
+
+async function canonicalPath(path: string): Promise<string> {
+  const resolved = await new Promise<string>((resolve, reject) => {
+    realpathCallback.native(path, (error, value) => (error ? reject(error) : resolve(value)))
+  })
+  return process.platform === 'win32' ? resolved.toLowerCase() : resolved
+}
+
+/**
+ * Whether two paths are one file; a case-insensitive filesystem makes `Arch` and `arch` the same.
+ * Compares dev+ino; an inode of 0 means the filesystem does not report one (some Windows
+ * filesystems), so the canonical paths are compared instead. Anything that cannot be established
+ * is `unknown`, which callers treat as "do not delete".
+ */
+async function compareFiles(
+  a: string,
+  b: string,
+  keepStat: { dev: bigint; ino: bigint }
+): Promise<SameFile> {
+  const other = await lstat(a, { bigint: true }).catch(() => null)
+  if (other === null) {
+    return 'unknown'
+  }
+  if (other.ino !== 0n && keepStat.ino !== 0n) {
+    return other.dev === keepStat.dev && other.ino === keepStat.ino ? 'same' : 'different'
+  }
+  try {
+    const [first, second] = await Promise.all([canonicalPath(a), canonicalPath(b)])
+    return first === second ? 'same' : 'different'
+  } catch {
+    return 'unknown'
+  }
 }
 
 /**
  * Removes the item files the reader found at `files`, except `keep` (the file just written) and
  * any path that is the same file as it. Each is checked to still be a regular file under the repo;
- * a removal that keeps failing is reported, never thrown, since the write already succeeded.
+ * a removal that keeps failing is reported, never thrown, since the write already succeeded. It
+ * fails safe: if `keep` cannot be examined nothing is removed, and a copy it cannot prove distinct
+ * is left alone. Every skipped removal comes back as a warning.
  */
 export async function removeOtherAeroItemFiles(
   root: string,
   files: readonly string[],
   keep: string
 ): Promise<string[]> {
+  const keepStat = await lstat(keep, { bigint: true }).catch(() => null)
+  if (keepStat === null) {
+    return [`could not examine the written file ${keep}; left every other copy in place`]
+  }
   const warnings: string[] = []
   for (const file of files) {
-    if (file === keep || (await isSameFile(file, keep))) {
+    if (file === keep) {
+      continue
+    }
+    const relation = await compareFiles(file, keep, keepStat)
+    if (relation === 'same') {
+      warnings.push(`left ${file} in place: it is the same file as ${keep}`)
+      continue
+    }
+    if (relation === 'unknown') {
+      if (await lstat(file).catch(() => null)) {
+        warnings.push(
+          `left ${file} in place: could not tell whether it is the same file as ${keep}`
+        )
+      }
       continue
     }
     try {

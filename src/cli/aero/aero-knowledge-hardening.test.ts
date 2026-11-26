@@ -1,9 +1,21 @@
 import { spawnSync } from 'node:child_process'
-import { mkdir, mkdtemp, readFile, readdir, rename, rm, stat, writeFile } from 'node:fs/promises'
-import { tmpdir } from 'node:os'
+import {
+  link,
+  mkdir,
+  mkdtemp,
+  readFile,
+  readdir,
+  rename,
+  rm,
+  stat,
+  utimes,
+  writeFile
+} from 'node:fs/promises'
+import { hostname, tmpdir } from 'node:os'
 import { dirname, join, sep } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { writeAeroItemFile } from './aero-item-file-writer'
+import { removeOtherAeroItemFiles, writeAeroItemFile } from './aero-item-file-writer'
+import { withAeroKnowledgeLock } from './aero-knowledge-lock'
 import { createAeroKnowledgeTools, type AeroKnowledgeTools } from './aero-knowledge-tools'
 
 let root: string
@@ -46,6 +58,16 @@ const baseFields = {
 
 const itemsDirectory = () => join(root, '.aerofortress', 'items')
 const lockFile = () => join(root, '.aerofortress', '.knowledge.lock')
+const breakLockFile = () => join(root, '.aerofortress', '.knowledge.lock.break')
+
+const writeLock = (content: Record<string, unknown>) =>
+  writeFile(lockFile(), JSON.stringify(content))
+
+/** Moves a file's mtime into the past, as if it had been sitting there. */
+async function ageFile(file: string, ms: number): Promise<void> {
+  const then = new Date(Date.now() - ms)
+  await utimes(file, then, then)
+}
 
 async function storeNote(extra: Record<string, unknown> = {}): Promise<string> {
   const reply = JSON.parse(await tools.call('store', { ...note, ...extra })) as { id: string }
@@ -99,11 +121,45 @@ describe('path traversal', () => {
   })
 
   it('rejects a file name that is not one plain name', async () => {
-    for (const name of ['../x.md', 'a/b.md', 'a\\b.md', 'x\0.md', 'a..b.md', '']) {
+    for (const name of ['../x.md', 'a/b.md', 'a\\b.md', 'x\0.md', '.', '..', '']) {
       await expect(writeAeroItemFile(root, ['geral'], name, 'text', 'create')).rejects.toThrow(
         /plain file name/
       )
     }
+  })
+})
+
+describe('harmless file names', () => {
+  it('accepts a name that merely contains two dots', async () => {
+    const written = await writeAeroItemFile(root, ['geral'], 'a..b.md', 'text', 'create')
+    expect(await readFile(written, 'utf8')).toBe('text')
+  })
+})
+
+describe('same-file guard', () => {
+  it('never removes the kept file through a hard link to it', async () => {
+    const keep = await placeItem('arch', 'kept.md', { id: '33333333-aaaa-bbbb-cccc-dddddddddddd' })
+    const alias = join(itemsDirectory(), 'arch', 'alias.md')
+    await link(keep, alias)
+
+    const warnings = await removeOtherAeroItemFiles(root, [alias], keep)
+
+    expect(await readFile(keep, 'utf8')).toContain('hand written body')
+    expect(await readFile(alias, 'utf8')).toContain('hand written body')
+    expect(warnings.join(' ')).toMatch(/same file/)
+  })
+
+  it('removes a distinct old copy and skips everything when the kept file is missing', async () => {
+    const keep = await placeItem('arch', 'kept.md', { id: '44444444-aaaa-bbbb-cccc-dddddddddddd' })
+    const old = await placeItem('geral', 'old.md', { id: '44444444-aaaa-bbbb-cccc-dddddddddddd' })
+    const missing = join(itemsDirectory(), 'arch', 'gone.md')
+
+    const skipped = await removeOtherAeroItemFiles(root, [old], missing)
+    expect(skipped.join(' ')).toMatch(/could not examine/)
+    expect(await readFile(old, 'utf8')).toContain('hand written body')
+
+    expect(await removeOtherAeroItemFiles(root, [old], keep)).toEqual([])
+    await expect(readFile(old, 'utf8')).rejects.toThrow()
   })
 })
 
@@ -187,20 +243,99 @@ describe('cross-process lock', () => {
     await expect(stat(lockFile())).rejects.toThrow()
   })
 
-  it('breaks a lock older than 30 s and a lock whose process is dead', async () => {
+  it('breaks a lock whose same-host process is dead at once', async () => {
     const id = await storeNote()
-    await writeFile(lockFile(), JSON.stringify({ pid: process.pid, at: Date.now() - 60_000 }))
-    await tools.call('validate', { id })
-
     const dead = spawnSync(process.execPath, ['-e', ''])
-    await writeFile(lockFile(), JSON.stringify({ pid: dead.pid, at: Date.now() }))
+    await writeLock({ hostname: hostname(), pid: dead.pid, at: Date.now(), token: 'dead' })
     await tools.call('validate', { id })
     await expect(stat(lockFile())).rejects.toThrow()
   })
 
+  it('never breaks a live same-host holder before the long limit', async () => {
+    const id = await storeNote()
+    const impatient = createAeroKnowledgeTools(root, { timeoutMs: 300 })
+    const lock = { hostname: hostname(), pid: process.pid, at: Date.now(), token: 'live' }
+    await writeLock(lock)
+
+    await expect(impatient.call('store', { ...note, id })).rejects.toThrow(/locked/)
+    expect(JSON.parse(await readFile(lockFile(), 'utf8'))).toEqual(lock)
+
+    // Even a live holder is given up on once it outlives the limit (two minutes).
+    await ageFile(lockFile(), 10 * 60_000)
+    await tools.call('validate', { id })
+    await expect(stat(lockFile())).rejects.toThrow()
+  })
+
+  it('judges a lock from another host by the file mtime alone', async () => {
+    const id = await storeNote()
+    const impatient = createAeroKnowledgeTools(root, { timeoutMs: 300 })
+    // The holder's own clock (at) is ancient and its pid is dead here: neither may matter.
+    const foreign = { hostname: 'some-other-machine', pid: 2 ** 22 + 7, at: 1, token: 'far' }
+    await writeLock(foreign)
+
+    await expect(impatient.call('store', { ...note, id })).rejects.toThrow(/locked/)
+    expect(JSON.parse(await readFile(lockFile(), 'utf8'))).toEqual(foreign)
+
+    await ageFile(lockFile(), 10 * 60_000)
+    await tools.call('validate', { id })
+    await expect(stat(lockFile())).rejects.toThrow()
+  })
+
+  it('breaks an unreadable lock only after it has aged', async () => {
+    const id = await storeNote()
+    const impatient = createAeroKnowledgeTools(root, { timeoutMs: 300 })
+    await writeFile(lockFile(), '')
+    await expect(impatient.call('store', { ...note, id })).rejects.toThrow(/locked/)
+    await ageFile(lockFile(), 60_000)
+    await tools.call('validate', { id })
+    await expect(stat(lockFile())).rejects.toThrow()
+  })
+
+  it('does not break a stale lock while another breaker holds the break lock', async () => {
+    const dead = spawnSync(process.execPath, ['-e', ''])
+    const stale = { hostname: hostname(), pid: dead.pid, at: Date.now(), token: 'stale' }
+    await writeLock(stale)
+    const breaker = { hostname: hostname(), pid: process.pid, at: Date.now(), token: 'breaker' }
+    await writeFile(breakLockFile(), JSON.stringify(breaker))
+
+    await expect(
+      withAeroKnowledgeLock(root, async () => 'ran', { timeoutMs: 300 })
+    ).rejects.toThrow(/locked/)
+    expect(JSON.parse(await readFile(lockFile(), 'utf8'))).toEqual(stale)
+    expect(JSON.parse(await readFile(breakLockFile(), 'utf8'))).toEqual(breaker)
+
+    // A crashed breaker's lock expires, and the stale lock is then broken.
+    await ageFile(breakLockFile(), 60_000)
+    expect(await withAeroKnowledgeLock(root, async () => 'ran', { timeoutMs: 2000 })).toBe('ran')
+    await expect(stat(lockFile())).rejects.toThrow()
+    await expect(stat(breakLockFile())).rejects.toThrow()
+  })
+
+  it('never lets two breakers of one stale lock hold it together', async () => {
+    const dead = spawnSync(process.execPath, ['-e', ''])
+    await writeLock({ hostname: hostname(), pid: dead.pid, at: Date.now(), token: 'stale' })
+    let inside = 0
+    let overlap = 0
+    const contender = () =>
+      withAeroKnowledgeLock(
+        root,
+        async () => {
+          inside += 1
+          overlap = Math.max(overlap, inside)
+          await new Promise((resolve) => setTimeout(resolve, 40))
+          inside -= 1
+        },
+        { timeoutMs: 4000 }
+      )
+    await Promise.all([contender(), contender(), contender(), contender()])
+    expect(overlap).toBe(1)
+    await expect(stat(lockFile())).rejects.toThrow()
+    await expect(stat(breakLockFile())).rejects.toThrow()
+  })
+
   it('never lists the lock file as an item', async () => {
     const id = await storeNote()
-    await writeFile(lockFile(), JSON.stringify({ pid: process.pid, at: Date.now() }))
+    await writeLock({ hostname: hostname(), pid: process.pid, at: Date.now(), token: 'x' })
     const hits = JSON.parse(await tools.call('query', { q: 'grass' })) as { id: string }[]
     expect(hits.map((hit) => hit.id)).toEqual([id])
   })

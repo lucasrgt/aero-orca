@@ -21,7 +21,7 @@ import {
 } from '../../shared/aero/aero-item-serializer'
 import { removeOtherAeroItemFiles, writeAeroItemFile } from './aero-item-file-writer'
 import { createAeroKnowledgeCorpusReader } from './aero-knowledge-corpus'
-import { withAeroKnowledgeLock } from './aero-knowledge-lock'
+import { withAeroKnowledgeLock, type AeroKnowledgeLockOptions } from './aero-knowledge-lock'
 
 type ToolArgs = Record<string, unknown>
 
@@ -89,12 +89,15 @@ function missingItem(id: string): Error {
   return new Error(`item não encontrado: ${id}`)
 }
 
-export function createAeroKnowledgeTools(root: string): AeroKnowledgeTools {
+export function createAeroKnowledgeTools(
+  root: string,
+  lockOptions: AeroKnowledgeLockOptions = {}
+): AeroKnowledgeTools {
   const corpus = createAeroKnowledgeCorpusReader(root)
   let writes: Promise<unknown> = Promise.resolve()
   // One write at a time in this process, and one process at a time on the repo (the lock file).
   const exclusive = <T>(task: () => Promise<T>): Promise<T> => {
-    const locked = () => withAeroKnowledgeLock(root, task)
+    const locked = () => withAeroKnowledgeLock(root, task, lockOptions)
     const run = writes.then(locked, locked)
     writes = run.catch(() => {})
     return run

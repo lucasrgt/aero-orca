@@ -1,15 +1,26 @@
 import { randomBytes } from 'node:crypto'
 import { lstat, mkdir, open, readFile, unlink } from 'node:fs/promises'
+import { hostname } from 'node:os'
 import { join } from 'node:path'
 import { probeDirectory } from '../../main/aero/aero-workspace-files'
 
 const LOCK_FILE = '.knowledge.lock'
+const BREAK_FILE = '.knowledge.lock.break'
 const ACQUIRE_TIMEOUT_MS = 5000
-const STALE_AFTER_MS = 30_000
+/** A holder that is provably alive (same host) or unverifiable (another host) is trusted this long. */
+const HOLDER_LIMIT_MS = 120_000
+/** A lock file with unreadable content is a writer between create and fill; give it this long. */
+const UNREADABLE_LIMIT_MS = 30_000
+/** The break lock guards one unlink; a crashed breaker must not wedge everyone for longer. */
+const BREAK_LIMIT_MS = 10_000
 const FIRST_DELAY_MS = 15
 const MAX_DELAY_MS = 250
+const RELEASE_READ_TRIES = 4
+const RELEASE_READ_DELAY_MS = 25
 
-type LockContent = { pid: number; at: number; token: string }
+type LockContent = { hostname: string; pid: number; at: number; token: string }
+
+export type AeroKnowledgeLockOptions = { timeoutMs?: number }
 
 function errorCode(error: unknown): string | undefined {
   return (error as NodeJS.ErrnoException).code
@@ -43,21 +54,43 @@ async function readLock(
   }
   try {
     const parsed = JSON.parse(raw) as Partial<LockContent>
-    const valid = Number.isInteger(parsed.pid) && typeof parsed.at === 'number'
+    const valid =
+      typeof parsed.hostname === 'string' &&
+      Number.isInteger(parsed.pid) &&
+      typeof parsed.at === 'number'
     return { raw, content: valid ? (parsed as LockContent) : null }
   } catch {
     return { raw, content: null }
   }
 }
 
-/** A lock is stale once its holder is gone or it has been held longer than any write takes. */
-async function isStale(path: string, held: { content: LockContent | null }): Promise<boolean> {
-  if (held.content) {
-    return Date.now() - held.content.at > STALE_AFTER_MS || !isProcessAlive(held.content.pid)
-  }
-  // Unreadable content: a writer may be between creating the file and filling it, so use its age.
+/** Age of the lock file by its mtime: one filesystem clock, so no holder/waiter clock skew. */
+async function fileAgeMs(path: string): Promise<number | null> {
   const entry = await lstat(path).catch(() => null)
-  return entry !== null && Date.now() - entry.mtimeMs > STALE_AFTER_MS
+  return entry === null ? null : Date.now() - entry.mtimeMs
+}
+
+/**
+ * A same-host lock is stale once its pid is gone (at once) or it outlived the holder limit. A lock
+ * from another host (or WSL versus Windows) cannot be probed by pid, so only its age counts, read
+ * from the file's mtime. Unreadable content is judged by age alone.
+ */
+async function isStale(
+  path: string,
+  held: { content: LockContent | null },
+  limitMs: number = HOLDER_LIMIT_MS
+): Promise<boolean> {
+  const age = await fileAgeMs(path)
+  if (age === null) {
+    return false
+  }
+  if (!held.content) {
+    return age > Math.min(limitMs, UNREADABLE_LIMIT_MS)
+  }
+  if (held.content.hostname === hostname() && !isProcessAlive(held.content.pid)) {
+    return true
+  }
+  return age > limitMs
 }
 
 async function ensureAerofortressDirectory(root: string): Promise<string> {
@@ -90,16 +123,34 @@ async function tryCreate(path: string, token: string): Promise<boolean> {
     throw error
   }
   try {
-    const content: LockContent = { pid: process.pid, at: Date.now(), token }
+    const content: LockContent = { hostname: hostname(), pid: process.pid, at: Date.now(), token }
     await handle.writeFile(JSON.stringify(content), 'utf8')
-  } finally {
     await handle.close()
+  } catch (error) {
+    // Never leave an empty or half-written lock behind that would block everyone until it ages out.
+    await handle.close().catch(() => {})
+    await unlink(path).catch(() => {})
+    throw error
   }
   return true
 }
 
+async function readForRelease(path: string): Promise<{ content: LockContent | null } | null> {
+  for (let attempt = 1; ; attempt += 1) {
+    try {
+      return await readLock(path)
+    } catch (error) {
+      const code = errorCode(error)
+      if ((code !== 'EPERM' && code !== 'EBUSY') || attempt >= RELEASE_READ_TRIES) {
+        return null
+      }
+      await sleep(RELEASE_READ_DELAY_MS)
+    }
+  }
+}
+
 async function release(path: string, token: string): Promise<void> {
-  const held = await readLock(path).catch(() => null)
+  const held = await readForRelease(path)
   // Never remove a lock another process broke and took over in the meantime.
   if (held?.content?.token === token) {
     await unlink(path).catch(() => {})
@@ -107,30 +158,68 @@ async function release(path: string, token: string): Promise<void> {
 }
 
 /**
+ * Removes a lock judged stale, serialised by a short-lived break lock so two waiters can never
+ * both break it and then both hold it. Only the break lock's holder unlinks, and only after
+ * re-reading the lock and finding the very same stale content. Returns whether it held the break
+ * lock (false means another breaker is busy, so the caller should back off).
+ */
+async function breakStale(
+  path: string,
+  breakPath: string,
+  token: string,
+  stale: { raw: string }
+): Promise<boolean> {
+  if (!(await tryCreate(breakPath, token))) {
+    // A crashed breaker's lock expires; a live one is simply waited out.
+    const holder = await readLock(breakPath)
+    if (holder && (await isStale(breakPath, holder, BREAK_LIMIT_MS))) {
+      const again = await readLock(breakPath)
+      if (again?.raw === holder.raw) {
+        await unlink(breakPath).catch(() => {})
+      }
+    }
+    return false
+  }
+  try {
+    const current = await readLock(path)
+    if (current && current.raw === stale.raw && (await isStale(path, current))) {
+      await unlink(path).catch(() => {})
+    }
+  } finally {
+    await release(breakPath, token)
+  }
+  return true
+}
+
+/**
  * Runs `task` while holding `.aerofortress/.knowledge.lock`, so two `orca aero mcp` processes (one
  * per agent) never interleave a read-modify-write on the same repo. The lock is an exclusive-create
- * file holding the pid and a timestamp. A waiter retries with backoff for about five seconds, and
- * breaks a lock whose holder is dead or that is older than thirty seconds. Released in `finally`.
+ * file holding the host name, pid and a timestamp. A waiter retries with backoff for about five
+ * seconds. It breaks a lock held by a dead pid on this host at once, and any other lock only after
+ * two minutes (judged by the file's mtime, so another machine's clock never matters). Breaking goes
+ * through `.knowledge.lock.break`. Released in `finally`.
  */
-export async function withAeroKnowledgeLock<T>(root: string, task: () => Promise<T>): Promise<T> {
-  const path = join(await ensureAerofortressDirectory(root), LOCK_FILE)
+export async function withAeroKnowledgeLock<T>(
+  root: string,
+  task: () => Promise<T>,
+  options: AeroKnowledgeLockOptions = {}
+): Promise<T> {
+  const directory = await ensureAerofortressDirectory(root)
+  const path = join(directory, LOCK_FILE)
+  const breakPath = join(directory, BREAK_FILE)
   const token = randomBytes(8).toString('hex')
-  const deadline = Date.now() + ACQUIRE_TIMEOUT_MS
+  const deadline = Date.now() + (options.timeoutMs ?? ACQUIRE_TIMEOUT_MS)
   let delay = FIRST_DELAY_MS
   while (!(await tryCreate(path, token))) {
     const held = await readLock(path)
     if (held && (await isStale(path, held))) {
-      // Remove only the lock that was judged stale: re-read so a fresh one is never discarded.
-      const again = await readLock(path)
-      if (again?.raw === held.raw) {
-        await unlink(path).catch(() => {})
-      }
-      if (Date.now() < deadline) {
+      // Retry at once only after actually going through the break; a busy break lock means wait.
+      if ((await breakStale(path, breakPath, token, held)) && Date.now() < deadline) {
         continue
       }
     }
     if (Date.now() >= deadline) {
-      const holder = held?.content ? ` (pid ${held.content.pid})` : ''
+      const holder = held?.content ? ` (pid ${held.content.pid} on ${held.content.hostname})` : ''
       throw new Error(`the knowledge network is locked by another process${holder}; try again`)
     }
     await sleep(delay + Math.floor(Math.random() * delay))
