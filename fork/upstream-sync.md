@@ -30,7 +30,14 @@ git config rerere.enabled true        # replay conflict resolutions you already 
    - For a failure, check whether it also fails at `upstream/main` before blaming the merge.
 6. Smoke test with `ORCA_BACKGROUND_LAUNCH=1 corepack pnpm dev` and a CDP screenshot.
    - Dev Orca rewrites the global Claude and Codex hook configs (`~/.claude/settings.json`, `~/.codex/hooks.json`). Back them up first if you run other harnesses.
-7. Open a PR `sync/upstream-<date> → main`. Let the pre-commit hook run, and never `--no-verify`.
+7. Open a PR `sync/upstream-<date> → main`.
+8. **Keep CI off. This step is mandatory:** this fork must not spend GitHub Actions on Lucas's account.
+   - A sync can add new workflow files, and new workflows start active. After the merge, disable them:
+     ```bash
+     gh workflow list -R lucasrgt/aero-orca --all --json id,state --jq '.[] | select(.state=="active") | .id'        | xargs -r -n1 gh workflow disable -R lucasrgt/aero-orca
+     ```
+   - Then cancel anything they already started: `gh run list --status queued` and `--status in_progress`, followed by `gh run cancel <id>`.
+   - Verification stays local, through steps 4–6. Let the pre-commit hook run, and never `--no-verify`.
 
 ## Taking an upstream PR before it merges
 
