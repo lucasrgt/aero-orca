@@ -41,6 +41,7 @@ export const ROOT_HELP_TEXT_SECONDARY = [
   '  orca diagnostics memory [--json]',
   '  orca agent-context [--json]',
   '  orca aero inspect [--path <repo>] [--json]',
+  '  orca aero mcp [--path <repo>]',
   '  orca search <query> [--scope conversation|all] [--fresh] [--limit <n>] [--cursor <c>] [--agent <id>] [--path <p>] [--since <iso>] [--sort relevance|newest] [--debug] [--json]',
   '  orca search --index-status [--json]',
   '  orca account add [--agent claude|codex] [--json]',

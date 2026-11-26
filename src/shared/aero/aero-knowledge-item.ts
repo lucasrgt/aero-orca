@@ -57,9 +57,17 @@ export function normalizeAeroItemType(raw: string): (typeof AERO_ITEM_TYPES)[num
   return AERO_ITEM_TYPES.find((known) => known === type) ?? 'fact'
 }
 
+export function isAeroRfc3339(value: string): boolean {
+  return RFC3339.test(value)
+}
+
+export function aeroDecayDays(decay: string): number {
+  return AERO_DECAY_DAYS[decay] ?? AERO_DEFAULT_DECAY_DAYS
+}
+
 /** network.rs `freshness`: an unreadable `validated` date or an age past the decay window is stale. */
 export function isAeroItemStale(decay: string, validated: string, now: Date): boolean {
-  if (!RFC3339.test(validated)) {
+  if (!isAeroRfc3339(validated)) {
     return true
   }
   const validatedAt = Date.parse(validated.replace(' ', 'T'))
@@ -67,7 +75,7 @@ export function isAeroItemStale(decay: string, validated: string, now: Date): bo
     return true
   }
   const ageDays = Math.trunc((now.getTime() - validatedAt) / MS_PER_DAY)
-  return ageDays > (AERO_DECAY_DAYS[decay] ?? AERO_DEFAULT_DECAY_DAYS)
+  return ageDays > aeroDecayDays(decay)
 }
 
 function parseAeroItemLinks(value: string): { kind: string; to: string }[] {
