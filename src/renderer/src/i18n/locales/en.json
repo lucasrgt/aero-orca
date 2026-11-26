@@ -1531,6 +1531,7 @@
       }
     },
     "bots": {
+      "usingChatDefaultShort": "Using chat default",
       "fileChangedOnDisk": "{{file}} changed on disk.",
       "pictureCurrent": "Current picture",
       "agent": "Agent",
@@ -21214,6 +21215,20 @@
       "useKnownId": "Use known user ID \"{{value0}}\""
     },
     "native-chat": {
+      "screen": {
+        "clickToOpen": "Click to open and control PC screen",
+        "controlHere": "Control here",
+        "defaultTitle": "PC screen",
+        "desktopViewport": "Desktop view",
+        "loading": "Connecting to PC screen…",
+        "mobileViewport": "Mobile view (390px)",
+        "openExternal": "Open in external browser",
+        "openScreen": "Open screen",
+        "previewOnly": "Preview",
+        "reloadPreview": "Reload preview",
+        "retry": "Retry",
+        "unavailable": "No running local PC screen found. Start pczinho or a local sandbox and retry."
+      },
       "install": {
         "checking": "Checking whether {{agent}} is ready on this host…",
         "cliInstall": "Install",
@@ -27660,6 +27675,7 @@
   },
   "bots": {
     "row": {
+      "openInSplit": "Open in split",
       "deleteTitle": "Delete {{name}}?",
       "deleteDescription": "Its folder stays at {{path}}, with its soul and memory.",
       "deleteConfirm": "Delete bot",
@@ -31363,18 +31379,6 @@
       "openScreen": "Open sandbox screen"
     }
   },
-  "components.native-chat.screen.clickToOpen": "Click to open and control PC screen",
-  "components.native-chat.screen.controlHere": "Control here",
-  "components.native-chat.screen.defaultTitle": "PC screen",
-  "components.native-chat.screen.desktopViewport": "Desktop view",
-  "components.native-chat.screen.loading": "Connecting to PC screen…",
-  "components.native-chat.screen.mobileViewport": "Mobile view (390px)",
-  "components.native-chat.screen.openExternal": "Open in external browser",
-  "components.native-chat.screen.openScreen": "Open screen",
-  "components.native-chat.screen.previewOnly": "Preview",
-  "components.native-chat.screen.reloadPreview": "Reload preview",
-  "components.native-chat.screen.retry": "Retry",
-  "components.native-chat.screen.unavailable": "No running local PC screen found. Start pczinho or a local sandbox and retry.",
   "activityBar": {
     "moveUp": "Move up",
     "moveDown": "Move down",

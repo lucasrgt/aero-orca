@@ -2213,6 +2213,7 @@
       "supportedKeys": "Defina apenas as chaves compatíveis: `scripts` e `setup`."
     },
     "bots": {
+      "usingChatDefaultShort": "Usando o padrão do chat",
       "tidyUp": {
         "everyNightLine": "Todas as noites após as 3h, ou assim que este computador estiver ativo",
         "everyWeekLine": "Uma vez por semana após as 3h, ou assim que este computador estiver ativo",
@@ -20909,6 +20910,17 @@
       "useKnownId": "Usar o ID de usuário conhecido \"{{value0}}\""
     },
     "native-chat": {
+      "screen": {
+        "clickToOpen": "Clique para abrir e controlar a tela do PC",
+        "controlHere": "Controlar aqui",
+        "defaultTitle": "Tela do PC",
+        "loading": "Conectando à tela do PC…",
+        "openExternal": "Abrir no navegador externo",
+        "openScreen": "Abrir tela",
+        "previewOnly": "Preview",
+        "retry": "Tentar novamente",
+        "unavailable": "Nenhuma tela de PC local em execução. Inicie o pczinho ou um sandbox local e tente novamente."
+      },
       "taskList": {
         "title": "Tarefas",
         "completed": "Concluída",
@@ -26241,6 +26253,7 @@
       }
     },
     "row": {
+      "openInSplit": "Abrir em divisão",
       "runsOn": "Em execução em {{host}}",
       "disconnected": "Desconectado",
       "idle": "Inativo",
@@ -26782,15 +26795,6 @@
     "codebuddyProduct": "CodeBuddy Code",
     "thisComputer": "Este computador"
   },
-  "components.native-chat.screen.clickToOpen": "Clique para abrir e controlar a tela do PC",
-  "components.native-chat.screen.controlHere": "Controlar aqui",
-  "components.native-chat.screen.defaultTitle": "Tela do PC",
-  "components.native-chat.screen.loading": "Conectando à tela do PC…",
-  "components.native-chat.screen.openExternal": "Abrir no navegador externo",
-  "components.native-chat.screen.openScreen": "Abrir tela",
-  "components.native-chat.screen.previewOnly": "Preview",
-  "components.native-chat.screen.retry": "Tentar novamente",
-  "components.native-chat.screen.unavailable": "Nenhuma tela de PC local em execução. Inicie o pczinho ou um sandbox local e tente novamente.",
   "activityBar": {
     "moveUp": "Mover para cima",
     "moveDown": "Mover para baixo",

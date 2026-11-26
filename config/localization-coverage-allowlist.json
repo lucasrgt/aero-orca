@@ -427,6 +427,20 @@
     "count": 1
   },
   {
+    "filePath": "src/shared/bots/bot-sidebar-view.ts",
+    "kind": "object-property:label",
+    "text": "Project",
+    "dynamic": false,
+    "count": 1
+  },
+  {
+    "filePath": "src/shared/bots/bot-sidebar-view.ts",
+    "kind": "object-property:label",
+    "text": "None",
+    "dynamic": false,
+    "count": 1
+  },
+  {
     "filePath": "src/shared/bots/webhook-card-view.ts",
     "kind": "object-property:title",
     "text": "Webhook",
