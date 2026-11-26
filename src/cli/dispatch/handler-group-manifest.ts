@@ -290,9 +290,9 @@ export const HANDLER_GROUPS: readonly HandlerGroup[] = [
     })
   },
   {
-    name: 'aero-mcp',
-    keys: ['aero mcp'],
-    load: async () => (await import('../aero/aero-mcp.js')).AERO_MCP_HANDLERS
+    name: 'aero-agent',
+    keys: ['aero mcp', 'aero hook session-start', 'aero hook prompt-submit'],
+    load: async () => (await import('../aero/aero-agent-handlers.js')).AERO_AGENT_HANDLERS
   },
   {
     name: 'ports',

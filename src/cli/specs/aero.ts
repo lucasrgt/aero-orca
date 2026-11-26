@@ -27,6 +27,30 @@ export const AERO_COMMAND_SPECS: CommandSpec[] = [
     examples: ['orca aero mcp', 'orca aero mcp --path ../my-repo']
   },
   {
+    path: ['aero', 'hook', 'session-start'],
+    summary: 'Agent hook: print the AeroFortress workspace pack as session context (JSON)',
+    usage: 'orca aero hook session-start < hook-input.json',
+    allowedFlags: [...LOCAL_COMMAND_FLAGS],
+    notes: [
+      'For a SessionStart hook of Claude Code or Codex. Reads the hook JSON from stdin (cwd) and prints {"hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":...}} with the constitution, digests and best-ranked items of the nearest .aerofortress, within 12k characters. Prints nothing when the folder has no .aerofortress.',
+      'Never fails the agent: every error is a line on stderr, an empty stdout and exit 0. Local only.'
+    ],
+    examples: ['echo \'{"cwd":"."}\' | orca aero hook session-start']
+  },
+  {
+    path: ['aero', 'hook', 'prompt-submit'],
+    summary: 'Agent hook: print the Not You Again scars relevant to a prompt as context (JSON)',
+    usage: 'orca aero hook prompt-submit < hook-input.json',
+    allowedFlags: [...LOCAL_COMMAND_FLAGS],
+    notes: [
+      'For a UserPromptSubmit hook of Claude Code or Codex. Reads the hook JSON from stdin (cwd, prompt), recalls up to 8 scars for the prompt and prints them in a <NOT_YOU_AGAIN> envelope as additionalContext, as AeroFortress does before each turn. Prints nothing when .nya is not initialized or no scar is relevant; a failed recall prints a <NOT_YOU_AGAIN_ERROR> envelope so the agent cannot claim the gate passed.',
+      'Never fails the agent: every other error is a line on stderr, an empty stdout and exit 0. Local only.'
+    ],
+    examples: [
+      'echo \'{"cwd":".","prompt":"fix the codex stop handling"}\' | orca aero hook prompt-submit'
+    ]
+  },
+  {
     path: ['aero', 'nya', 'recall'],
     summary: 'Recall the Not You Again scars (reusable lessons) relevant to a task and its paths',
     usage:

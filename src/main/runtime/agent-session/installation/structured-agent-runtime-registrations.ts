@@ -2,6 +2,7 @@ import { AcpAtRestCommandCatalog } from '../../../acp/discovery/acp-at-rest-comm
 import { resolveNativeChatVisualsSkillLocation } from '../../../native-chat/conversation-files/native-chat-visuals-skill-location'
 import { withSupportedCodexCli } from '../../../codex/structured/launch/codex-cli-installation-error'
 import { codexStructuredLaunchPart } from '../../../codex/structured/launch/codex-structured-launch-resolution'
+import { composeAeroClaudeLaunch } from '../../../aero/aero-agent-injection'
 import { claudeStructuredLaunchPart } from '../../../claude/structured/launch/claude-structured-launch-resolution'
 import { claudeNamingInvocation } from '../../../claude/conversation-naming/claude-naming-invocation'
 import { createClaudeCommandCatalogProbe } from '../../../claude/command-catalog/claude-command-catalog-probe'
@@ -131,7 +132,7 @@ function createClaudeAdapter(
     ),
     resolveWorkspacePath: deps.resolveWorkspacePath,
     ...(resolveAccountHome ? { resolveAccountHome: () => resolveAccountHome('claude') } : {}),
-    resolveLaunch: composeStructuredLaunch(
+    resolveLaunch: composeAeroClaudeLaunch(
       CLAUDE_STRUCTURED_AGENT,
       structuredAgentLaunchSources(context),
       claudeStructuredLaunchPart({
