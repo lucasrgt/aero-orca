@@ -40,7 +40,7 @@ const AeroNyaJudgeConfigSchema = z.strictObject({
 })
 
 export type AeroNyaConfig = { schema: number; timeoutSeconds: number }
-export type AeroNyaJudgeConfig = { judge: string; command: string[] }
+export type AeroNyaJudgeConfig = { schema: number; judge: string; command: string[] }
 
 function validateScar(scar: AeroNyaScar): string[] {
   const issues: string[] = []
@@ -92,6 +92,13 @@ export function parseAeroNyaConfig(raw: string): AeroParseResult<AeroNyaConfig> 
 export function parseAeroNyaJudgeConfig(raw: string): AeroParseResult<AeroNyaJudgeConfig> {
   const parsed = parseAeroTomlDocument(raw, AeroNyaJudgeConfigSchema)
   return parsed.ok
-    ? { ok: true, value: { judge: parsed.value.judge, command: parsed.value.command } }
+    ? {
+        ok: true,
+        value: {
+          schema: parsed.value.schema,
+          judge: parsed.value.judge,
+          command: parsed.value.command
+        }
+      }
     : parsed
 }

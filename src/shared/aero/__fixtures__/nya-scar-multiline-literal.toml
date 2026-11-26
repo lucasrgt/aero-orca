@@ -1,0 +1,33 @@
+schema = 1
+id = "NYA-01KYASTC83YNKZEPXA8ZP8TFF9"
+title = 'Quota circuit-breaker never parsed whole-hour resets ("resets 6pm") → block outlived the real reset and stuck on disk'
+lesson = '''
+**Symptom (2026-07-02, reported by a harness user):** Claude session limit reset at 18:00 (confirmed on claude.ai), but AeroFortress kept blocking Claude calls with "session limit reached" for hours after. Reinstalling and reconnecting did NOT fix it.
+
+**Root cause:** `quota::parse_ampm` did `time.split_once(':')?` — it REQUIRED a colon. Claude's real session-limit line writes whole-hour resets without minutes ("resets 6pm"), only using a colon when there are minutes ("resets 6:30pm"). So "6pm" → `split_once` returns None → `parse_ampm` returns None → `parse_reset` returns None → `trip()` fell back to a **blind 5-hour TTL from the moment the limit was hit**, ignoring the real reset. Hit the cap mid-afternoon → block ran ~5h out (e.g. 22:00) while Claude actually reset at 18:00. Worse: the bad `untilEpoch` is persisted to `constellation/quota-claude.json`, so `read_disk` reloads it on every restart — reinstall/reconnect can't clear it; it only self-heals when the inflated epoch finally passes.
+
+**Fix (v1.8.19):** `let (h, m) = time.split_once(':').unwrap_or((time, "0"));` — colon-less times parse as whole hours (minute 0). Tests lock the exact screenshot line + 6pm/6:30pm/11am/12am/12pm/garbage edges.
+
+**Immediate unblock for an already-stuck user:** close the app, delete `%APPDATA%\AeroFortress\constellation\quota-claude.json` (+ legacy `quota.json`), reopen. The fixed build prevents recurrence but does NOT retroactively repair an already-poisoned file (its real reset is unrecoverable — `reset` was stored as null under the fallback).
+
+**Lesson:** when parsing an external, human-facing status string, test the parser against the REAL observed string (the screenshot), not an assumed format — and never let a parse gap fall back to something WORSE than the signal it replaces. A blind 5h TTL that outlives the vendor's announced reset AND persists to disk turns a one-character parse miss into a multi-hour stuck state no reinstall can clear. Same family as [[codex-context-estimate-cap]]: the model/vendor reports the truth; our code must honor it, not override it with a cruder guess.'''
+scope = ["src-tauri/src/**"]
+tags = [
+    "aerofortress-migration",
+    "domain:backend",
+    "quota",
+    "claude",
+    "circuit-breaker",
+    "parsing",
+    "bugfix",
+    "session-limit",
+]
+created_at = "2026-07-24T19:32:14Z"
+
+[[occurrences]]
+occurred_at = "2026-07-24T19:32:14Z"
+source = "aerofortress-item:cbc5299d-c4dc-441b-97eb-d844bf1f9673"
+reported_by = "harness:observation"
+corrected_by = "git:dev@example.com"
+recorded_by = "migration:aerofortress"
+commit = "cd0fd26"

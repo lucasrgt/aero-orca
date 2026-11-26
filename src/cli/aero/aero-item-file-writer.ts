@@ -13,12 +13,16 @@ function errorCode(error: unknown): string | undefined {
 }
 
 /**
- * Walks `.aerofortress/items/<folders>` creating what is missing. Every level must be a real
- * directory under the repo: a symlink, or anything resolving outside, aborts the write.
+ * Walks `<base>/<folders>` creating what is missing. Every level must be a real directory under the
+ * repo: a symlink, or anything resolving outside, aborts the write.
  */
-async function ensureItemFolder(root: string, folders: readonly string[]): Promise<string> {
+async function ensureFolder(
+  root: string,
+  base: readonly string[],
+  folders: readonly string[]
+): Promise<string> {
   let directory = root
-  for (const segment of [...ITEMS_FOLDERS, ...folders]) {
+  for (const segment of [...base, ...folders]) {
     if (segment === '.' || segment === '..' || /[\\/]/.test(segment)) {
       throw new Error(`refusing unsafe folder name "${segment}"`)
     }
@@ -83,19 +87,20 @@ async function inspectTarget(target: string): Promise<'absent' | 'file' | 'other
 }
 
 /**
- * Writes one item file: a temp file in the same folder, then a rename over the target. The write
- * stays under `.aerofortress/items`, follows no symlink and never replaces a non-file; `create`
- * also refuses to replace a file. Returns the absolute path written.
+ * Writes one file: a temp file in the same folder, then a rename over the target. The write stays
+ * under `<base>/<folders>`, follows no symlink and never replaces a non-file; `create` also refuses
+ * to replace a file. Returns the absolute path written.
  */
-export async function writeAeroItemFile(
+export async function writeAeroGuardedFile(
   root: string,
+  base: readonly string[],
   folders: readonly string[],
   fileName: string,
   text: string,
   mode: 'create' | 'replace'
 ): Promise<string> {
   assertPlainFileName(fileName)
-  const directory = await ensureItemFolder(root, folders)
+  const directory = await ensureFolder(root, base, folders)
   const target = join(directory, fileName)
   const existing = await inspectTarget(target)
   if (existing === 'other' || (existing === 'file' && mode === 'create')) {
@@ -110,6 +115,17 @@ export async function writeAeroItemFile(
     throw error
   }
   return target
+}
+
+/** One item file under `.aerofortress/items/<folders>`; see `writeAeroGuardedFile`. */
+export function writeAeroItemFile(
+  root: string,
+  folders: readonly string[],
+  fileName: string,
+  text: string,
+  mode: 'create' | 'replace'
+): Promise<string> {
+  return writeAeroGuardedFile(root, ITEMS_FOLDERS, folders, fileName, text, mode)
 }
 
 type SameFile = 'same' | 'different' | 'unknown'

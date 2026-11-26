@@ -1,0 +1,27 @@
+schema = 1
+id = "NYA-01KYASTAY5KDZJE723D5CQY1PJ"
+title = "LOOP-START can fail from stale UI state or an outdated running binary"
+lesson = "Validate a loop created in the current turn against fresh backend state, never a React cache that refreshes after completion. In dogfood, also verify the version of the running harness binary before relying on a merged fix, because the updater activates it only after restart."
+scope = [
+    "src/**",
+    "src-tauri/src/**",
+]
+tags = [
+    "aerofortress-migration",
+    "domain:aerofortress-harness/loops",
+    "loops",
+    "sentinel",
+    "front-cache",
+    "race",
+    "dogfood",
+    "updater",
+]
+created_at = "2026-07-24T19:32:13Z"
+
+[[occurrences]]
+occurred_at = "2026-07-24T19:32:13Z"
+source = "aerofortress-item:66e169ad-58a0-49e2-87dc-4f1e15541682"
+reported_by = "harness:observation"
+corrected_by = "git:dev@example.com"
+recorded_by = "migration:aerofortress"
+commit = "cd0fd26"

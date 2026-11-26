@@ -283,8 +283,11 @@ export const HANDLER_GROUPS: readonly HandlerGroup[] = [
   },
   {
     name: 'aero',
-    keys: ['aero inspect'],
-    load: async () => (await import('../aero/aero-inspect.js')).AERO_HANDLERS
+    keys: ['aero inspect', 'aero nya recall', 'aero nya remember', 'aero nya check'],
+    load: async () => ({
+      ...(await import('../aero/aero-inspect.js')).AERO_HANDLERS,
+      ...(await import('../aero/aero-nya.js')).AERO_NYA_HANDLERS
+    })
   },
   {
     name: 'aero-mcp',

@@ -1,0 +1,26 @@
+schema = 1
+id = "NYA-01KYASTDF2V02HDPG66FQ1MTSQ"
+title = "Guessed the GitHub org in a published URL — verify against `git remote -v`, never from memory"
+lesson = """
+**Symptom (2026-07-02, G34):** the site seed's "Get it on GitHub" button shipped pointing at `example-org/aerofortress-harness` — the real remote is `example-org/aerofortress-harness`. Caught only because the push output printed the remote; fixed in the next commit (`0e7ad37`).
+
+**Lesson:** any URL that names a repo/org/user in a produced artifact (README, site, docs, issue templates, package metadata) must be READ from the environment — `git remote -v`, the csproj RepositoryUrl, package.json — never typed from memory. The failure is silent: the artifact looks right and 404s in production.
+
+**How to avoid:** before writing a repo URL into an artifact, run `git remote -v` (or grep an existing manifest that already carries it) and copy verbatim."""
+scope = ["**"]
+tags = [
+    "aerofortress-migration",
+    "domain:general",
+    "urls",
+    "artifacts",
+    "release-hygiene",
+]
+created_at = "2026-07-24T19:32:15Z"
+
+[[occurrences]]
+occurred_at = "2026-07-24T19:32:15Z"
+source = "aerofortress-item:0639daae-63e0-4aa2-94ac-a48f125d0ad5"
+reported_by = "harness:observation"
+corrected_by = "git:dev@example.com"
+recorded_by = "migration:aerofortress"
+commit = "cd0fd26"
