@@ -1,16 +1,5 @@
 import { access } from 'node:fs/promises'
 import type { Options as ClaudeAgentSdkOptions } from '@anthropic-ai/claude-agent-sdk'
-import type { TuiAgent } from '../../shared/agent-launch/catalog/tui-agent'
-import {
-  findAgentExecutableIndex,
-  isAgentExecutableToken,
-  withArgsAfterAgentExecutable
-} from '../../shared/agent-launch/startup/agent-executable-args'
-import { findClaudeExecutableIndex } from '../../shared/agent-launch/startup/agent-resume-launch-command'
-import {
-  quoteStartupArg,
-  type AgentStartupShell
-} from '../../shared/agent-launch/startup/tui-agent-startup-shell'
 import { getAppEnvironment, hasAppEnvironment } from '../../shared/app-lifecycle/app-environment'
 import { thisAppOrcaCliLauncher } from '../cli/launchers/this-app-orca-cli-launcher'
 import {
@@ -21,11 +10,11 @@ import {
 } from '../claude/cli-capabilities/claude-cli-flag-support'
 import type { ClaudeStructuredLaunch } from '../claude/structured/launch/claude-structured-launch-resolution'
 import { agentOwnMcpServerNames } from '../mcp-servers/agent-own-mcp-server-names'
-import type {
-  ComposedStructuredLaunch,
-  StructuredAgentLaunchResolver
+import {
+  composeStructuredLaunch,
+  type ComposedStructuredLaunch,
+  type StructuredAgentLaunchResolver
 } from '../runtime/agent-session/launch/structured-agent-launch-composition'
-import { codexTerminalMcpArgs } from '../mcp-servers/terminal/codex-terminal-mcp-args'
 import { hasAeroAgentData } from './aero-agent-repo'
 import {
   AERO_KNOWLEDGE_SERVER_NAME,
@@ -35,14 +24,15 @@ import {
   type AeroStdioServer
 } from './aero-injection-plugin'
 
-type PreparedInjection = AeroInjectionPlugin & { server: AeroStdioServer }
+export type PreparedAeroInjection = AeroInjectionPlugin & { server: AeroStdioServer }
 
 /**
- * The bundled plugin and the `knowledge` server for an agent opened in `cwd`; null with no
- * AeroFortress data there or no `orca` launcher on this host. Injection never stops an agent starting.
+ * The generated plugin and the `knowledge` server for this host; null without an `orca` launcher or
+ * app environment. The caller has already found AeroFortress data. Injection never stops an agent
+ * starting.
  */
-async function prepareAeroAgentInjection(cwd: string): Promise<PreparedInjection | null> {
-  if (!hasAppEnvironment() || !(await hasAeroAgentData(cwd))) {
+export async function prepareAeroAgentInjection(): Promise<PreparedAeroInjection | null> {
+  if (!hasAppEnvironment()) {
     return null
   }
   try {
@@ -70,21 +60,37 @@ type AeroClaudeOptions = Pick<
   'plugins' | 'mcpServers' | 'mcpServersDelivery'
 >
 
+// A bot's look-around and reply-only runs carry these; an injected plugin or server is not theirs to add.
+function isReadOnlyClaudeLaunch(options: ClaudeAgentSdkOptions): boolean {
+  return (
+    options.strictMcpConfig === true ||
+    options.disallowedTools !== undefined ||
+    options.hooks !== undefined
+  )
+}
+
 /**
  * What a native chat adds for an AeroFortress repo: the hooks plugin beside the visuals plugin, and
- * the `knowledge` server beside the host list's, unless the user's own Claude config names one or
- * managed settings refuse --mcp-config.
+ * the `knowledge` server beside the host list's, unless the host list, the user's own Claude config
+ * or a project `.mcp.json` already names one, or managed settings refuse --mcp-config.
  */
 async function aeroClaudeLaunchOptions(
   launch: ComposedStructuredLaunch<ClaudeStructuredLaunch>
 ): Promise<AeroClaudeOptions> {
+  if (isReadOnlyClaudeLaunch(launch.options) || !(await hasAeroAgentData(launch.cwd))) {
+    return {}
+  }
   const takesPluginDirs =
     (await launch.cliFlag(CLAUDE_PLUGIN_DIR_FLAG, CLAUDE_CLI_FLAG_PROBE_KILL_AFTER_MS)) ===
     'supported'
-  const prepared = takesPluginDirs ? await prepareAeroAgentInjection(launch.cwd) : null
+  const prepared = takesPluginDirs ? await prepareAeroAgentInjection() : null
   if (!prepared) {
     return {}
   }
+  const plugins = [
+    ...(launch.options.plugins ?? []),
+    { type: 'local' as const, path: prepared.pluginDir }
+  ]
   const mcpConfigRefused =
     (await launch.cliFlag(CLAUDE_MCP_CONFIG_FLAG, CLAUDE_CACHED_FLAG_CHECK_BUDGET_MS, false)) ===
     'unsupported'
@@ -95,11 +101,11 @@ async function aeroClaudeLaunchOptions(
         { ...process.env, CLAUDE_CONFIG_DIR: launch.claudeConfigDir },
         launch.cwd
       ).catch((): string[] => [])
-  const plugins = [
-    ...(launch.options.plugins ?? []),
-    { type: 'local' as const, path: prepared.pluginDir }
-  ]
-  return mcpConfigRefused || ownNames.includes(AERO_KNOWLEDGE_SERVER_NAME)
+  const taken =
+    mcpConfigRefused ||
+    ownNames.includes(AERO_KNOWLEDGE_SERVER_NAME) ||
+    Object.hasOwn(launch.options.mcpServers ?? {}, AERO_KNOWLEDGE_SERVER_NAME)
+  return taken
     ? { plugins }
     : {
         plugins,
@@ -108,86 +114,16 @@ async function aeroClaudeLaunchOptions(
       }
 }
 
-/** The native chat launch with AeroFortress injection; unchanged for a repo with no AeroFortress data. */
-export function withAeroClaudeLaunch(
-  resolveLaunch: StructuredAgentLaunchResolver<ClaudeStructuredLaunch>
+/** `composeStructuredLaunch` for Claude, then the AeroFortress injection; unchanged outside an AeroFortress repo. */
+export function composeAeroClaudeLaunch(
+  ...args: Parameters<typeof composeStructuredLaunch<ClaudeStructuredLaunch>>
 ): StructuredAgentLaunchResolver<ClaudeStructuredLaunch> {
+  const resolveLaunch = composeStructuredLaunch(...args)
   return async (request) => {
     const launch = await resolveLaunch(request)
-    return { ...launch, options: { ...launch.options, ...(await aeroClaudeLaunchOptions(launch)) } }
+    return {
+      ...launch,
+      options: { ...launch.options, ...(await aeroClaudeLaunchOptions(launch)) }
+    }
   }
-}
-
-/** The args this agent's CLI takes for one run: the plugin and server for Claude, the server for Codex. */
-function terminalInjectionArgs(
-  agent: TuiAgent,
-  prepared: PreparedInjection,
-  shell: AgentStartupShell
-): string[] | null {
-  if (agent === 'claude') {
-    // Forward slashes spare a bash-flavoured Windows shell from quoting every backslash.
-    const slashed = (path: string): string => path.replaceAll('\\', '/')
-    return [
-      '--plugin-dir',
-      slashed(prepared.pluginDir),
-      `--mcp-config=${slashed(prepared.mcpConfigPath)}`
-    ]
-  }
-  if (agent === 'codex') {
-    const { args, skipped } = codexTerminalMcpArgs(
-      [
-        {
-          name: AERO_KNOWLEDGE_SERVER_NAME,
-          command: prepared.server.command,
-          args: prepared.server.args
-        }
-      ],
-      shell
-    )
-    return skipped.length === 0 ? args : null
-  }
-  return null
-}
-
-/**
- * The terminal command with the plugin and `knowledge` server passed as arguments of this run only,
- * never written into the user's own agent config. Unchanged for another agent, a remote or WSL pane,
- * a restored session, or a command that is not a plain call of the CLI.
- */
-export async function withAeroTerminalInjection(input: {
-  command: string | undefined
-  launchAgent: TuiAgent | undefined
-  shell: AgentStartupShell
-  cwd: string | undefined
-  isLocalFreshLaunch: boolean
-}): Promise<string | undefined> {
-  const { command, launchAgent, cwd } = input
-  if (
-    !command ||
-    !cwd ||
-    !input.isLocalFreshLaunch ||
-    (launchAgent !== 'claude' && launchAgent !== 'codex')
-  ) {
-    return command
-  }
-  const prepared = await prepareAeroAgentInjection(cwd)
-  const args = prepared && terminalInjectionArgs(launchAgent, prepared, input.shell)
-  if (!args) {
-    return command
-  }
-  const findIndex =
-    launchAgent === 'claude'
-      ? findClaudeExecutableIndex
-      : (tokens: readonly string[], shell: AgentStartupShell) =>
-          findAgentExecutableIndex(tokens, shell, (token) =>
-            isAgentExecutableToken(token, ['codex'])
-          )
-  return (
-    withArgsAfterAgentExecutable(
-      command,
-      input.shell,
-      findIndex,
-      args.map((arg) => ` ${quoteStartupArg(arg, input.shell)}`).join('')
-    ) ?? command
-  )
 }

@@ -1,7 +1,13 @@
 export type AeroHookEvent = 'SessionStart' | 'UserPromptSubmit'
 
-/** Aero's pack cap is 12k chars (nebula.rs `pack_budget`); the budget is counted in 4-char tokens. */
-export const AERO_AGENT_PACK_BUDGET_TOKENS = 3000
+/**
+ * Claude Code saves a hook's output past 10,000 characters to a file and shows the agent only a
+ * preview (checked against Claude Code 2.1.331: 9,900 arrives whole, 10,600 is cut). The whole reply
+ * stays under this, in bytes, so the same holds whichever way the cap is counted.
+ */
+export const AERO_HOOK_OUTPUT_LIMIT = 9500
+/** Pack budgets to try, in 4-char tokens, largest first: Aero's 12k-char pack does not fit the cap. */
+export const AERO_AGENT_PACK_BUDGETS_TOKENS = [2300, 1800, 1300, 900, 500, 250]
 /** nya.rs `augment_task` recalls at most 8 scars per turn. */
 export const AERO_AGENT_RECALL_LIMIT = 8
 
@@ -33,8 +39,32 @@ export function formatAeroHookOutput(event: AeroHookEvent, additionalContext: st
   return JSON.stringify({ hookSpecificOutput: { hookEventName: event, additionalContext } })
 }
 
+function fitsAeroHookOutput(event: AeroHookEvent, context: string): boolean {
+  return (
+    new TextEncoder().encode(formatAeroHookOutput(event, context)).length <= AERO_HOOK_OUTPUT_LIMIT
+  )
+}
+
 export function formatAeroPackContext(pack: string): string {
   return `## Workspace pack (top of the network ranking)\n${pack}`
+}
+
+/**
+ * The SessionStart context from the largest pack budget whose whole reply fits the cap; null when the
+ * network is empty. `packFor` is the pack for a budget in tokens.
+ */
+export function fitAeroPackContext(packFor: (budgetTokens: number) => string): string | null {
+  for (const budget of AERO_AGENT_PACK_BUDGETS_TOKENS) {
+    const pack = packFor(budget)
+    if (pack === '') {
+      return null
+    }
+    const context = formatAeroPackContext(pack)
+    if (fitsAeroHookOutput('SessionStart', context)) {
+      return context
+    }
+  }
+  return null
 }
 
 /** nya.rs `augment_task` envelope; the user's prompt is its own message here, so no USER_TASK part. */
@@ -49,11 +79,41 @@ export function formatAeroRecallContext(scarsJson: string): string {
   )
 }
 
+// A scar's text cannot close the envelope: `<` becomes a JSON escape, which parses back to `<`.
+function scarsJson(scars: readonly Record<string, unknown>[]): string {
+  return JSON.stringify(scars).replaceAll('<', '\\u003c')
+}
+
+/**
+ * The recall envelope for ranked scars within the cap: the best-ranked scars that fit whole, and when
+ * even the first does not, its lesson cut to fit. `scars` is not empty.
+ */
+export function fitAeroRecallContext(scars: readonly Record<string, unknown>[]): string {
+  const render = (list: readonly Record<string, unknown>[]): string =>
+    formatAeroRecallContext(scarsJson(list))
+  const fits = (list: readonly Record<string, unknown>[]): boolean =>
+    fitsAeroHookOutput('UserPromptSubmit', render(list))
+  for (let count = scars.length; count >= 1; count -= 1) {
+    if (fits(scars.slice(0, count))) {
+      return render(scars.slice(0, count))
+    }
+  }
+  const first = scars[0]
+  const lesson = [...String(first.lesson ?? '')]
+  for (let keep = lesson.length >> 1; keep > 0; keep >>= 1) {
+    const cut = [{ ...first, lesson: `${lesson.slice(0, keep).join('')}…` }]
+    if (fits(cut)) {
+      return render(cut)
+    }
+  }
+  return render([{ id: first.id, title: first.title, scope: first.scope }])
+}
+
 export function formatAeroRecallErrorContext(message: string): string {
   return (
     '<NOT_YOU_AGAIN_ERROR>\n' +
-    `Host-side scar recall failed: ${message}. Resolve this with \`nya_recall\` before changing ` +
-    'tracked files, and do not claim the recurrence gate passed.\n' +
+    `Host-side scar recall failed: ${message.slice(0, 500)}. Resolve this with \`nya_recall\` before ` +
+    'changing tracked files, and do not claim the recurrence gate passed.\n' +
     '</NOT_YOU_AGAIN_ERROR>'
   )
 }

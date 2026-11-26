@@ -1,9 +1,8 @@
 import { join, resolve } from 'node:path'
 import {
-  AERO_AGENT_PACK_BUDGET_TOKENS,
   AERO_AGENT_RECALL_LIMIT,
-  formatAeroPackContext,
-  formatAeroRecallContext,
+  fitAeroPackContext,
+  fitAeroRecallContext,
   formatAeroRecallErrorContext
 } from '../../shared/aero/aero-agent-injection'
 import { aeroNyaScarToJson } from '../../shared/aero/aero-nya-scar-format'
@@ -21,8 +20,9 @@ export async function aeroSessionStartContext(cwd: string, now: Date): Promise<s
     return null
   }
   const { index } = await createAeroKnowledgeCorpusReader(root).read()
-  const pack = packAeroKnowledge(index, undefined, AERO_AGENT_PACK_BUDGET_TOKENS, now)
-  return pack === '' ? null : formatAeroPackContext(pack)
+  return fitAeroPackContext((budgetTokens) =>
+    packAeroKnowledge(index, undefined, budgetTokens, now)
+  )
 }
 
 /** nya.rs `status.initialized`: a config and a scars folder, so a bare `.nya` injects nothing. */
@@ -50,9 +50,7 @@ export async function aeroPromptRecallContext(cwd: string, prompt: string): Prom
       paths: [],
       limit: AERO_AGENT_RECALL_LIMIT
     })
-    return scars.length === 0
-      ? null
-      : formatAeroRecallContext(JSON.stringify(scars.map(aeroNyaScarToJson)))
+    return scars.length === 0 ? null : fitAeroRecallContext(scars.map(aeroNyaScarToJson))
   } catch (error) {
     return formatAeroRecallErrorContext(error instanceof Error ? error.message : String(error))
   }

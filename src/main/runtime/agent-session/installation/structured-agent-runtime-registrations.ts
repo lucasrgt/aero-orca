@@ -2,7 +2,7 @@ import { AcpAtRestCommandCatalog } from '../../../acp/discovery/acp-at-rest-comm
 import { resolveNativeChatVisualsSkillLocation } from '../../../native-chat/conversation-files/native-chat-visuals-skill-location'
 import { withSupportedCodexCli } from '../../../codex/structured/launch/codex-cli-installation-error'
 import { codexStructuredLaunchPart } from '../../../codex/structured/launch/codex-structured-launch-resolution'
-import { withAeroClaudeLaunch } from '../../../aero/aero-agent-injection'
+import { composeAeroClaudeLaunch } from '../../../aero/aero-agent-injection'
 import { claudeStructuredLaunchPart } from '../../../claude/structured/launch/claude-structured-launch-resolution'
 import { claudeNamingInvocation } from '../../../claude/conversation-naming/claude-naming-invocation'
 import { createClaudeCommandCatalogProbe } from '../../../claude/command-catalog/claude-command-catalog-probe'
@@ -132,21 +132,19 @@ function createClaudeAdapter(
     ),
     resolveWorkspacePath: deps.resolveWorkspacePath,
     ...(resolveAccountHome ? { resolveAccountHome: () => resolveAccountHome('claude') } : {}),
-    resolveLaunch: withAeroClaudeLaunch(
-      composeStructuredLaunch(
-        CLAUDE_STRUCTURED_AGENT,
-        structuredAgentLaunchSources(context),
-        claudeStructuredLaunchPart({
-          resolveLaunchArgs: () => deps.resolveLaunchArgs('claude'),
-          ...(deps.resolveClaudeCommand ? { resolveCommand: deps.resolveClaudeCommand } : {}),
-          resolveAuthPolicy: deps.resolveClaudeAuthPolicy,
-          attachmentDirectory: agentSessionAttachmentStoreRoot(deps.stateDirectory),
-          ...(deps.claudeCliFlags ? { cliFlags: deps.claudeCliFlags } : {}),
-          ...(deps.nativeChatPromptSuggestions
-            ? { promptSuggestions: deps.nativeChatPromptSuggestions }
-            : {})
-        })
-      )
+    resolveLaunch: composeAeroClaudeLaunch(
+      CLAUDE_STRUCTURED_AGENT,
+      structuredAgentLaunchSources(context),
+      claudeStructuredLaunchPart({
+        resolveLaunchArgs: () => deps.resolveLaunchArgs('claude'),
+        ...(deps.resolveClaudeCommand ? { resolveCommand: deps.resolveClaudeCommand } : {}),
+        resolveAuthPolicy: deps.resolveClaudeAuthPolicy,
+        attachmentDirectory: agentSessionAttachmentStoreRoot(deps.stateDirectory),
+        ...(deps.claudeCliFlags ? { cliFlags: deps.claudeCliFlags } : {}),
+        ...(deps.nativeChatPromptSuggestions
+          ? { promptSuggestions: deps.nativeChatPromptSuggestions }
+          : {})
+      })
     ),
     ...(deps.resolveClaudeCommand ? { resolveClaudeCommand: deps.resolveClaudeCommand } : {}),
     ...(deps.claudeCliFlags ? { claudeCliFlags: deps.claudeCliFlags } : {}),

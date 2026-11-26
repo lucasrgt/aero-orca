@@ -2,6 +2,9 @@ import { mkdir, readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { quoteStartupArg } from '../../shared/agent-launch/startup/tui-agent-startup-shell'
 import { writePluginFileAtomically } from '../plugins/installation/plugin-atomic-file-write'
+import { quotePowerShellLiteral } from '../../shared/shell/launch/powershell-native-argument'
+import { wrapWindowsDirectCmdHookCommand } from '../agent-hooks/installation/commands/windows-direct-cmd-hook-command'
+import { wrapWindowsPowerShellEncodedCommand } from '../agent-hooks/installation/commands/windows-powershell-hook-launcher'
 import { cmdShimArgument } from '../bots/bot-tools-claude'
 
 /** Same name as AeroFortress gives its server, so the tools are `mcp__knowledge__*` there and here. */
@@ -20,10 +23,19 @@ export function aeroKnowledgeServer(launcher: string, platform: NodeJS.Platform)
     : { type: 'stdio', command: launcher, args }
 }
 
-// Claude Code runs a plugin's hook through bash, also on Windows, where forward slashes are safe.
+// Windows hooks run in Git Bash or, without it, PowerShell, so the command must parse in both: a bare
+// forward-slash path where the path allows it, else the encoded PowerShell launcher (as upstream's
+// managed hooks do). The bash form with a quoted path is a syntax error in PowerShell.
 function hookCommand(launcher: string, platform: NodeJS.Platform, subcommand: string): string {
-  const path = platform === 'win32' ? launcher.replaceAll('\\', '/') : launcher
-  return `${quoteStartupArg(path, 'posix')} aero hook ${subcommand}`
+  if (platform !== 'win32') {
+    return `${quoteStartupArg(launcher, 'posix')} aero hook ${subcommand}`
+  }
+  const direct = wrapWindowsDirectCmdHookCommand(launcher)
+  return direct
+    ? `${direct} aero hook ${subcommand}`
+    : wrapWindowsPowerShellEncodedCommand(
+        `& ${quotePowerShellLiteral(launcher)} aero hook ${subcommand}; exit $LASTEXITCODE`
+      )
 }
 
 /** The plugin's files by relative path: two hooks and the MCP config a terminal passes by path. */

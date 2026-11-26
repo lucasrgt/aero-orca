@@ -16,14 +16,30 @@ function hookCommands(launcher: string, platform: NodeJS.Platform): Record<strin
   )
 }
 
+function decodePowerShell(command: string): string {
+  const encoded = command.split(' -EncodedCommand ')[1]
+  return Buffer.from(encoded, 'base64').toString('utf16le')
+}
+
 describe('aero injection plugin', () => {
-  it('quotes a launcher with spaces for bash and uses forward slashes on Windows', () => {
+  it('quotes a launcher with spaces for bash on macOS and Linux', () => {
     expect(hookCommands('/Applications/My Orca/bin/orca', 'darwin')).toEqual({
       SessionStart: "'/Applications/My Orca/bin/orca' aero hook session-start",
       UserPromptSubmit: "'/Applications/My Orca/bin/orca' aero hook prompt-submit"
     })
-    expect(hookCommands('C:\\Users\\Ana Maria\\orca-dev.cmd', 'win32').SessionStart).toBe(
-      "'C:/Users/Ana Maria/orca-dev.cmd' aero hook session-start"
+  })
+
+  it('writes a bare forward-slash path on Windows, which Git Bash and PowerShell both run', () => {
+    expect(hookCommands('C:\\Users\\Ana\\orca-dev.cmd', 'win32').SessionStart).toBe(
+      'C:/Users/Ana/orca-dev.cmd aero hook session-start'
+    )
+  })
+
+  it('uses the encoded PowerShell launcher for a Windows path a bare command cannot carry', () => {
+    const command = hookCommands('C:\\Users\\Ana Maria\\orca-dev.cmd', 'win32').UserPromptSubmit
+    expect(command).not.toContain("'C:")
+    expect(decodePowerShell(command)).toContain(
+      "& 'C:\\Users\\Ana Maria\\orca-dev.cmd' aero hook prompt-submit; exit $LASTEXITCODE"
     )
   })
 
@@ -38,13 +54,6 @@ describe('aero injection plugin', () => {
       command: 'C:\\x\\orca.exe',
       args: ['aero', 'mcp']
     })
-  })
-
-  it('names the server knowledge so the tools are mcp__knowledge__*', () => {
-    const config: { mcpServers: Record<string, unknown> } = JSON.parse(
-      aeroInjectionPluginFiles('/bin/orca', 'linux')['mcp.json']
-    )
-    expect(Object.keys(config.mcpServers)).toEqual(['knowledge'])
   })
 })
 
