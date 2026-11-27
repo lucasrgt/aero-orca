@@ -1,6 +1,6 @@
 import { mkdir, mkdtemp, readFile, realpath, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { join, resolve } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { runAeroNyaGit } from './aero-nya-git'
 import { createAeroKanbanTools, type AeroKanbanTools } from './aero-kanban-tools'
@@ -136,6 +136,39 @@ describe('what an agent may write into a card', () => {
       verified_sha: 'abc123',
       fully_proven: true
     })
+  })
+})
+
+describe('a board checked out with CRLF line endings', () => {
+  it('reads like the LF board, stays untouched until edited, and is written back as LF', async () => {
+    const root = await makeRoot('aero-kanban-crlf-')
+    const kanban = join(root, '.aerofortress', 'kanban')
+    await mkdir(kanban, { recursive: true })
+    const lf = await readFile(
+      resolve('src/shared/aero/__fixtures__/kanban-real-autopilot-trimmed.toml'),
+      'utf8'
+    )
+    const crlf = lf.replaceAll('\n', '\r\n')
+    await writeFile(join(kanban, 'lf.toml'), lf)
+    await writeFile(join(kanban, 'crlf.toml'), crlf)
+    const tools = createAeroKanbanTools(root, { now: () => new Date('2026-11-26T12:00:00Z') })
+    const view = async (board: string): Promise<Board> => ({
+      ...(await call(tools, 'kanban_board', { board })),
+      board_path: ''
+    })
+
+    // the same tree, so the same card text hashes and readiness staleness
+    expect(await view('crlf')).toEqual(await view('lf'))
+    await call(tools, 'kanban_board_create', { board: 'crlf' })
+    expect(await readFile(join(kanban, 'crlf.toml'), 'utf8')).toBe(crlf)
+
+    const card = (await view('lf')).card[0].id
+    for (const board of ['lf', 'crlf']) {
+      await call(tools, 'kanban_card_update', { board, card, priority: 'urgent' })
+    }
+    const written = await readFile(join(kanban, 'crlf.toml'), 'utf8')
+    expect(written.includes('\r')).toBe(false)
+    expect(written).toBe(await readFile(join(kanban, 'lf.toml'), 'utf8'))
   })
 })
 

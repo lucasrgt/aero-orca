@@ -74,6 +74,31 @@ describe('a board it must not write', () => {
     expect(read.name).toBe('shared')
   })
 
+  it('leaves every board untouched when one board a remove must rewrite is refused', async () => {
+    const tools = createAeroKanbanTools(root)
+    const owner = JSON.parse(await tools.call('kanban_card_add', { board: 'owner', title: 'api' }))
+    const other = JSON.parse(await tools.call('kanban_card_add', { board: 'other', title: 'ui' }))
+    const upstream: string = owner.card[0].id
+    await tools.call('kanban_card_link', {
+      board: 'other',
+      card: other.card[0].id,
+      blocked_by: `owner/${upstream}`
+    })
+    const otherPath = join(kanban, 'other.toml')
+    await writeFile(otherPath, `# notes kept by hand\n${await readFile(otherPath, 'utf8')}`)
+    const before = {
+      owner: await readFile(join(kanban, 'owner.toml'), 'utf8'),
+      other: await readFile(otherPath, 'utf8')
+    }
+
+    await expect(
+      tools.call('kanban_card_remove', { board: 'owner', card: upstream })
+    ).rejects.toThrow(/board 'other' is not in the form AeroFortress writes/)
+
+    expect(await readFile(join(kanban, 'owner.toml'), 'utf8')).toBe(before.owner)
+    expect(await readFile(otherPath, 'utf8')).toBe(before.other)
+  })
+
   it('cannot be named out of the kanban folder', async () => {
     const tools = createAeroKanbanTools(root)
     for (const board of ['../../escape', 'a/b', 'C:\\temp\\x', '..']) {
@@ -143,7 +168,8 @@ beforeAll(async () => {
       contents: `
         import { createAeroKanbanTools } from '${tools}'
         const [root, board, prefix, count] = process.argv.slice(2)
-        const tools = createAeroKanbanTools(root)
+        // a loaded machine can hold the repo lock past the 5 s default; this test is about lost cards
+        const tools = createAeroKanbanTools(root, { lock: { timeoutMs: 45_000 } })
         async function main() {
           for (let index = 0; index < Number(count); index += 1) {
             await tools.call('kanban_card_add', { board, title: prefix + ' ' + index })
@@ -176,6 +202,7 @@ function runWriter(prefix: string, count: number): Promise<void> {
 }
 
 describe('parallel writers', () => {
+  // Four child processes start the bundled tools and make 24 locked writes: slow under a loaded gate.
   it('lose no card when several processes add to one board', async () => {
     await writeFile(join(kanban, 'shared.toml'), EMPTY_BOARD)
     const writers = 4

@@ -199,11 +199,22 @@ const cardHandlers: Record<string, Handler> = {
           throw new AeroKanbanError(CARD_NOT_FOUND)
         }
         removeAeroKanbanCard(document, card)
-        const changed = purgeAeroKanbanRefs(boards, makeAeroKanbanRef(name, card))
-        return { changed: changed.add(stem), result: document }
+        const purged = purgeAeroKanbanRefs(boards, makeAeroKanbanRef(name, card))
+        // the owning board first, as Aero writes it
+        return { changed: [stem, ...purged], result: document }
       }
     )
-    return render(context, result, skipped.length > 0 ? { skipped_boards: skipped } : {})
+    return render(
+      context,
+      result,
+      skipped.length > 0
+        ? {
+            skipped_boards: skipped,
+            skipped_note:
+              'these boards could not be read (they do not parse, or are over 4 MB), so any link to the removed card on them was left in place'
+          }
+        : {}
+    )
   },
   kanban_card_link: async (context, args) => {
     const name = requiredBoardName(args)

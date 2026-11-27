@@ -5,6 +5,7 @@ import { listFiles, probeDirectory, readGuardedFile } from '../../main/aero/aero
 import {
   applyAeroKanbanLoadDefaults,
   assertAeroKanbanRewriteSafe,
+  normalizeAeroKanbanText,
   parseAeroKanbanDocument,
   type AeroKanbanDocument
 } from '../../shared/aero/aero-kanban-document'
@@ -12,6 +13,7 @@ import { slugifyAeroKanban } from '../../shared/aero/aero-kanban-identifiers'
 import { AeroKanbanError } from '../../shared/aero/aero-kanban-tables'
 import { renderAeroTomlDocument } from '../../shared/aero/aero-toml-document-writer'
 import { AeroWriteConflictError, writeAeroGuardedFile } from './aero-item-file-writer'
+import { sweepStaleAeroKanbanTemps } from './aero-kanban-temp-sweep'
 import { withAeroKnowledgeLock, type AeroKnowledgeLockOptions } from './aero-knowledge-lock'
 
 const MAX_ATTEMPTS = 5
@@ -19,13 +21,19 @@ const BASE_FOLDERS = ['.aerofortress']
 const KANBAN_FOLDERS = ['kanban']
 const READ_TRIES = 3
 
-/** What a board file held when it was read: the text, a hash of it, and when and how big it was. */
+/**
+ * What a board file held when it was read: the bytes' hash, mtime and size (what the pre-rename check
+ * compares) and the text with CRLF turned into LF (what is parsed, guarded and compared).
+ */
 type Snapshot = { text: string; hash: string; mtimeNs: bigint; size: bigint }
+
+/** A board ready to be written: its new text, and what the file held when it was read. */
+type Staged = { stem: string; text: string; snapshot: Snapshot | undefined }
 
 export type AeroKanbanBoards = Map<string, AeroKanbanDocument>
 
 export type AeroKanbanEdit<T> = {
-  /** Every stem that changed; a stem whose text did not change is not written. */
+  /** Every stem that changed, in write order; a stem whose text did not change is not written. */
   changed: Iterable<string>
   result: T
 }
@@ -35,12 +43,14 @@ export type AeroKanbanStore = {
   boardPath: (stem: string) => string
   /** The board, or undefined when it does not exist; one that does not parse is an error. */
   read: (stem: string) => Promise<AeroKanbanDocument | undefined>
-  /** Every board that parses, by stem; unparsable ones are named in `skipped`. */
+  /** Every board that parses, by stem; unreadable ones are named in `skipped`. */
   readAll: () => Promise<{ boards: AeroKanbanBoards; skipped: string[] }>
   /**
    * One locked read-modify-write over `required` boards (absent ones are not in the map) and, with
-   * `all`, every other board that parses. Written boards are re-checked against what was read just
-   * before the rename; a change under it re-runs `apply` on fresh reads, a bounded number of times.
+   * `all`, every other board that can be read (the rest are named in `skipped`). Every changed board
+   * is rendered and checked before the first one is written, so a refusal writes nothing. Each is
+   * re-checked against what was read just before its rename; a change under it re-runs `apply` on
+   * fresh reads, a bounded number of times.
    */
   transact: <T>(
     options: { required: readonly string[]; all?: boolean },
@@ -54,6 +64,10 @@ function sameSnapshot(a: Snapshot | undefined, b: Snapshot | undefined): boolean
     : a.hash === b.hash && a.mtimeNs === b.mtimeNs && a.size === b.size
 }
 
+function reasonOf(error: unknown): string {
+  return error instanceof Error ? error.message : String(error)
+}
+
 export function createAeroKanbanStore(
   root: string,
   lockOptions: AeroKnowledgeLockOptions = {}
@@ -61,6 +75,7 @@ export function createAeroKanbanStore(
   const directory = join(root, '.aerofortress', 'kanban')
   const boardPath = (stem: string): string => join(directory, `${stem}.toml`)
   let writes: Promise<unknown> = Promise.resolve()
+  let swept = false
 
   async function snapshotOf(stem: string): Promise<Snapshot | undefined> {
     const path = boardPath(stem)
@@ -76,7 +91,8 @@ export function createAeroKanbanStore(
       const after = await lstat(path, { bigint: true }).catch(() => null)
       if (after !== null && after.mtimeNs === before.mtimeNs && after.size === before.size) {
         const hash = createHash('sha256').update(read.text).digest('hex')
-        return { text: read.text, hash, mtimeNs: after.mtimeNs, size: after.size }
+        const text = normalizeAeroKanbanText(read.text, stem)
+        return { text, hash, mtimeNs: after.mtimeNs, size: after.size }
       }
       if (attempt >= READ_TRIES) {
         throw new AeroKanbanError(`board '${stem}' keeps changing while it is read; try again`)
@@ -92,17 +108,18 @@ export function createAeroKanbanStore(
     return probed.status === 'ok'
   }
 
+  function documentOf(snapshot: Snapshot, stem: string): AeroKanbanDocument {
+    const document = parseAeroKanbanDocument(snapshot.text, stem)
+    applyAeroKanbanLoadDefaults(document)
+    return document
+  }
+
   async function read(stem: string): Promise<AeroKanbanDocument | undefined> {
     if (!(await assertDirectoryUsable())) {
       return undefined
     }
     const snapshot = await snapshotOf(stem)
-    if (snapshot === undefined) {
-      return undefined
-    }
-    const document = parseAeroKanbanDocument(snapshot.text, stem)
-    applyAeroKanbanLoadDefaults(document)
-    return document
+    return snapshot === undefined ? undefined : documentOf(snapshot, stem)
   }
 
   async function listStems(): Promise<string[]> {
@@ -131,34 +148,51 @@ export function createAeroKanbanStore(
     return { boards, skipped }
   }
 
-  /** Writes a changed board, or reports that it was not safe to; true when something was written. */
-  async function commit(
-    stem: string,
-    document: AeroKanbanDocument,
-    snapshot: Snapshot | undefined
-  ): Promise<boolean> {
-    const text = renderAeroTomlDocument(document.tree)
-    if (snapshot !== undefined) {
-      if (text === snapshot.text) {
-        return false
+  /** Renders and guards every changed board; throws, before anything is written, if one is unsafe. */
+  function stage(
+    changed: Iterable<string>,
+    boards: AeroKanbanBoards,
+    snapshots: Map<string, Snapshot | undefined>
+  ): Staged[] {
+    const staged: Staged[] = []
+    for (const stem of new Set(changed)) {
+      const document = boards.get(stem)
+      if (document === undefined) {
+        continue
       }
-      assertAeroKanbanRewriteSafe(snapshot.text, parseAeroKanbanDocument(snapshot.text, stem))
+      const text = renderAeroTomlDocument(document.tree)
+      const snapshot = snapshots.get(stem)
+      if (snapshot !== undefined) {
+        // the same text, whatever its line endings were: an unchanged board is never rewritten
+        if (text === snapshot.text) {
+          continue
+        }
+        assertAeroKanbanRewriteSafe(snapshot.text, parseAeroKanbanDocument(snapshot.text, stem))
+      }
+      staged.push({ stem, text, snapshot })
     }
+    return staged
+  }
+
+  async function writeStaged(board: Staged): Promise<void> {
     await writeAeroGuardedFile(
       root,
       BASE_FOLDERS,
       KANBAN_FOLDERS,
-      `${stem}.toml`,
-      text,
+      `${board.stem}.toml`,
+      board.text,
       'replace',
-      async () => sameSnapshot(snapshot, await snapshotOf(stem))
+      async () => {
+        const now = await snapshotOf(board.stem).catch(() => null)
+        return now !== null && sameSnapshot(board.snapshot, now)
+      }
     )
-    return true
   }
 
   async function attempt<T>(
     options: { required: readonly string[]; all?: boolean },
-    apply: (boards: AeroKanbanBoards) => AeroKanbanEdit<T>
+    apply: (boards: AeroKanbanBoards) => AeroKanbanEdit<T>,
+    written: Set<string>
   ): Promise<{ result: T; skipped: string[] } | 'conflict'> {
     const boards: AeroKanbanBoards = new Map()
     const snapshots = new Map<string, Snapshot | undefined>()
@@ -171,15 +205,12 @@ export function createAeroKanbanStore(
       }
     }
     for (const stem of stems) {
-      const snapshot = usable ? await snapshotOf(stem) : undefined
-      snapshots.set(stem, snapshot)
-      if (snapshot === undefined) {
-        continue
-      }
       try {
-        const document = parseAeroKanbanDocument(snapshot.text, stem)
-        applyAeroKanbanLoadDefaults(document)
-        boards.set(stem, document)
+        const snapshot = usable ? await snapshotOf(stem) : undefined
+        if (snapshot !== undefined) {
+          boards.set(stem, documentOf(snapshot, stem))
+        }
+        snapshots.set(stem, snapshot)
       } catch (error) {
         if (options.required.includes(stem)) {
           throw error
@@ -188,18 +219,23 @@ export function createAeroKanbanStore(
       }
     }
     const edit = apply(boards)
-    try {
-      for (const stem of new Set(edit.changed)) {
-        const document = boards.get(stem)
-        if (document !== undefined) {
-          await commit(stem, document, snapshots.get(stem))
+    const staged = stage(edit.changed, boards, snapshots)
+    for (const [index, board] of staged.entries()) {
+      try {
+        await writeStaged(board)
+        written.add(board.stem)
+      } catch (error) {
+        if (error instanceof AeroWriteConflictError) {
+          return 'conflict'
         }
+        if (written.size === 0) {
+          throw error
+        }
+        const left = staged.slice(index).map((entry) => entry.stem)
+        throw new AeroKanbanError(
+          `${reasonOf(error)}; boards already written: ${[...written].join(', ')}; not written: ${left.join(', ')}`
+        )
       }
-    } catch (error) {
-      if (error instanceof AeroWriteConflictError) {
-        return 'conflict'
-      }
-      throw error
     }
     return { result: edit.result, skipped }
   }
@@ -212,14 +248,24 @@ export function createAeroKanbanStore(
       withAeroKnowledgeLock(
         root,
         async () => {
+          if (!swept && (await assertDirectoryUsable())) {
+            swept = true
+            await sweepStaleAeroKanbanTemps(directory)
+          }
+          // a retry re-applies the edit to fresh reads; every edit is idempotent on a board it wrote
+          const written = new Set<string>()
           for (let tries = 1; tries <= MAX_ATTEMPTS; tries += 1) {
-            const outcome = await attempt(options, apply)
+            const outcome = await attempt(options, apply, written)
             if (outcome !== 'conflict') {
               return outcome
             }
           }
+          const partial =
+            written.size === 0
+              ? 'nothing was written'
+              : `already written: ${[...written].join(', ')}`
           throw new AeroKanbanError(
-            'the board keeps changing under this write (is another program editing it?); try again'
+            `the board keeps changing under this write (is another program editing it?); ${partial}; try again`
           )
         },
         lockOptions

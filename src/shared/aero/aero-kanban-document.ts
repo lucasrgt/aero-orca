@@ -37,6 +37,19 @@ export function newAeroKanbanDocument(stem: string): AeroKanbanDocument {
   }
 }
 
+/**
+ * The text a board is parsed and compared as: CRLF becomes LF, as toml_edit reads it (smol-toml would
+ * keep the CR inside multi-line strings, and the card text hash would drift). A lone CR is refused.
+ */
+export function normalizeAeroKanbanText(raw: string, stem: string): string {
+  if (/\r(?!\n)/.test(raw)) {
+    throw new AeroKanbanError(
+      `board '${stem}' holds a carriage return that does not end a line; nothing was written`
+    )
+  }
+  return raw.replaceAll('\r\n', '\n')
+}
+
 /** Parses a board for reading; a file Aero would not load is an error, never an empty board. */
 export function parseAeroKanbanDocument(raw: string, stem: string): AeroKanbanDocument {
   const checked = parseAeroKanbanBoard(raw, stem)

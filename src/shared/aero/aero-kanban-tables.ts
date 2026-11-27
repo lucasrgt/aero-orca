@@ -27,6 +27,11 @@ export function readTables(table: AeroTomlTable, key: string): AeroTomlTable[] {
   return Array.isArray(value) ? value.filter(isAeroTomlTable) : []
 }
 
+/** An own, enumerable key even when it is named `__proto__`, which plain assignment would drop. */
+function defineKey(table: AeroTomlTable, key: string, value: AeroTomlValue): void {
+  Object.defineProperty(table, key, { value, enumerable: true, writable: true, configurable: true })
+}
+
 /**
  * Sets `key`, replacing in place when present; a new key goes right after the last key that precedes
  * it in `order` (struct order), so the file keeps the shape Aero writes. A key that turns from a plain
@@ -60,7 +65,7 @@ export function setKnownKey(
     delete table[existing]
   }
   for (const [existing, entry] of entries) {
-    table[existing] = entry
+    defineKey(table, existing, entry)
   }
 }
 
@@ -73,7 +78,7 @@ export function carryUnknownKeys(
   const known = new Set((AERO_KANBAN_TABLES[tableName] ?? []).map(([key]) => key))
   for (const [key, value] of Object.entries(previous ?? {})) {
     if (!known.has(key) && !Object.hasOwn(next, key)) {
-      next[key] = value
+      defineKey(next, key, value)
     }
   }
   return next
