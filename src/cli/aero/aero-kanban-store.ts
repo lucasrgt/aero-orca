@@ -255,7 +255,15 @@ export function createAeroKanbanStore(
           // a retry re-applies the edit to fresh reads; every edit is idempotent on a board it wrote
           const written = new Set<string>()
           for (let tries = 1; tries <= MAX_ATTEMPTS; tries += 1) {
-            const outcome = await attempt(options, apply, written)
+            const outcome = await attempt(options, apply, written).catch((error: unknown) => {
+              // A retry that fails before its writes must still say what an earlier try wrote.
+              if (written.size === 0 || reasonOf(error).includes('boards already written:')) {
+                throw error
+              }
+              throw new AeroKanbanError(
+                `${reasonOf(error)}; boards already written: ${[...written].join(', ')}`
+              )
+            })
             if (outcome !== 'conflict') {
               return outcome
             }
