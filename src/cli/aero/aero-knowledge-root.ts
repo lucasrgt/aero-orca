@@ -2,7 +2,7 @@ import { lstat } from 'node:fs/promises'
 import { dirname, join, resolve } from 'node:path'
 import { resolveAeroRepoRoot } from '../../main/aero/aero-workspace-files'
 
-async function hasAerofortressDir(directory: string): Promise<boolean> {
+export async function hasAerofortressDir(directory: string): Promise<boolean> {
   const entry = await lstat(join(directory, '.aerofortress')).catch(() => null)
   return entry?.isDirectory() ?? false
 }

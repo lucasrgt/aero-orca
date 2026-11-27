@@ -20,9 +20,12 @@ export const AERO_COMMAND_SPECS: CommandSpec[] = [
     usage: 'orca aero mcp [--path <repo>]',
     allowedFlags: [...LOCAL_COMMAND_FLAGS, 'path'],
     notes: [
-      'Speaks the same tools as the AeroFortress `knowledge` server: query, explore, read, store, link, validate, pack, and the Not You Again tools nya_recall, nya_remember, nya_check. Works without a running Orca app.',
+      'Speaks the same tools as the AeroFortress `knowledge` server: query, explore, read, store, link, validate, pack; the Kanban tools kanban_board, kanban_board_create, kanban_board_mode, kanban_board_pipeline, kanban_column_pipeline, kanban_card_add, kanban_card_update, kanban_card_move, kanban_card_remove, kanban_card_link, kanban_card_unlink, kanban_card_answer; and the Not You Again tools nya_recall, nya_remember, nya_check. Works without a running Orca app.',
       '--path defaults to the current directory; the server is rooted at the nearest directory at or above it that holds .aerofortress. store, link and validate write only under .aerofortress/items.',
-      'Not supported yet: agents, kanban, autopilot, goals, inbox, routines, sessions, plugin mounts, aggregate workspaces, and the administrative Not You Again tools (nya_init, nya_setup, nya_collect, nya_spec, nya_replay).'
+      'The Kanban tools write .aerofortress/kanban/<board>.toml. From a linked git worktree they use the boards of the primary checkout, so every worktree shares one board; each result names the file in board_path. A board is rewritten only when it is in the exact form AeroFortress writes (anything else, or a file that does not parse, is refused untouched), and only the fields an edit touches change. Moving a card to done returns what it unblocks in unblocked, instead of an inbox note.',
+      'Boards are read with CRLF line endings turned into LF (as AeroFortress reads them) and written with LF; an unchanged board is never rewritten. An edit that spans boards checks every one before it writes any, so a refusal writes nothing. A board larger than 4 MB is not read: kanban_card_remove leaves any link on it in place and names it in skipped_boards.',
+      "Orca locks the repo across processes, but the AeroFortress app locks only within its own process: in a tiny window the app and Orca can still lose each other's update, and the app drops the keys it does not know whenever it writes a board.",
+      'Not supported yet: agents, kanban_card_triage, kanban_card_attach, orphaned-card detection, autopilot, goals, inbox, routines, sessions, plugin mounts, aggregate workspaces, and the administrative Not You Again tools (nya_init, nya_setup, nya_collect, nya_spec, nya_replay).'
     ],
     examples: ['orca aero mcp', 'orca aero mcp --path ../my-repo']
   },

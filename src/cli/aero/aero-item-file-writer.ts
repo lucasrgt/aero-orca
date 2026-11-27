@@ -97,10 +97,14 @@ async function inspectTarget(target: string): Promise<'absent' | 'file' | 'other
   }
 }
 
+/** A `beforeRename` precondition failed: the target changed after it was read, so nothing was written. */
+export class AeroWriteConflictError extends Error {}
+
 /**
  * Writes one file: a temp file in the same folder, then a rename over the target. The write stays
  * under `<base>/<folders>`, follows no symlink and never replaces a non-file; `create` also refuses
- * to replace a file. Returns the absolute path written.
+ * to replace a file. `beforeRename` runs once the temp file is durable, right before the rename;
+ * a false answer abandons the write with `AeroWriteConflictError`. Returns the absolute path written.
  */
 export async function writeAeroGuardedFile(
   root: string,
@@ -108,7 +112,8 @@ export async function writeAeroGuardedFile(
   folders: readonly string[],
   fileName: string,
   text: string,
-  mode: 'create' | 'replace'
+  mode: 'create' | 'replace',
+  beforeRename?: () => Promise<boolean>
 ): Promise<string> {
   assertPlainFileName(fileName)
   const directory = await ensureFolder(root, base, folders)
@@ -120,6 +125,9 @@ export async function writeAeroGuardedFile(
   const temp = join(directory, `.${fileName}.tmp-${randomBytes(8).toString('hex')}`)
   try {
     await writeDurableFile(temp, text)
+    if (beforeRename && !(await beforeRename())) {
+      throw new AeroWriteConflictError(`${fileName} changed while it was being rewritten`)
+    }
     await retryWhileBusy(() => rename(temp, target))
   } catch (error) {
     await unlink(temp).catch(() => {})
