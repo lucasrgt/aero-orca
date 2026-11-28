@@ -4,6 +4,9 @@ export type AeroKanbanPanelCard = {
   desc: string
   column: string
   priority: string
+  blockedBy?: string[]
+  blocks?: string[]
+  clarifications?: { id: string; question: string; answer: string; options: string[] }[]
   subtasks: { title: string; done: boolean }[]
 }
 

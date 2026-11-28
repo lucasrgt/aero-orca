@@ -31423,7 +31423,12 @@
       "description": "Description",
       "subtaskLines": "Subtasks · one per line, [x] marks complete",
       "save": "Save",
-      "liveEditing": "Changes are saved to your Aero boards and refresh automatically."
+      "liveEditing": "Changes are saved to your Aero boards and refresh automatically.",
+      "blockedBy": "Blocked by · board/card",
+      "linkCard": "Link dependency",
+      "unlink": "Unlink",
+      "blocks": "Blocks: {{cards}}",
+      "answer": "Answer"
     }
   }
 }

@@ -46,7 +46,12 @@ export type AeroKanbanTools = {
   call: (name: string, args: AeroKanbanToolArgs) => Promise<string>
 }
 
-type Context = { store: AeroKanbanStore; dataDirectory: string; now: () => string }
+type Context = {
+  store: AeroKanbanStore
+  dataDirectory: string
+  now: () => string
+  answerVia: 'user' | 'agent'
+}
 type Handler = (context: Context, args: AeroKanbanToolArgs) => Promise<string>
 
 const CARD_NOT_FOUND = 'board or card not found'
@@ -254,11 +259,11 @@ const cardHandlers: Record<string, Handler> = {
     const answers = answersFromArguments(args)
     const stem = slugifyAeroKanban(name)
     const { value } = await changeBoard(context, stem, `board '${name}' not found`, (board) =>
-      answerAeroKanbanClarifications(board, card, answers, 'agent', context.now())
+      answerAeroKanbanClarifications(board, card, answers, context.answerVia, context.now())
     )
     return JSON.stringify({
       stored: value,
-      via: 'agent',
+      via: context.answerVia,
       board_path: context.store.boardPath(stem)
     })
   }
@@ -276,6 +281,7 @@ export function createAeroKanbanTools(
   options: {
     lock?: AeroKnowledgeLockOptions
     now?: () => Date
+    answerVia?: 'user' | 'agent'
     authorizeRoot?: (path: string) => Promise<string>
   } = {}
 ): AeroKanbanTools {
@@ -286,6 +292,7 @@ export function createAeroKanbanTools(
       return {
         store: createAeroKanbanStore(primary, options.lock),
         dataDirectory: join(primary, '.aerofortress'),
+        answerVia: options.answerVia ?? 'agent',
         now: () => aeroKanbanTimestamp((options.now ?? (() => new Date()))())
       }
     })

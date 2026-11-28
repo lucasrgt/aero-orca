@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { useTranslate } from '@/i18n/use-translate'
 import type { AeroKanbanPanelBoard } from '../../../../../shared/aero/aero-kanban-panel'
 import { AeroBoardEditor } from './AeroBoardEditor'
+import { AeroCardDossier } from './AeroCardDossier'
 
 export function AeroBoardCards({
   board,
@@ -71,9 +72,19 @@ export function AeroBoardCards({
                               .join('\n')}
                           </p>
                         )}
-                        <p className="break-all font-mono text-xs text-muted-foreground">
-                          {card.id}
-                        </p>
+                        {path && onChanged ? (
+                          <AeroCardDossier
+                            key={`${path}:${board.stem}:${card.id}`}
+                            path={path}
+                            board={board.stem}
+                            card={card}
+                            onChanged={onChanged}
+                          />
+                        ) : (
+                          <p className="break-all font-mono text-xs text-muted-foreground">
+                            {card.id}
+                          </p>
+                        )}
                       </div>
                     </AccordionContent>
                   </AccordionItem>

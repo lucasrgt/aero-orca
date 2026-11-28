@@ -1,7 +1,7 @@
 import { isAbsolute } from 'node:path'
 import { resolveAeroKanbanRoot } from '../../cli/aero/aero-kanban-root'
 import { createAeroKanbanStore } from '../../cli/aero/aero-kanban-store'
-import { readString, readTables } from '../../shared/aero/aero-kanban-tables'
+import { readString, readStrings, readTables } from '../../shared/aero/aero-kanban-tables'
 import type { AeroKanbanPanelSnapshot } from '../../shared/aero/aero-kanban-panel'
 
 export async function readAeroKanbanPanel(
@@ -30,6 +30,14 @@ export async function readAeroKanbanPanel(
         desc: readString(card, 'desc'),
         column: readString(card, 'column'),
         priority: readString(card, 'priority'),
+        blockedBy: readStrings(card, 'blocked_by'),
+        blocks: readStrings(card, 'blocks'),
+        clarifications: readTables(card, 'clarifications').map((question) => ({
+          id: readString(question, 'id'),
+          question: readString(question, 'question'),
+          answer: readString(question, 'answer'),
+          options: readStrings(question, 'options')
+        })),
         subtasks: readTables(card, 'subtasks').map((subtask) => ({
           title: readString(subtask, 'title'),
           done: subtask.done === true
