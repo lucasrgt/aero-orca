@@ -20,6 +20,8 @@
     "../src/main/**/*",
     "../src/cli/aero/aero-kanban-root.ts",
     "../src/cli/aero/aero-kanban-store.ts",
+    "../src/cli/aero/aero-kanban-tools.ts",
+    "../src/cli/aero/aero-kanban-tool-arguments.ts",
     "../src/cli/aero/aero-knowledge-root.ts",
     "../src/cli/aero/aero-nya-git.ts",
     "../src/cli/aero/aero-item-file-writer.ts",

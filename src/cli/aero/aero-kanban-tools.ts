@@ -273,15 +273,22 @@ const handlers: Record<string, Handler> = { ...boardHandlers, ...cardHandlers }
  */
 export function createAeroKanbanTools(
   root: string,
-  options: { lock?: AeroKnowledgeLockOptions; now?: () => Date } = {}
+  options: {
+    lock?: AeroKnowledgeLockOptions
+    now?: () => Date
+    authorizeRoot?: (path: string) => Promise<string>
+  } = {}
 ): AeroKanbanTools {
   let context: Promise<Context> | undefined
   const contextOf = (): Promise<Context> => {
-    context ??= resolveAeroKanbanRoot(root).then((primary) => ({
-      store: createAeroKanbanStore(primary, options.lock),
-      dataDirectory: join(primary, '.aerofortress'),
-      now: () => aeroKanbanTimestamp((options.now ?? (() => new Date()))())
-    }))
+    context ??= resolveAeroKanbanRoot(root).then(async (resolved) => {
+      const primary = options.authorizeRoot ? await options.authorizeRoot(resolved) : resolved
+      return {
+        store: createAeroKanbanStore(primary, options.lock),
+        dataDirectory: join(primary, '.aerofortress'),
+        now: () => aeroKanbanTimestamp((options.now ?? (() => new Date()))())
+      }
+    })
     return context
   }
   return {

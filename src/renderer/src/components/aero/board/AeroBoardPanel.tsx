@@ -14,6 +14,7 @@ import {
 import { getRepoExecutionHostId } from '../../../../../shared/execution-host/execution-host'
 import { AeroBoardCards } from './AeroBoardCards'
 import { useAeroBoard } from './use-aero-board'
+import { AeroBoardEditor } from './AeroBoardEditor'
 
 export default function AeroBoardPanel(): React.JSX.Element {
   const t = useTranslate()
@@ -67,8 +68,19 @@ export default function AeroBoardPanel(): React.JSX.Element {
           </Button>
         </div>
         <p className="text-xs text-muted-foreground">
-          {t('aero.kanban.readOnly', 'Read-only · changes in Aero appear here automatically.')}
+          {t(
+            'aero.kanban.liveEditing',
+            'Changes are saved to your Aero boards and refresh automatically.'
+          )}
         </p>
+        {snapshot && (
+          <AeroBoardEditor
+            key={`${snapshot.root}:${selected?.stem ?? ''}`}
+            path={snapshot.root}
+            board={selected}
+            onChanged={refresh}
+          />
+        )}
         {selected && snapshot && (
           <Select
             value={selected.stem}
@@ -112,7 +124,14 @@ export default function AeroBoardPanel(): React.JSX.Element {
           {t('aero.kanban.empty', 'No Aero boards in this project yet.')}
         </p>
       )}
-      {selected && <AeroBoardCards key={`${snapshot?.root}:${selected.stem}`} board={selected} />}
+      {selected && snapshot && (
+        <AeroBoardCards
+          key={`${snapshot.root}:${selected.stem}`}
+          board={selected}
+          path={snapshot.root}
+          onChanged={refresh}
+        />
+      )}
     </div>
   )
 }

@@ -26817,12 +26817,20 @@
       "chooseProject": "Selecione um projeto para ver seus quadros.",
       "localOnly": "Os quadros do Aero estão disponíveis para projetos locais por enquanto.",
       "refresh": "Atualizar",
-      "readOnly": "Somente leitura · alterações no Aero aparecem aqui automaticamente.",
       "selectBoard": "Selecionar quadro",
       "loadError": "Não foi possível carregar os quadros: {{error}}",
       "skipped": "Quadros que não puderam ser lidos: {{boards}}",
       "loading": "Carregando quadros…",
-      "empty": "Este projeto ainda não tem quadros do Aero."
+      "empty": "Este projeto ainda não tem quadros do Aero.",
+      "newBoard": "Novo quadro",
+      "newCard": "Novo card",
+      "editCard": "Editar card",
+      "moveTo": "Mover para {{column}}",
+      "cardTitle": "Título",
+      "description": "Descrição",
+      "subtaskLines": "Subtarefas · uma por linha, [x] marca concluída",
+      "save": "Salvar",
+      "liveEditing": "As alterações são salvas nos quadros do Aero e atualizadas automaticamente."
     }
   }
 }

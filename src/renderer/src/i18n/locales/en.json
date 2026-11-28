@@ -31410,12 +31410,20 @@
       "chooseProject": "Select a project to see its boards.",
       "localOnly": "Aero boards are currently available for local projects.",
       "refresh": "Refresh",
-      "readOnly": "Read-only · changes in Aero appear here automatically.",
       "selectBoard": "Select board",
       "loadError": "Could not load boards: {{error}}",
       "skipped": "Unreadable boards: {{boards}}",
       "loading": "Loading boards…",
-      "empty": "No Aero boards in this project yet."
+      "empty": "No Aero boards in this project yet.",
+      "newBoard": "New board",
+      "newCard": "New card",
+      "editCard": "Edit card",
+      "moveTo": "Move to {{column}}",
+      "cardTitle": "Title",
+      "description": "Description",
+      "subtaskLines": "Subtasks · one per line, [x] marks complete",
+      "save": "Save",
+      "liveEditing": "Changes are saved to your Aero boards and refresh automatically."
     }
   }
 }
