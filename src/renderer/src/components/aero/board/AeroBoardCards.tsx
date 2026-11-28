@@ -7,8 +7,17 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { useTranslate } from '@/i18n/use-translate'
 import type { AeroKanbanPanelBoard } from '../../../../../shared/aero/aero-kanban-panel'
+import { AeroBoardEditor } from './AeroBoardEditor'
 
-export function AeroBoardCards({ board }: { board: AeroKanbanPanelBoard }): React.JSX.Element {
+export function AeroBoardCards({
+  board,
+  path,
+  onChanged
+}: {
+  board: AeroKanbanPanelBoard
+  path?: string
+  onChanged?: () => Promise<void>
+}): React.JSX.Element {
   const t = useTranslate()
   const columns = [...board.columns]
   for (const card of board.cards) {
@@ -42,6 +51,15 @@ export function AeroBoardCards({ board }: { board: AeroKanbanPanelBoard }): Reac
                     </AccordionTrigger>
                     <AccordionContent>
                       <div className="space-y-2">
+                        {path && onChanged && (
+                          <AeroBoardEditor
+                            key={`${path}:${board.stem}:${card.id}`}
+                            path={path}
+                            board={board}
+                            card={card}
+                            onChanged={onChanged}
+                          />
+                        )}
                         {card.priority && <Badge variant="secondary">{card.priority}</Badge>}
                         <p className="whitespace-pre-wrap break-words text-sm">
                           {card.desc || t('aero.kanban.noDescription', 'No description')}

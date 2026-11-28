@@ -22,4 +22,17 @@ export type AeroKanbanPanelSnapshot = {
 
 export type AeroKanbanPanelApi = {
   list: (args: { path: string }) => Promise<AeroKanbanPanelSnapshot>
+  mutate: (args: {
+    path: string
+    tool:
+      | 'kanban_board_create'
+      | 'kanban_card_add'
+      | 'kanban_card_update'
+      | 'kanban_card_move'
+      | 'kanban_card_remove'
+      | 'kanban_card_link'
+      | 'kanban_card_unlink'
+      | 'kanban_card_answer'
+    args: Record<string, unknown>
+  }) => Promise<AeroKanbanPanelSnapshot>
 }
