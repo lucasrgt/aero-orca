@@ -1,3 +1,4 @@
+import type { AeroKanbanPanelApi } from '../shared/aero/aero-kanban-panel'
 import type {
   ClaudeAccountsApi,
   CodexAccountsApi,
@@ -97,6 +98,7 @@ import type {
 type Merged<T> = { [K in keyof T]: T[K] }
 
 export type PreloadApi = {
+  aeroKanban: AeroKanbanPanelApi
   app: AppApi
   orcaProfiles: OrcaProfileApi
   platform: PlatformApi

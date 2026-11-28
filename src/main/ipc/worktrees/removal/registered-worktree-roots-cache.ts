@@ -1,21 +1,23 @@
 import { resolve } from 'node:path'
-import { findRegisteredWorktreeRoot } from './registered-worktree-root-match'
+import {
+  findCanonicalRegisteredWorktreeRoot,
+  findRegisteredWorktreeRootAsync,
+  hasRegisteredWorktreeRoot
+} from './registered-worktree-root-match'
 import type { Repo } from '../../../../shared/repository/repo-types'
 import type { RegisteredWorktreeRootStore as Store } from './registered-worktree-root-store'
 import {
   listWorktreeRootsWithConcurrency,
   pruneCreatedWorktreeRoots
 } from './registered-worktree-root-probes'
-import {
-  isDescendantOrEqual,
-  normalizeExistingPath
-} from '../../../filesystem/local-file-io/filesystem-path-containment'
+import { normalizeExistingPath } from '../../../filesystem/local-file-io/filesystem-path-containment'
 import {
   findOwnersListedThroughAnotherGit,
   shouldRelistOwner
 } from './registered-worktree-root-relist-policy'
 import {
   createRegisteredOwner,
+  collectRegisteredOwnerRoots,
   getLocalWorktreeRootOwners,
   resolveWorktreeRootOwner,
   type RegisteredOwner
@@ -250,25 +252,31 @@ export async function resolveRegisteredWorktreePath(
 
 function refreshRegisteredWorktreeRoots(): void {
   registeredWorktreeRoots.clear()
-  for (const owner of registeredOwners.values()) {
-    for (const roots of [owner.listed, owner.recovered, owner.aliases]) {
-      if (roots) {
-        for (const root of roots) {
-          registeredWorktreeRoots.add(root)
-        }
-      }
-    }
+  for (const root of collectRegisteredOwnerRoots(registeredOwners.values())) {
+    registeredWorktreeRoots.add(root)
   }
 }
 
 export function isRegisteredWorktreePath(targetPath: string, store: Store): boolean {
   synchronizeOwners(store)
-  for (const root of registeredWorktreeRoots) {
-    if (isDescendantOrEqual(targetPath, root)) {
-      return true
-    }
-  }
-  return false
+  return hasRegisteredWorktreeRoot(targetPath, registeredWorktreeRoots)
+}
+
+export async function isRegisteredWorktreePathAsync(
+  targetPath: string,
+  store: Store
+): Promise<boolean> {
+  synchronizeOwners(store)
+  const generation = invalidationGeneration
+  const revision = revisionSequence
+  const root = await findRegisteredWorktreeRootAsync(targetPath, [...registeredWorktreeRoots])
+  synchronizeOwners(store)
+  return (
+    root !== null &&
+    generation === invalidationGeneration &&
+    revision === revisionSequence &&
+    registeredWorktreeRoots.has(root)
+  )
 }
 
 export async function isPathAllowedByCanonicalRegisteredRoot(
@@ -280,27 +288,33 @@ export async function isPathAllowedByCanonicalRegisteredRoot(
     return false
   }
   synchronizeOwners(store)
-  const textualRoot = findRegisteredWorktreeRoot(sourcePath, registeredWorktreeRoots)
-  if (!textualRoot) {
+  const generation = invalidationGeneration
+  const owners = [...registeredOwners.values()].map((owner) => ({
+    owner,
+    revision: owner.revision
+  }))
+  const match = await findCanonicalRegisteredWorktreeRoot(targetPath, sourcePath, [
+    ...registeredWorktreeRoots
+  ])
+  synchronizeOwners(store)
+  if (
+    !match ||
+    generation !== invalidationGeneration ||
+    !registeredWorktreeRoots.has(match.textualRoot)
+  ) {
     return false
   }
-  const generation = invalidationGeneration
-  const owners = [...registeredOwners.values()]
-    .filter(
-      (owner) =>
+  const { textualRoot, canonicalRoot } = match
+  let allowed = false
+  for (const { owner, revision } of owners) {
+    if (
+      owner.revision !== revision ||
+      !(
         owner.listed?.has(textualRoot) ||
         owner.recovered.has(textualRoot) ||
         owner.aliases.has(textualRoot)
-    )
-    .map((owner) => ({ owner, revision: owner.revision }))
-  const canonicalRoot = await normalizeExistingPath(textualRoot)
-  synchronizeOwners(store)
-  if (generation !== invalidationGeneration || !isDescendantOrEqual(targetPath, canonicalRoot)) {
-    return false
-  }
-  let allowed = false
-  for (const { owner, revision } of owners) {
-    if (owner.revision !== revision) {
+      )
+    ) {
       continue
     }
     owner.aliases.add(canonicalRoot)

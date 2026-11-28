@@ -1,6 +1,10 @@
 import { useEffect, useSyncExternalStore } from 'react'
-import type { EditorExternalWatchTarget } from './editor-external-watch-targets'
+import {
+  getEditorExternalWatchTargetKey,
+  type EditorExternalWatchTarget
+} from './editor-external-watch-targets'
 const consumers = new Map<string, EditorExternalWatchTarget>()
+const readyListeners = new Map<string, () => void>()
 const listeners = new Set<() => void>()
 let snapshot: readonly EditorExternalWatchTarget[] = []
 const subscribe = (listener: () => void) => {
@@ -26,13 +30,14 @@ function publish() {
     }
   })
 }
-/** Folder Source Control sections' watch targets, unioned outside the ordinary warm-workspace budget. */
+/** Panel watch targets, unioned outside the ordinary warm-workspace budget. */
 export function useSourceControlWatchConsumers() {
   return useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
 }
 export function useSourceControlWatchConsumer(
   key: string,
-  target: EditorExternalWatchTarget | null
+  target: EditorExternalWatchTarget | null,
+  onReady?: () => void
 ): void {
   const path = target?.worktreePath
   const id = target?.worktreeId
@@ -48,10 +53,23 @@ export function useSourceControlWatchConsumer(
       connectionId: connection,
       runtimeEnvironmentId: runtime ?? null
     })
+    if (onReady) {
+      readyListeners.set(key, onReady)
+    }
     publish()
     return () => {
       consumers.delete(key)
+      readyListeners.delete(key)
       publish()
     }
-  }, [key, id, path, connection, runtime])
+  }, [key, id, path, connection, runtime, onReady])
+}
+
+export function notifySourceControlWatchReady(target: EditorExternalWatchTarget): void {
+  const targetKey = getEditorExternalWatchTargetKey(target)
+  for (const [key, consumer] of consumers) {
+    if (getEditorExternalWatchTargetKey(consumer) === targetKey) {
+      readyListeners.get(key)?.()
+    }
+  }
 }

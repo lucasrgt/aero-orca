@@ -4,6 +4,7 @@ import {
   GitBranch,
   House,
   ListChecks,
+  KanbanSquare,
   MessagesSquare,
   Plug,
   Workflow
@@ -90,6 +91,12 @@ export function getDefaultRightSidebarActivityItems({
       id: 'vault',
       icon: AgentSessionHistoryIcon,
       title: t('auto.components.right.sidebar.index.aiVaultSessionHistory', 'Agents'),
+      shortcut: ''
+    },
+    {
+      id: 'aero-board',
+      icon: KanbanSquare,
+      title: t('aero.kanban.title', 'Aero boards'),
       shortcut: ''
     },
     {

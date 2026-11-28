@@ -35,6 +35,7 @@ export function normalizeRightSidebarRoute(
     return { rightSidebarTab: tab, rightSidebarExplorerView: 'files' }
   }
   if (
+    tab === 'aero-board' ||
     tab === 'explorer' ||
     tab === 'vault' ||
     tab === 'workspaces' ||
