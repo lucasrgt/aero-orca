@@ -72,6 +72,7 @@ export function normalizeProjectOrderBy(
 
 export function normalizeRightSidebarTab(tab: unknown): PersistedState['ui']['rightSidebarTab'] {
   if (
+    tab === 'aero-board' ||
     tab === 'explorer' ||
     tab === 'search' ||
     tab === 'vault' ||

@@ -1,4 +1,7 @@
-import { useSourceControlWatchConsumers } from '../components/editor/external-changes/watching/source-control-watch-consumers'
+import {
+  useSourceControlWatchConsumers,
+  notifySourceControlWatchReady
+} from '../components/editor/external-changes/watching/source-control-watch-consumers'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useAppStore } from '@/store'
 import { subscribeEditorRuntimeFileWatch } from '../components/editor/external-changes/watching/editor-runtime-file-watch'
@@ -14,6 +17,7 @@ import { buildEditorExternalWatchEventHandler } from '../components/editor/exter
 import { verifyLatchedEditorMoveDestinations } from '../components/editor/external-changes/watching/editor-external-watch-disk-verification'
 import {
   acquireWatchRoot,
+  isWatchRootFailed,
   releaseAllWatchRoots,
   releaseWatchRoot,
   type HeldWatchRoots
@@ -99,6 +103,11 @@ export function useEditorExternalWatch(): void {
       const installed = acquireWatchRoot(heldWatchRootsRef.current, target, (err) => {
         // Provider disappearance must report watch failure without uncaught renderer rejection.
         warnExternalWatchFailure(target, err)
+      })
+      void installed.then(() => {
+        if (!isWatchRootFailed(heldWatchRootsRef.current, target)) {
+          notifySourceControlWatchReady(target)
+        }
       })
       // After reacquiring trimmed background watches, catch up on changes made while unwatched.
       if (previousUnwatchedKeys.has(getEditorExternalWatchTargetKey(target))) {

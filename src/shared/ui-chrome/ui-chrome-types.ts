@@ -92,6 +92,7 @@ export type TaskResumeState = {
 }
 
 export const STATIC_RIGHT_SIDEBAR_TABS = [
+  'aero-board',
   'explorer',
   'search',
   'vault',

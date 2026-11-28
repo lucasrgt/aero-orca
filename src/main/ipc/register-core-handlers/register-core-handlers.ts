@@ -1,4 +1,5 @@
 import { app } from 'electron'
+import { registerAeroKanbanHandlers } from '../aero-kanban'
 import { registerAppHandlers } from '../app'
 import { registerWslMoveWiring } from '../wsl/wsl-move-driver-wiring'
 import { registerWslDriveProjectHandlers } from '../wsl/wsl-drive-project-handlers'
@@ -174,6 +175,7 @@ export async function registerCoreHandlers(
     registerExportHandlers()
     registerStatsHandlers(stats)
     registerMemoryHandlers(store)
+    registerAeroKanbanHandlers(store)
     registerNotificationHandlers(store, runtime)
     registerNotebookHandlers(store)
     registerOnboardingHandlers(store)

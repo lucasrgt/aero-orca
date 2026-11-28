@@ -55,3 +55,15 @@ export function resolveWorktreeRootOwner(
   const key = getWorktreeRootOwnerKey(repo)
   return !repo.connectionId && owners.has(key) ? key : undefined
 }
+
+export function collectRegisteredOwnerRoots(owners: Iterable<RegisteredOwner>): Set<string> {
+  const roots = new Set<string>()
+  for (const owner of owners) {
+    for (const layer of [owner.listed, owner.recovered, owner.aliases]) {
+      for (const root of layer ?? []) {
+        roots.add(root)
+      }
+    }
+  }
+  return roots
+}
