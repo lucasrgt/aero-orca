@@ -38,6 +38,9 @@ export async function mutateAeroKanbanPanel(
   }
   const requested = await authorize(input.path)
   const root = await authorize(await resolveAeroKanbanRoot(requested))
-  await createAeroKanbanTools(root, { authorizeRoot: authorize }).call(input.tool, input.args)
+  await createAeroKanbanTools(root, { authorizeRoot: authorize, answerVia: 'user' }).call(
+    input.tool,
+    input.args
+  )
   return readAeroKanbanPanel(root, authorize)
 }

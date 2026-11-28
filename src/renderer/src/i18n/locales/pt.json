@@ -26830,7 +26830,12 @@
       "description": "Descrição",
       "subtaskLines": "Subtarefas · uma por linha, [x] marca concluída",
       "save": "Salvar",
-      "liveEditing": "As alterações são salvas nos quadros do Aero e atualizadas automaticamente."
+      "liveEditing": "As alterações são salvas nos quadros do Aero e atualizadas automaticamente.",
+      "blockedBy": "Bloqueado por · quadro/card",
+      "linkCard": "Vincular dependência",
+      "unlink": "Desvincular",
+      "blocks": "Bloqueia: {{cards}}",
+      "answer": "Responder"
     }
   }
 }
